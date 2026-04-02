@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PJP8J92TTC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-PJP8J92TTC');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCO Bets Pro Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(180deg, #0b0b0f 0%, #111827 100%);
+  color: #fff;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 32px;
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(8px);
+  z-index: 10;
+}
+
+.logo {
+  font-weight: 700;
+  color: #00ff88;
+  font-size: 20px;
+}
+
+.nav a {
+  color: #fff;
+  margin-left: 18px;
+  text-decoration: none;
+  opacity: 0.9;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px 20px 50px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 26px;
+}
+
+.header-actions button {
+  background: #00ff88;
+  color: #04110a;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: rgba(17, 24, 39, 0.92);
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+}
+
+.stat-label {
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  margin-top: 6px;
+  color: #00ff88;
+}
+
+.banner {
+  background: linear-gradient(90deg, #0f2a1d 0%, #123524 100%);
+  color: #d8ffe8;
+  padding: 16px 18px;
+  border-radius: 14px;
+  font-weight: 600;
+  margin-bottom: 22px;
+  border: 1px solid rgba(0,255,136,0.18);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.card {
+  background: rgba(17, 24, 39, 0.92);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+  margin-bottom: 16px;
+}
+
+.odds-list {
+  margin-top: 10px;
+}
+
+.card h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 18px;
+  color: #fff;
+}
+
+.pick {
+  font-size: 22px;
+  font-weight: 700;
+  color: #00ff88;
+  margin-bottom: 8px;
+}
+
+.muted {
+  color: rgba(255,255,255,0.72);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 24px 0 10px;
+  color: #ffffff;
+}
+
+input,
+select,
+button {
+  font-family: inherit;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+input,
+select {
+  background: #0b0b0f;
+  color: #fff;
+  padding: 10px 12px;
+}
+
+button {
+  background: #00ff88;
+  color: #04110a;
+  padding: 10px 14px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.95;
+}
+
+.odds-item {
+  background: #0b0b0f;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: 14px;
+}
+
+.button-link {
+  display: inline-block;
+  margin-top: 18px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 700;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.input-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.input-grid label {
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(255,255,255,0.72);
+  font-size: 14px;
+}
+
+.footer {
+  text-align: center;
+  color: rgba(255,255,255,0.55);
+  padding: 20px;
+}
+
+@media (max-width: 700px) {
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+}
+
+#guidance-link {
+  margin-top: 14px;
+  background: #00ff88;
+  color: #04110a;
+  border: none;
+  font-weight: 700;
+ }
+}
+</style>
+</head>
+<body>
+<script>
+async function checkAccess() {
+  const email = localStorage.getItem("sco_bets_email");
+
+  if (!email) {
+    window.location.href = "/index.html";
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/check-access?email=${encodeURIComponent(email)}`);
+    const data = await res.json();
+
+    if (!data.access) {
+      window.location.href = "/index.html";
+    }
+  } catch (err) {
+    console.error(err);
+    window.location.href = "/index.html";
+  }
+}
+
+checkAccess();
+</script>
+
+<div class="nav">
+  <div class="logo">SCO Bets AI</div>
+  <div>
+    <a href="index.html">Home</a>
+    <a href="https://billing.stripe.com/p/login/dRm7sL4wKdjW6ercfy7ss00" target="_blank" rel="noopener">Manage Subscription</a>
+  </div>
+</div>
+
+<div class="container">
+  <div class="dashboard-header">
+    <div>
+      <h1>Premium Dashboard</h1>
+      <div class="muted">Live odds, AI picks, and arbitrage tools — all in one place</div>
+    </div>
+
+    <div class="header-actions">
+      <button id="refresh-odds-btn" onclick="loadOdds()">Refresh Odds</button>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Live Games</div>
+      <div id="stat-games" class="stat-value">--</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">Best Line Advantage</div>
+      <div id="stat-edge" class="stat-value">--</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">Arb Opportunities</div>
+      <div id="stat-arb" class="stat-value">--</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">Last Updated</div>
+      <div id="stat-updated" class="stat-value">--</div>
+    </div>
+  </div>
+
+  <div class="banner">
+    🔥 Welcome to SCO Bets Pro — premium access active.
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Top AI Pick</h3>
+      <div id="top-pick" class="pick">Loading...</div>
+      <div id="top-confidence" class="muted"></div>
+      <div id="top-reason" class="muted" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="card">
+      <h3>Arbitrage Watch</h3>
+      <div id="arb-pick" class="pick">Scanning...</div>
+      <div id="arb-details" class="muted"></div>
+    </div>
+
+    <div class="card">
+      <h3>Bet Guidance</h3>
+      <div id="guidance-pick" class="pick">Waiting for live data...</div>
+      <div id="guidance-book" class="muted"></div>
+      <div id="guidance-action" class="muted" style="margin-top:10px;"></div>
+      <a id="guidance-link" class="button-link" href="#" target="_blank" rel="noopener" style="display:none;">
+        Place Bet
+      </a>
+
+      <div id="guidance-note" class="muted" style="margin-top:10px; font-size:12px; opacity:0.7;">
+        Odds can change quickly. Always confirm the line before placing a bet.
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Premium Tools</h3>
+      <div class="muted">Access picks, live odds, arbitrage opportunities, and billing tools from one place.</div>
+      <a class="button-link" href="https://billing.stripe.com/p/login/dRm7sL4wKdjW6ercfy7ss00" target="_blank" rel="noopener">Manage Subscription</a>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:24px;">
+    <h3 id="odds-heading">Live NCAA Basketball Odds</h3>
+
+    <div style="margin-top:12px;">
+      <label for="sport-select" class="muted">Choose sport:</label>
+      <select id="sport-select" onchange="loadOdds()" style="margin-left:10px;">
+        <option value="basketball_nba" selected>NBA</option>
+        <option value="basketball_ncaab">Men's NCAA Basketball</option>
+      </select>
+    </div>
+
+    <div id="odds-status" class="muted" style="margin-top:12px;">Loading live odds...</div>
+    <div id="last-updated" class="muted" style="margin-top:6px;"></div>
+
+    <div class="button-row">
+      <button onclick="copySelectedBets()">Copy Selected Bets</button>
+      <button onclick="printBetSlip()">Print Bet Slip</button>
+    </div>
+
+    <div class="section-title">Bet Slip Tools</div>
+    <div id="selected-result" class="muted"></div>
+
+    <div class="section-title">Live Odds Board</div>
+    <div id="odds-list" class="odds-list"></div>
+
+    <div class="section-title">Arbitrage Tools</div>
+
+    <div class="card" style="margin-top:24px;">
+      <h3>Arbitrage Bet Calculator</h3>
+      <div class="muted">Enter your bankroll and the two American odds.</div>
+
+      <div class="input-grid">
+        <div>
+          <label>Total Bankroll ($)</label>
+          <input id="bankroll" type="number" value="100">
+        </div>
+
+        <div>
+          <label id="team1-label">Team 1 Odds</label>
+          <input id="odds1" type="number" value="-110">
+        </div>
+
+        <div>
+          <label id="team2-label">Team 2 Odds</label>
+          <input id="odds2" type="number" value="110">
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button onclick="calculateArb()">Calculate Arbitrage</button>
+        <button onclick="fillFromBestArb()">Auto-Fill From Arbitrage Watch</button>
+        <button onclick="copyBetPlan()">Copy Bet Plan</button>
+      </div>
+
+      <div id="arb-result" style="margin-top:20px; line-height:1.8;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">© 2026 SCO Creates</div>
+
+<script>
+let currentBestArb = null;
+
+function toDecimal(odds) {
+  return odds > 0 ? (odds / 100) + 1 : (100 / Math.abs(odds)) + 1;
+}
+
+function americanToDecimal(odds) {
+  return odds > 0 ? (odds / 100) + 1 : (100 / Math.abs(odds)) + 1;
+}
+
+function isReasonableOdds(odds) {
+  return odds >= -1000 && odds <= 1000;
+}
+
+function isOutlierOdds(odds) {
+  return odds < -1000 || odds > 1000;
+}
+
+function renderBookmakersWithHighlights(game) {
+  const bestByTeam = {};
+
+  game.bookmakers.forEach(book => {
+    book.odds.forEach(outcome => {
+      if (!bestByTeam[outcome.name] || outcome.price > bestByTeam[outcome.name].price) {
+        bestByTeam[outcome.name] = {
+          price: outcome.price,
+          book: book.title
+        };
+      }
+    });
+  });
+
+  return game.bookmakers.map(book => {
+    const isArbBook =
+      currentBestArb &&
+      `${game.away} vs ${game.home}` === currentBestArb.game &&
+      (book.title === currentBestArb.book1 || book.title === currentBestArb.book2);
+
+    const oddsHtml = book.odds.map(o => {
+      const isBest =
+        bestByTeam[o.name] &&
+        bestByTeam[o.name].price === o.price &&
+        bestByTeam[o.name].book === book.title;
+
+      const isArbSelection =
+        currentBestArb &&
+        `${game.away} vs ${game.home}` === currentBestArb.game &&
+        (
+          (o.name === currentBestArb.team1 && book.title === currentBestArb.book1 && o.price === currentBestArb.price1) ||
+          (o.name === currentBestArb.team2 && book.title === currentBestArb.book2 && o.price === currentBestArb.price2)
+        );
+
+      const isOutlier = isOutlierOdds(o.price);
+
+      let textStyle = '';
+      if (isArbSelection) {
+        textStyle = 'color:#00ff88; font-weight:700; text-decoration:underline;';
+      } else if (isBest) {
+        textStyle = 'color:#00ff88; font-weight:700;';
+      } else if (isOutlier) {
+        textStyle = 'color:#888;';
+      }
+
+      const outlierBadge = isOutlier
+        ? '<span style="color:#ffcc00; font-size:11px; margin-left:6px;">(Outlier)</span>'
+        : '';
+
+      return `
+        <label style="display:block; margin-top:6px; cursor:pointer;">
+          <input
+            type="checkbox"
+            class="bet-checkbox"
+            data-game="${game.away} vs ${game.home}"
+            data-book="${book.title}"
+            data-team="${o.name}"
+            data-odds="${o.price}"
+            style="margin-right:8px;"
+          >
+          <span style="${textStyle}">${o.name}: ${o.price}</span>
+          ${outlierBadge}
+        </label>
+      `;
+    }).join('');
+
+    const bookStyle = isArbBook
+      ? 'margin-top:10px; padding:10px; border-radius:8px; border:1px solid #00ff88; background:#0f2a1d;'
+      : 'margin-top:10px;';
+
+    const badge = isArbBook
+      ? '<div style="color:#00ff88; font-size:12px; margin-bottom:6px;">Recommended for arbitrage</div>'
+      : '';
+
+    return `
+      <div style="${bookStyle}">
+        <span class="muted">${book.title}</span>
+        ${badge}
+        ${oddsHtml}
+      </div>
+    `;
+  }).join('');
+}
+
+function calculateArb() {
+  const bankroll = parseFloat(document.getElementById('bankroll').value);
+  const odds1 = parseFloat(document.getElementById('odds1').value);
+  const odds2 = parseFloat(document.getElementById('odds2').value);
+  const result = document.getElementById('arb-result');
+
+  if (isNaN(bankroll) || isNaN(odds1) || isNaN(odds2)) {
+    result.innerHTML = '<span style="color:#ff8080;">Please enter valid numbers.</span>';
+    return;
+  }
+
+  const dec1 = americanToDecimal(odds1);
+  const dec2 = americanToDecimal(odds2);
+  const implied = (1 / dec1) + (1 / dec2);
+
+  if (implied >= 1) {
+    result.innerHTML = '<span style="color:#ff8080;">No arbitrage opportunity with these odds.</span>';
+    return;
+  }
+
+  const stake1 = bankroll * ((1 / dec1) / implied);
+  const stake2 = bankroll * ((1 / dec2) / implied);
+  const payout = stake1 * dec1;
+  const profit = payout - bankroll;
+
+  if (currentBestArb) {
+    result.innerHTML = `
+      <strong style="color:#00ff88;">Arbitrage Opportunity Found</strong><br><br>
+      Bet <strong>$${stake1.toFixed(2)}</strong> on <strong>${currentBestArb.team1}</strong> at <strong>${currentBestArb.book1}</strong> (${currentBestArb.price1})<br><br>
+      Bet <strong>$${stake2.toFixed(2)}</strong> on <strong>${currentBestArb.team2}</strong> at <strong>${currentBestArb.book2}</strong> (${currentBestArb.price2})<br><br>
+      Guaranteed Payout: <strong>$${payout.toFixed(2)}</strong><br>
+      Guaranteed Profit: <strong>$${profit.toFixed(2)}</strong>
+    `;
+  } else {
+    result.innerHTML = `
+      <strong style="color:#00ff88;">Arbitrage Opportunity Found</strong><br><br>
+      Bet Team 1: <strong>$${stake1.toFixed(2)}</strong><br>
+      Bet Team 2: <strong>$${stake2.toFixed(2)}</strong><br>
+      Guaranteed Payout: <strong>$${payout.toFixed(2)}</strong><br>
+      Guaranteed Profit: <strong>$${profit.toFixed(2)}</strong>
+    `;
+  }
+}
+
+async function copyBetPlan() {
+  const bankroll = parseFloat(document.getElementById('bankroll').value);
+  const odds1 = parseFloat(document.getElementById('odds1').value);
+  const odds2 = parseFloat(document.getElementById('odds2').value);
+  const result = document.getElementById('arb-result');
+
+  if (isNaN(bankroll) || isNaN(odds1) || isNaN(odds2)) {
+    result.innerHTML += '<br><span style="color:#ff8080;">Enter valid values first.</span>';
+    return;
+  }
+
+  const dec1 = americanToDecimal(odds1);
+  const dec2 = americanToDecimal(odds2);
+  const implied = (1 / dec1) + (1 / dec2);
+
+  if (implied >= 1) {
+    result.innerHTML += '<br><span style="color:#ff8080;">No arbitrage to copy.</span>';
+    return;
+  }
+
+  const stake1 = bankroll * ((1 / dec1) / implied);
+  const stake2 = bankroll * ((1 / dec2) / implied);
+  const payout = stake1 * dec1;
+  const profit = payout - bankroll;
+
+  let text = '';
+
+  if (currentBestArb) {
+    text =
+`Bet $${stake1.toFixed(2)} on ${currentBestArb.team1} at ${currentBestArb.book1} (${currentBestArb.price1})
+Bet $${stake2.toFixed(2)} on ${currentBestArb.team2} at ${currentBestArb.book2} (${currentBestArb.price2})
+Guaranteed Payout: $${payout.toFixed(2)}
+Guaranteed Profit: $${profit.toFixed(2)}`;
+  } else {
+    text =
+`Bet $${stake1.toFixed(2)} on Team 1 (${odds1})
+Bet $${stake2.toFixed(2)} on Team 2 (${odds2})
+Guaranteed Payout: $${payout.toFixed(2)}
+Guaranteed Profit: $${profit.toFixed(2)}`;
+  }
+
+  try {
+    await navigator.clipboard.writeText(text);
+    result.innerHTML += '<br><span style="color:#00ff88;">Bet plan copied. Paste into your sportsbook or notes app.</span>';
+  } catch (err) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    result.innerHTML += '<br><span style="color:#00ff88;">Bet plan copied. Paste into your sportsbook or notes app.</span>';
+  }
+}
+
+function fillFromBestArb() {
+  const result = document.getElementById('arb-result');
+
+  if (!currentBestArb) {
+    result.innerHTML = '<span style="color:#ff8080;">No live arbitrage opportunity is available to auto-fill right now.</span>';
+    return;
+  }
+
+  document.getElementById('odds1').value = currentBestArb.price1;
+  document.getElementById('odds2').value = currentBestArb.price2;
+
+  document.getElementById('team1-label').textContent = `${currentBestArb.team1} Odds`;
+  document.getElementById('team2-label').textContent = `${currentBestArb.team2} Odds`;
+
+  result.innerHTML = '<span style="color:#00ff88;">Calculator filled from live arbitrage watch.</span>';
+}
+
+async function copySelectedBets() {
+  const selected = Array.from(document.querySelectorAll('.bet-checkbox:checked'));
+  const result = document.getElementById('selected-result');
+
+  if (!selected.length) {
+    result.innerHTML = '<span style="color:#ff8080;">No bets selected.</span>';
+    return;
+  }
+
+  const now = new Date();
+  const timeStamp = now.toLocaleString();
+
+  const lines = [];
+  lines.push('SCO Bets AI — Bet Slip');
+  lines.push(`Created: ${timeStamp}`);
+  lines.push('');
+
+  selected.forEach((box, index) => {
+    const game = box.dataset.game;
+    const book = box.dataset.book;
+    const team = box.dataset.team;
+    const odds = box.dataset.odds;
+
+    lines.push(`${index + 1}. Game: ${game}`);
+    lines.push(`   Pick: ${team}`);
+    lines.push(`   Sportsbook: ${book}`);
+    lines.push(`   Odds: ${odds}`);
+    lines.push('');
+  });
+
+  lines.push('Prepared with SCO Bets AI');
+
+  const text = lines.join('\n');
+
+  try {
+    await navigator.clipboard.writeText(text);
+    result.innerHTML = '<span style="color:#00ff88;">Bet slip copied — paste into your notes or sportsbook workflow.</span>';
+  } catch (err) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    result.innerHTML = '<span style="color:#00ff88;">Bet slip copied — paste into your notes or sportsbook workflow.</span>';
+  }
+}
+
+function printBetSlip() {
+  const selected = Array.from(document.querySelectorAll('.bet-checkbox:checked'));
+
+  if (!selected.length) {
+    alert('No bets selected.');
+    return;
+  }
+
+  const now = new Date();
+  const timeStamp = now.toLocaleString();
+
+  let html = `
+    <html>
+    <head>
+      <title>Bet Slip</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 30px; color: #000; }
+        h1 { margin-bottom: 10px; }
+        .muted { color: #555; margin-bottom: 20px; }
+        .bet { margin-bottom: 20px; }
+      </style>
+    </head>
+    <body>
+      <h1>SCO Bets AI — Bet Slip</h1>
+      <div class="muted">Created: ${timeStamp}</div>
+  `;
+
+  selected.forEach((box, index) => {
+    const game = box.dataset.game;
+    const book = box.dataset.book;
+    const team = box.dataset.team;
+    const odds = box.dataset.odds;
+
+    html += `
+      <div class="bet">
+        <strong>${index + 1}. ${game}</strong><br>
+        Pick: ${team}<br>
+        Sportsbook: ${book}<br>
+        Odds: ${odds}
+      </div>
+    `;
+  });
+
+  html += `
+      <div class="muted">Prepared with SCO Bets AI</div>
+    </body>
+    </html>
+  `;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  win.print();
+}
+
+function getSportsbookUrl(bookName) {
+  const urls = {
+    // Replace these with your affiliate links later
+    'FanDuel': 'https://sportsbook.fanduel.com/',
+    'DraftKings': 'https://sportsbook.draftkings.com/',
+    'BetMGM': 'https://sports.betmgm.com/',
+    'Caesars': 'https://www.caesars.com/sportsbook-and-casino',
+    'ESPN BET': 'https://espnbet.com/',
+    'Fanatics': 'https://sportsbook.fanatics.com/'
+  };
+
+  return urls[bookName] || 'https://www.google.com/search?q=' + encodeURIComponent(bookName + ' sportsbook');
+}
+
+async function loadOdds() {
+  const status = document.getElementById('odds-status');
+  const list = document.getElementById('odds-list');
+  const statGames = document.getElementById('stat-games');
+  const statEdge = document.getElementById('stat-edge');
+  const statArb = document.getElementById('stat-arb');
+  const statUpdated = document.getElementById('stat-updated');
+  const refreshBtn = document.getElementById('refresh-odds-btn');
+
+  if (refreshBtn) {
+    refreshBtn.disabled = true;
+    refreshBtn.textContent = 'Refreshing...';
+  }
+
+  if (status) {
+    status.textContent = 'Refreshing live odds...';
+  }
+
+  try {
+    const sportSelect = document.getElementById('sport-select');
+    const sport = sportSelect ? sportSelect.value : 'basketball_nba';
+
+    const res = await fetch(`/api/odds?sport=${sport}`);
+    if (!res.ok) throw new Error('Failed to load odds');
+
+    const payload = await res.json();
+    const games = Array.isArray(payload.games) ? payload.games : [];
+
+    if (statGames) statGames.textContent = String(games.length);
+
+    const sportLabel =
+      payload.sport === 'basketball_nba'
+        ? 'Live NBA Odds'
+        : "Live Men's College Basketball Odds";
+
+    const oddsHeading = document.getElementById('odds-heading');
+    if (oddsHeading) oddsHeading.textContent = sportLabel;
+
+    const now = new Date();
+    const formattedTime = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+    if (statUpdated) statUpdated.textContent = formattedTime;
+
+    const lastUpdated = document.getElementById('last-updated');
+    if (lastUpdated) {
+      lastUpdated.textContent = `Last updated: ${formattedTime}`;
+    }
+
+    if (status) {
+      status.textContent = 'Live odds updated';
+    }
+
+    if (!games.length) {
+      if (list) list.innerHTML = '<div class="muted">No games available right now.</div>';
+
+      const topPick = document.getElementById('top-pick');
+      const topConfidence = document.getElementById('top-confidence');
+      const topReason = document.getElementById('top-reason');
+      const arbPick = document.getElementById('arb-pick');
+      const arbDetails = document.getElementById('arb-details');
+
+      if (topPick) topPick.textContent = 'No pick available';
+      if (topConfidence) topConfidence.textContent = '';
+      if (topReason) topReason.textContent = '';
+      if (arbPick) arbPick.textContent = 'No arbitrage currently';
+      if (arbDetails) arbDetails.textContent = 'No games available';
+
+      if (statEdge) statEdge.textContent = '0.0 pts';
+      if (statArb) statArb.textContent = '0';
+
+      if (refreshBtn) {
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = 'Refresh Odds';
+      }
+      return;
+    }
+
+    let bestValuePick = null;
+    let biggestEdge = 0;
+
+    games.forEach(game => {
+      const teamMarkets = {};
+
+      (game.bookmakers || []).forEach(book => {
+        (book.odds || []).forEach(outcome => {
+          if (!isReasonableOdds(outcome.price)) return;
+
+          if (!teamMarkets[outcome.name]) {
+            teamMarkets[outcome.name] = [];
+          }
+
+          teamMarkets[outcome.name].push({
+            price: outcome.price,
+            book: book.title
+          });
+        });
+      });
+
+      Object.keys(teamMarkets).forEach(team => {
+        const prices = teamMarkets[team];
+        if (prices.length < 2) return;
+
+        const avg = prices.reduce((sum, p) => sum + p.price, 0) / prices.length;
+
+        prices.forEach(p => {
+          const edge = p.price - avg;
+
+          if (edge > biggestEdge) {
+            biggestEdge = edge;
+            bestValuePick = {
+              team,
+              price: p.price,
+              book: p.book,
+              average: avg,
+              edge: edge
+            };
+          }
+        });
+      });
+    });
+
+    const topPick = document.getElementById('top-pick');
+    const topConfidence = document.getElementById('top-confidence');
+    const topReason = document.getElementById('top-reason');
+
+    if (bestValuePick) {
+      if (statEdge) statEdge.textContent = `+${bestValuePick.edge.toFixed(0)} better`;
+
+      const sign = bestValuePick.price > 0 ? '+' : '';
+
+      let confidence = 'Low';
+      if (bestValuePick.edge >= 20) {
+        confidence = 'High';
+      } else if (bestValuePick.edge >= 10) {
+        confidence = 'Medium';
+      }
+
+      if (topPick) {
+        topPick.textContent = `${bestValuePick.team} (${sign}${bestValuePick.price})`;
+      }
+
+      if (topConfidence) {
+        topConfidence.textContent = `Confidence: ${confidence} — best value found at ${bestValuePick.book}`;
+      }
+
+      if (topReason) {
+        topReason.textContent =
+          `Line is ${bestValuePick.edge.toFixed(1)} points better than the market average of ${bestValuePick.average.toFixed(1)}.`;
+      }
+
+      const guidancePick = document.getElementById('guidance-pick');
+      const guidanceBook = document.getElementById('guidance-book');
+      const guidanceAction = document.getElementById('guidance-action');
+      const guidanceLink = document.getElementById('guidance-link');
+
+      if (guidancePick) {
+        guidancePick.textContent = `${bestValuePick.team} (${sign}${bestValuePick.price})`;
+      }
+
+      if (guidanceBook) {
+        guidanceBook.textContent = `Best available line at ${bestValuePick.book}`;
+      }
+
+      if (guidanceAction) {
+        guidanceAction.textContent =
+          `Suggested action: place this bet at ${bestValuePick.book} because it offers the strongest value compared to the market.`;
+      }
+
+      if (guidanceLink) {
+        guidanceLink.textContent = `Place Bet at ${bestValuePick.book}`;
+        guidanceLink.href = getSportsbookUrl(bestValuePick.book);
+        guidanceLink.style.display = 'inline-block';
+      }
+
+   } else {
+      if (statEdge) statEdge.textContent = 'No edge';
+      if (topPick) topPick.textContent = 'No pick available';
+      if (topConfidence) topConfidence.textContent = '';
+      if (topReason) topReason.textContent = 'No reasonable lines available right now.';
+
+      const guidancePick = document.getElementById('guidance-pick');
+      const guidanceBook = document.getElementById('guidance-book');
+      const guidanceAction = document.getElementById('guidance-action');
+      const guidanceLink = document.getElementById('guidance-link');
+
+      if (guidancePick) guidancePick.textContent = 'No guidance available';
+      if (guidanceBook) guidanceBook.textContent = '';
+      if (guidanceAction) guidanceAction.textContent = 'No strong value edge is available right now.';
+      if (guidanceLink) {
+        guidanceLink.style.display = 'none';
+        guidanceLink.href = '#';
+   }
+    }
+
+    let bestArb = null;
+    let bestArbEdge = 0;
+
+    games.forEach(game => {
+      const teamPrices = {};
+
+      (game.bookmakers || []).forEach(book => {
+        (book.odds || []).forEach(outcome => {
+          if (!isReasonableOdds(outcome.price)) return;
+
+          if (
+            !teamPrices[outcome.name] ||
+            outcome.price > teamPrices[outcome.name].price
+          ) {
+            teamPrices[outcome.name] = {
+              price: outcome.price,
+              book: book.title
+            };
+          }
+        });
+      });
+
+      const teams = Object.keys(teamPrices);
+      if (teams.length !== 2) return;
+
+      const team1 = teams[0];
+      const team2 = teams[1];
+
+      const price1 = teamPrices[team1].price;
+      const price2 = teamPrices[team2].price;
+
+      const dec1 = toDecimal(price1);
+      const dec2 = toDecimal(price2);
+      const implied = (1 / dec1) + (1 / dec2);
+
+      if (implied < 1) {
+        const edge = (1 - implied) * 100;
+
+        if (edge > bestArbEdge) {
+          bestArbEdge = edge;
+          bestArb = {
+            game: `${game.away} vs ${game.home}`,
+            team1,
+            team2,
+            book1: teamPrices[team1].book,
+            book2: teamPrices[team2].book,
+            price1,
+            price2,
+            edge
+          };
+        }
+      }
+    });
+
+    const arbPick = document.getElementById('arb-pick');
+    const arbDetails = document.getElementById('arb-details');
+
+    if (bestArb) {
+      currentBestArb = bestArb;
+      if (statArb) statArb.textContent = '1+';
+      if (arbPick) arbPick.textContent = bestArb.game;
+      if (arbDetails) {
+        arbDetails.textContent =
+          `${bestArb.edge.toFixed(2)}% arbitrage — ${bestArb.team1} at ${bestArb.book1} (${bestArb.price1}), ${bestArb.team2} at ${bestArb.book2} (${bestArb.price2})`;
+      }
+    } else {
+      currentBestArb = null;
+      if (statArb) statArb.textContent = '0';
+      if (arbPick) arbPick.textContent = 'No arbitrage currently';
+      if (arbDetails) {
+        arbDetails.textContent = 'Best comparison shows no guaranteed edge right now';
+      }
+    }
+
+    if (list) {
+      list.innerHTML = games.map(game => `
+        <div class="odds-item">
+          <strong>${game.away} vs ${game.home}</strong><br>
+          ${renderBookmakersWithHighlights(game)}
+        </div>
+      `).join('');
+    }
+
+  } catch (err) {
+    console.error(err);
+
+    if (status) {
+      status.textContent = 'Could not load live odds right now.';
+    }
+
+    const topPick = document.getElementById('top-pick');
+    const arbPick = document.getElementById('arb-pick');
+
+    if (topPick) topPick.textContent = 'Unable to load';
+    if (arbPick) arbPick.textContent = 'Unable to scan';
+
+    if (statGames) statGames.textContent = '--';
+    if (statEdge) statEdge.textContent = '--';
+    if (statArb) statArb.textContent = '--';
+    if (statUpdated) statUpdated.textContent = '--';
+  } finally {
+    if (refreshBtn) {
+      refreshBtn.disabled = false;
+      refreshBtn.textContent = 'Refresh Odds';
+    }
+  }
+}
+loadOdds();
+</script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Payment Successful | SCO Bets AI</title>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PJP8J92TTC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-PJP8J92TTC');
+  </script>
+
+<script>
+  const purchaseParams = new URLSearchParams(window.location.search);
+  const purchasePaid = purchaseParams.get("paid");
+
+  if (purchasePaid === "true") {
+    gtag('event', 'purchase', {
+      transaction_id: 'txn_' + Date.now(),
+      value: 9.99,
+      currency: 'USD'
+    });
+  }
+</script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(59,130,246,0.16), transparent 30%),
+        linear-gradient(180deg, #0b1020 0%, #111827 100%);
+      color: #f9fafb;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .success-card {
+      width: 100%;
+      max-width: 560px;
+      background: rgba(17, 24, 39, 0.95);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 22px;
+      padding: 32px;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.28);
+      text-align: center;
+    }
+
+    .success-badge {
+      display: inline-block;
+      background: rgba(16,185,129,0.16);
+      color: #86efac;
+      border: 1px solid rgba(134,239,172,0.2);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0 0 14px 0;
+      font-size: 2rem;
+      line-height: 1.15;
+    }
+
+    p {
+      color: #d1d5db;
+      line-height: 1.65;
+      margin-bottom: 18px;
+    }
+
+    .form-group {
+      text-align: left;
+      margin-top: 24px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+      color: #e5e7eb;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: #0b0f1a;
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: rgba(59,130,246,0.6);
+    }
+
+    .btn {
+      display: inline-block;
+      width: 100%;
+      margin-top: 18px;
+      text-decoration: none;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      color: white;
+      box-shadow: 0 10px 25px rgba(37,99,235,0.28);
+    }
+
+    .message {
+      min-height: 24px;
+      margin-top: 14px;
+      font-size: 0.95rem;
+      color: #d1d5db;
+    }
+
+    .sub-note {
+      margin-top: 18px;
+      font-size: 0.88rem;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <div class="success-card">
+    <div class="success-badge">Payment Successful</div>
+    <h1>Welcome to SCO Bets AI Premium</h1>
+    <p>
+      Your payment was successful. To enter your Premium Dashboard, confirm the same email address you used during checkout.
+    </p>
+
+    <div class="form-group">
+      <label for="success-email">Email used at checkout</label>
+      <input
+        id="success-email"
+        type="email"
+        placeholder="you@example.com"
+        autocomplete="email"
+      />
+    </div>
+
+    <button id="enter-premium-btn" class="btn btn-primary">Enter Premium Dashboard</button>
+
+    <div id="success-message" class="message"></div>
+
+    <div class="sub-note">
+      This helps us securely connect your active subscription to your Premium access.
+    </div>
+  </div>
+
+  <script>
+    const enterBtn = document.getElementById('enter-premium-btn');
+    const emailInput = document.getElementById('success-email');
+    const messageEl = document.getElementById('success-message');
+
+    const params = new URLSearchParams(window.location.search);
+    const paid = params.get('paid');
+    const emailFromUrl = params.get('email');
+
+    if (paid === 'true' && emailFromUrl) {
+      emailInput.value = emailFromUrl;
+    }
+    enterBtn.addEventListener('click', async () => {
+      const email = emailInput.value.trim().toLowerCase();
+
+      if (!email) {
+        messageEl.textContent = 'Please enter the email you used at checkout.';
+        return;
+      }
+
+      messageEl.textContent = 'Checking your subscription...';
+
+      try {
+        localStorage.setItem('sco_bets_email', email);
+
+        const res = await fetch(`/api/check-access?email=${encodeURIComponent(email)}`);
+        const data = await res.json();
+
+        if (data.access) {
+          messageEl.textContent = 'Access confirmed. Entering Premium...';
+          window.location.href = '/premium.html';
+        } else {
+          messageEl.textContent = 'We could not confirm active access with that email yet. Double-check the email used at checkout and try again.';
+        }
+      } catch (err) {
+        console.error(err);
+        messageEl.textContent = 'Something went wrong while confirming access. Please try again.';
+      }
+    });
+  </script>
+</body>
+</html>

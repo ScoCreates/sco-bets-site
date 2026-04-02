@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PJP8J92TTC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-PJP8J92TTC');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SCO Bets AI</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(59,130,246,0.16), transparent 30%),
+        linear-gradient(180deg, #0b1020 0%, #111827 100%);
+      color: #f9fafb;
+    }
+
+    .homepage {
+      color: #f9fafb;
+    }
+
+    .homepage section {
+      padding: 70px 20px;
+    }
+
+    .section-header {
+      max-width: 800px;
+      margin: 0 auto 40px auto;
+      text-align: center;
+    }
+
+    .section-kicker,
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 1.6px;
+      font-size: 0.78rem;
+      color: #60a5fa;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .section-header h2,
+    .hero h1,
+    .final-cta-card h2 {
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    .section-header p,
+    .hero-subtext,
+    .final-cta-card p {
+      color: #d1d5db;
+      font-size: 1.05rem;
+      line-height: 1.7;
+    }
+
+    .hero {
+      position: relative;
+      min-height: 82vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 100px 20px 80px;
+      overflow: hidden;
+    }
+
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(rgba(7, 10, 20, 0.55), rgba(7, 10, 20, 0.8)),
+        url('https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+      opacity: 0.32;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 900px;
+    }
+
+    .hero-subtext {
+      max-width: 720px;
+      margin: 0 auto 28px auto;
+      font-size: 1.15rem;
+    }
+
+    .hero-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+
+    .hero-trust {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .hero-trust span {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.92rem;
+      color: #e5e7eb;
+    }
+
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-weight: 700;
+      transition: 0.2s ease;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      color: white;
+      box-shadow: 0 10px 25px rgba(37,99,235,0.28);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.08);
+      color: #f9fafb;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .small-btn {
+      padding: 10px 16px;
+      font-size: 0.92rem;
+    }
+
+    .trust-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-top: 0 !important;
+    }
+
+    .trust-item {
+      background: rgba(17, 24, 39, 0.92);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 18px;
+      padding: 18px;
+      text-align: center;
+      color: #e5e7eb;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+    }
+
+    .preview-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+
+    .preview-card {
+      position: relative;
+      min-height: 320px;
+      border-radius: 22px;
+      overflow: hidden;
+      background: rgba(17, 24, 39, 0.95);
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 14px 40px rgba(0,0,0,0.28);
+    }
+
+    .preview-placeholder {
+      height: 100%;
+      padding: 22px;
+      filter: blur(4px);
+      opacity: 0.75;
+    }
+
+    .locked-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 24px;
+      background: linear-gradient(rgba(10,14,24,0.3), rgba(10,14,24,0.72));
+    }
+
+    .locked-overlay h3 {
+      font-size: 1.4rem;
+      margin: 12px 0;
+    }
+
+    .locked-overlay p {
+      color: #d1d5db;
+      line-height: 1.6;
+      margin-bottom: 18px;
+    }
+
+    .lock-badge {
+      display: inline-block;
+      align-self: flex-start;
+      background: rgba(37,99,235,0.18);
+      color: #93c5fd;
+      border: 1px solid rgba(147,197,253,0.25);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .fake-line {
+      height: 14px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.12);
+      margin-bottom: 14px;
+    }
+
+    .fake-line.wide {
+      width: 85%;
+    }
+
+    .fake-line.short {
+      width: 50%;
+    }
+
+    .features-grid,
+    .steps-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      gap: 22px;
+    }
+
+    .features-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .steps-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .feature-card,
+    .step-card,
+    .pricing-card,
+    .faq-item,
+    .final-cta-card {
+      background: rgba(17, 24, 39, 0.92);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+    }
+
+    .feature-card h3,
+    .step-card h3,
+    .faq-item h3,
+    .pricing-card h3 {
+      margin-bottom: 12px;
+      font-size: 1.2rem;
+    }
+
+    .feature-card p,
+    .step-card p,
+    .faq-item p {
+      color: #d1d5db;
+      line-height: 1.65;
+    }
+
+    .step-number {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      margin-bottom: 14px;
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .pricing-card {
+      max-width: 520px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .price-row {
+      margin: 20px 0;
+    }
+
+    .price {
+      font-size: 3rem;
+      font-weight: 800;
+    }
+
+    .price-sub {
+      color: #9ca3af;
+      font-size: 1rem;
+      margin-left: 6px;
+    }
+
+    .pricing-list {
+      list-style: none;
+      padding: 0;
+      margin: 24px 0;
+    }
+
+    .pricing-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      color: #e5e7eb;
+    }
+
+    .pricing-btn {
+      width: 100%;
+      margin-top: 10px;
+      border: none;
+    }
+
+    .pricing-note {
+      margin-top: 14px;
+      color: #9ca3af;
+      font-size: 0.95rem;
+    }
+
+    .faq-list {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+
+    .final-cta-card {
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    @media (max-width: 1024px) {
+      .trust-strip,
+      .preview-grid,
+      .features-grid,
+      .steps-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .trust-strip,
+      .preview-grid,
+      .features-grid,
+      .steps-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        min-height: auto;
+        padding: 90px 20px 70px;
+      }
+
+      .section-header h2,
+      .hero h1,
+      .final-cta-card h2 {
+        font-size: 2rem;
+      }
+
+      .btn {
+        width: 100%;
+        text-align: center;
+      }
+
+      .hero-buttons {
+        flex-direction: column;
+      }
+    }
+.hero-trust span,
+.trust-item {
+  cursor: default;
+  user-select: none;
+}
+
+.hero-trust span:hover,
+.trust-item:hover {
+  transform: none;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+}
+
+.hero-trust span {
+  background: rgba(255,255,255,0.05);
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.trust-item {
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+@media (max-width: 640px) {
+  .trust-strip,
+  .preview-grid,
+  .features-grid,
+  .steps-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hero-tagline {
+  margin-top: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #00ff88;
+  letter-spacing: 0.5px;
+}
+  
+.existing-user-link {
+  margin-top: 12px;
+  font-size: 0.95rem;
+  color: #9ca3af;
+}
+
+.existing-user-link a {
+  color: #00ff88;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.existing-user-link a:hover {
+  text-decoration: underline;
+}
+
+.email-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 9999;
+}
+
+.email-modal.hidden {
+  display: none;
+}
+
+.email-modal-card {
+  width: 100%;
+  max-width: 460px;
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 22px;
+  padding: 26px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  position: relative;
+}
+
+.email-modal-card h3 {
+  margin: 0 0 10px;
+  font-size: 1.4rem;
+  color: #fff;
+}
+
+.email-modal-text {
+  margin: 0 0 16px;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+.email-modal-input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: #fff;
+  font-size: 1rem;
+  margin-bottom: 14px;
+}
+
+.email-modal-input:focus {
+  outline: none;
+  border-color: rgba(0,255,136,0.5);
+  box-shadow: 0 0 0 3px rgba(0,255,136,0.08);
+}
+
+.email-modal-message {
+  min-height: 22px;
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+  color: #fca5a5;
+}
+
+.email-modal-btn {
+  width: 100%;
+}
+
+.email-modal-subtext {
+  margin-top: 12px;
+  font-size: 0.88rem;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.email-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 1.6rem;
+  cursor: pointer;
+}
+
+.email-modal-close:hover {
+  color: #fff;
+}
+
+</style>
+</head>
+
+<body>
+
+  <div id="success-banner" style="display:none; background:#0f2a1d; color:#d8ffe8; padding:14px 20px; text-align:center; font-weight:600;">
+    🔥 Premium Unlocked — You now have full access!
+  </div>
+
+  <main class="homepage">
+
+    <section class="hero">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <p class="eyebrow">SCO Bets AI</p>
+
+        <h1>Find the Best Betting Lines. Instantly.</h1>
+
+        <p class="hero-subtext">
+          Compare odds across sportsbooks, identify value, and get real-time bet guidance — all in one place.
+        </p>
+
+        <div class="hero-buttons">
+          <a href="#" class="btn btn-primary start-premium-btn">Unlock Premium</a>
+          <a href="#premium-preview" class="btn btn-secondary">See Premium Features</a>
+        </div>
+
+        <div class="existing-user-link">
+          Already a subscriber?
+          <a href="/premium.html">Access Premium Dashboard</a>
+        </div>
+
+        <div style="margin-top: 12px; font-size: 0.85rem; color: #9ca3af;">
+          Live odds • AI picks • Arbitrage detection • Real-time edge tracking
+        </div>
+
+        <div class="hero-tagline">
+          Bet Smarter. Win Smarter.
+        </div>
+      </div>
+    </section>
+
+    <section class="trust-strip">
+      <div class="trust-item">Real-time betting tools</div>
+      <div class="trust-item">Premium subscriber access</div>
+      <div class="trust-item">Secure Stripe checkout</div>
+      <div class="trust-item">Built for serious bettors</div>
+    </section>
+
+    <section id="premium-preview" class="premium-preview">
+      <div class="section-header">
+        <p class="section-kicker">Premium Access</p>
+        <h2>See what Premium unlocks</h2>
+        <p>
+          Access live betting tools, premium picks, arbitrage opportunities, and sharper bet guidance in one dashboard.
+        </p>
+      </div>
+
+      <div class="preview-grid">
+        <div class="preview-card locked-card">
+          <div class="locked-overlay">
+            <span class="lock-badge">Premium Members Only</span>
+            <h3>AI Picks Dashboard</h3>
+            <p>See live premium picks and value opportunities updated throughout the day.</p>
+            <a href="#" class="btn btn-primary small-btn start-premium-btn">Unlock Premium</a>
+          </div>
+          <div class="preview-placeholder">
+            <div class="fake-line wide"></div>
+            <div class="fake-line"></div>
+            <div class="fake-line"></div>
+          </div>
+        </div>
+
+        <div class="preview-card locked-card">
+          <div class="locked-overlay">
+            <span class="lock-badge">Premium Members Only</span>
+            <h3>Arbitrage Opportunities</h3>
+            <p>Spot price gaps across books and calculate stake splits instantly.</p>
+            <a href="#" class="btn btn-primary small-btn start-premium-btn">Unlock Premium</a>
+          </div>
+          <div class="preview-placeholder">
+            <div class="fake-line wide"></div>
+            <div class="fake-line"></div>
+            <div class="fake-line"></div>
+          </div>
+        </div>
+
+        <div class="preview-card locked-card">
+          <div class="locked-overlay">
+            <span class="lock-badge">Premium Members Only</span>
+            <h3>Bet Slip Tools</h3>
+            <p>Build, copy, and print your bets with cleaner workflow and better guidance.</p>
+            <a href="#" class="btn btn-primary small-btn start-premium-btn">Unlock Premium</a>
+          </div>
+          <div class="preview-placeholder">
+            <div class="fake-line wide"></div>
+            <div class="fake-line"></div>
+            <div class="fake-line short"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="section-header">
+        <p class="section-kicker">Why SCO Bets AI</p>
+        <h2>Built to help you find betting value faster</h2>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <h3>Live Odds Board</h3>
+          <p>Track current odds and identify better pricing opportunities across the market.</p>
+        </div>
+
+        <div class="feature-card">
+          <h3>AI Picks</h3>
+          <p>Get premium pick insights designed to highlight value and market inefficiencies.</p>
+        </div>
+
+        <div class="feature-card">
+          <h3>Arbitrage Tools</h3>
+          <p>Calculate stake splits and uncover no-sweat arbitrage opportunities when books disagree.</p>
+        </div>
+
+        <div class="feature-card">
+          <h3>Bet Slip Tools</h3>
+          <p>Organize, copy, and print betting slips without bouncing between tools.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="how-it-works">
+      <div class="section-header">
+        <p class="section-kicker">How It Works</p>
+        <h2>Simple, fast, premium access</h2>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <h3>Subscribe</h3>
+          <p>Start your premium membership with secure Stripe checkout.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <h3>Unlock Access</h3>
+          <p>Your subscription activates premium access tied directly to your account status.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <h3>Use the Tools</h3>
+          <p>View live odds, AI picks, arbitrage tools, and bet slip utilities in one place.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="pricing">
+      <div class="section-header">
+        <p class="section-kicker">Pricing</p>
+        <h2>One plan. Full premium access.</h2>
+        <p>Unlock the full SCO Bets AI experience with live tools and smarter betting workflow.</p>
+      </div>
+
+      <div class="pricing-card">
+        <h3>SCO Bets AI Premium</h3>
+        <div class="price-row">
+          <span class="price">$19.99</span>
+          <span class="price-sub">/month</span>
+        </div>
+
+        <ul class="pricing-list">
+          <li>Live Odds Board</li>
+          <li>AI Picks</li>
+          <li>Arbitrage Tools</li>
+          <li>Bet Slip Tools</li>
+        </ul>
+
+        <a href="#" class="btn btn-primary start-premium-btn">Start Premium</a>
+        <p class="pricing-note">Secure checkout powered by Stripe.</p>
+      </div>
+    </section>
+
+    <section class="faq">
+      <div class="section-header">
+        <p class="section-kicker">FAQ</p>
+        <h2>Questions before you subscribe?</h2>
+      </div>
+
+      <div class="faq-list">
+        <div class="faq-item">
+          <h3>What does Premium include?</h3>
+          <p>Premium includes access to live odds, AI picks, arbitrage tools, and bet slip utilities.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>How does access work?</h3>
+          <p>Your access is tied to your active subscription status and checked securely through the app.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Can I cancel anytime?</h3>
+          <p>Yes. You can manage your subscription based on the billing terms you set through Stripe.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>What sports will be supported?</h3>
+          <p>SCO Bets AI is being built as a multi-sport betting intelligence platform, with NBA and MLB as strong current rollout opportunities.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="final-cta">
+      <div class="final-cta-card">
+        <h2>Start finding better betting opportunities today.</h2>
+        <p>Join SCO Bets AI Premium for smarter betting tools and insights.</p>
+        <a href="#" class="btn btn-primary start-premium-btn">Start Premium</a>
+      </div>
+    </section>
+
+  </main>
+
+ <div id="email-modal" class="email-modal hidden">
+  <div class="email-modal-card">
+    <button id="close-email-modal" class="email-modal-close" aria-label="Close">×</button>
+    <h3>Continue to Premium</h3>
+    <p class="email-modal-text">
+      Enter your email to check whether you already have Premium access.
+    </p>
+
+    <input
+      id="subscriber-email-input"
+      type="email"
+      placeholder="you@example.com"
+      class="email-modal-input"
+      autocomplete="email"
+    />
+
+    <div id="email-modal-message" class="email-modal-message"></div>
+
+    <button id="continue-email-modal" class="btn btn-primary email-modal-btn">
+      Continue
+    </button>
+
+    <div class="email-modal-subtext">
+      Already subscribed? We’ll send you straight to your Premium Dashboard.
+    </div>
+  </div>
+</div>
+
+
+ <script>
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get('success') === 'true') {
+      const banner = document.getElementById('success-banner');
+      if (banner) banner.style.display = 'block';
+
+      const content = document.getElementById('premium-content');
+      if (content) content.style.filter = 'none';
+    }
+
+    const picks = [
+      "AI Pick: Lakers +140 — Confidence: High",
+      "AI Pick: Celtics -4.5 — Confidence: Medium",
+      "AI Pick: Chiefs ML — Confidence: High",
+      "AI Pick: Warriors +6 — Confidence: Medium"
+    ];
+
+    let i = 0;
+    setInterval(() => {
+      const el = document.getElementById("rotating-pick");
+      if (el) {
+        el.textContent = picks[i];
+        i = (i + 1) % picks.length;
+      }
+    }, 3000);
+  </script>
+
+ <script>
+  const startPremiumButtons = document.querySelectorAll(".start-premium-btn");
+  const checkoutMessage = document.getElementById("checkoutMessage");
+
+  const emailModal = document.getElementById("email-modal");
+  const closeEmailModal = document.getElementById("close-email-modal");
+  const continueEmailModal = document.getElementById("continue-email-modal");
+  const subscriberEmailInput = document.getElementById("subscriber-email-input");
+  const emailModalMessage = document.getElementById("email-modal-message");
+
+  let pendingCheckout = false;
+
+  function openEmailModal() {
+    emailModal.classList.remove("hidden");
+    emailModalMessage.textContent = "";
+    subscriberEmailInput.value = "";
+    setTimeout(() => subscriberEmailInput.focus(), 50);
+  }
+
+  function closeModal() {
+    emailModal.classList.add("hidden");
+    emailModalMessage.textContent = "";
+    pendingCheckout = false;
+  }
+
+  startPremiumButtons.forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      pendingCheckout = true;
+      openEmailModal();
+    });
+  });
+
+  closeEmailModal.addEventListener("click", closeModal);
+
+  emailModal.addEventListener("click", (event) => {
+    if (event.target === emailModal) {
+      closeModal();
+    }
+  });
+
+  continueEmailModal.addEventListener("click", async () => {
+    const email = subscriberEmailInput.value.trim().toLowerCase();
+
+    if (!email) {
+      emailModalMessage.textContent = "Please enter your email address.";
+      return;
+    }
+
+    if (checkoutMessage) {
+      checkoutMessage.textContent = "Opening secure checkout...";
+    }
+
+    emailModalMessage.textContent = "Checking subscription status...";
+
+    try {
+      const accessRes = await fetch(`/api/check-access?email=${encodeURIComponent(email)}`);
+      const accessData = await accessRes.json();
+
+      if (accessData.access) {
+        localStorage.setItem("sco_bets_email", email);
+        emailModalMessage.style.color = "#86efac";
+        emailModalMessage.textContent = "Subscription found. Taking you to Premium...";
+        setTimeout(() => {
+          window.location.href = "/premium.html";
+        }, 500);
+        return;
+      }
+
+      emailModalMessage.style.color = "#cbd5e1";
+      emailModalMessage.textContent = "No active subscription found. Redirecting to secure checkout...";
+
+      const response = await fetch(window.location.origin + "/api/create-checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        emailModalMessage.style.color = "#fca5a5";
+        emailModalMessage.textContent = data.error || "Something went wrong.";
+        if (checkoutMessage) {
+          checkoutMessage.textContent = data.error || "Something went wrong.";
+        }
+        return;
+      }
+
+      if (data.url) {
+        gtag('event', 'start_checkout', {
+          event_category: 'engagement',
+          event_label: 'Start Premium Click',
+          transport_type: 'beacon'
+        });
+
+        setTimeout(() => {
+          window.location.href = data.url;
+        }, 300);
+      } else {
+        emailModalMessage.style.color = "#fca5a5";
+        emailModalMessage.textContent = "Checkout link was not returned.";
+        if (checkoutMessage) {
+          checkoutMessage.textContent = "Checkout link was not returned.";
+        }
+      }
+
+    } catch (error) {
+      console.error(error);
+      emailModalMessage.style.color = "#fca5a5";
+      emailModalMessage.textContent = "Unable to start checkout.";
+      if (checkoutMessage) {
+        checkoutMessage.textContent = "Unable to start checkout.";
+      }
+    }
+  });
+</script> 
+
+</body>
+</html>

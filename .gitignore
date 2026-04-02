@@ -1,0 +1,10 @@
+node_modules/
+.vercel/
+.env
+.env.local
+Stripe Prices.txt
+ChatGPTConversation.txt
+Scripts.txt
+Supabase.txt
+test.txt
+sco-bets-site/
