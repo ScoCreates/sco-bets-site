@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-PJP8J92TTC"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-QQMRYEWVN8"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
 
-  gtag('config', 'G-PJP8J92TTC');
+  gtag('config', 'G-QQMRYEWVN8');
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -48,22 +48,28 @@ body {
   opacity: 0.9;
 }
 
-.container {
-  max-width: 1200px;
+.container { 
+  max-width: 1374px;
   margin: 0 auto;
   padding: 28px 20px 50px;
+  box-sizing: border-box;
 }
 
 .dashboard-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
-  margin-bottom: 22px;
+  margin-bottom: 4px;
+
+  width: 1334px;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .dashboard-header h1 {
-  margin: 0;
+  margin: 0 0 6px 0;
   font-size: 26px;
 }
 
@@ -79,9 +85,10 @@ body {
 
 .stats-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 14px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(4, 320px);
+  gap: 18px;
+  justify-content: center;
+  margin: -6px 0 8px 0;
 }
 
 .stat-card {
@@ -90,18 +97,53 @@ body {
   padding: 16px;
   border: 1px solid rgba(255,255,255,0.06);
   box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.25);
 }
 
 .stat-label {
   font-size: 13px;
-  color: rgba(255,255,255,0.6);
+  color: rgba(255,255,255,0.75);
+  font-weight: 500;
+  letter-spacing: 0.2px;
 }
 
 .stat-value {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
   margin-top: 6px;
   color: #00ff88;
+  letter-spacing: 0.3px;
+}
+
+.stat-value.positive {
+  color: #00ff88;
+}
+
+.sport-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.8);
+  letter-spacing: 0.5px;
+}
+
+#sport-select {
+  background: rgba(17, 24, 39, 0.9);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 6px 10px;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+#sport-select:focus {
+  outline: none;
+  border: 1px solid #00ff88;
+  box-shadow: 0 0 0 2px rgba(0,255,136,0.2);
 }
 
 .banner {
@@ -115,11 +157,42 @@ body {
   box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
 
+.premium-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  width: 1334px;
+  max-width: 100%;
+  margin: 0 auto 6px auto;
+  padding: 6px 16px 10px 16px;
+
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(0,255,136,0.12), rgba(0,255,136,0.05));
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+.banner-left {
+  color: #d8ffe8;
+  font-weight: 700;
+}
+
+.banner-right {
+  opacity: 0.85;
+  font-weight: 500;
+  text-align: right;
+}
+
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 18px;
-  margin-bottom: 24px;
+  align-items: stretch;
+  margin-top: 18px;
+  margin-bottom: 18px;
 }
 
 .card {
@@ -128,8 +201,32 @@ body {
   border-radius: 18px;
   padding: 18px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.22);
-  margin-bottom: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border 0.2s ease;
 }
+
+.card-divider {
+  height: 2px;
+  background: rgba(255,255,255,0.16);
+  border-radius: 999px;
+  margin: 12px 0;
+}
+
+.grid > .card {
+  display: flex;
+  flex-direction: column;
+  outline: 2px solid cyan !important;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.16);
+  border: 1px solid rgba(0,255,136,0.25);
+}
+
+#guidance-reason {
+  white-space: pre-line;
+}
+
 
 .odds-list {
   margin-top: 10px;
@@ -142,11 +239,27 @@ body {
   color: #fff;
 }
 
+.odds-section {
+  margin-top: 0px !important;
+}
+
+.card .muted {
+  margin-bottom: 10px;  /* reduce space before inputs */
+}
+
 .pick {
   font-size: 22px;
   font-weight: 700;
   color: #00ff88;
+
+  margin-top: 16px;
   margin-bottom: 8px;
+}
+
+#top-pick {
+  font-size: 20px;
+  font-weight: 700;
+  color: #00ff88;
 }
 
 .muted {
@@ -184,18 +297,36 @@ button {
   border: none;
   font-weight: 700;
   cursor: pointer;
+
+  transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 
 button:hover {
-  opacity: 0.95;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.28);
+  filter: brightness(1.03);
+}
+
+button:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.2);
 }
 
 .odds-item {
-  background: #0b0b0f;
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 14px;
-  padding: 14px;
-  margin-top: 14px;
+  background: rgba(20, 28, 45, 0.95);
+  border: 1px solid rgba(0,255,136,0.22);
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 18px;
+  box-shadow: 
+    0 8px 24px rgba(0,0,0,0.25),
+    inset 0 0 0 1px rgba(0,255,136,0.05);
+}
+.odds-item:hover {
+  border: 1px solid rgba(0,255,136,0.35);
+  box-shadow: 
+    0 10px 28px rgba(0,255,136,0.08),
+    inset 0 0 0 1px rgba(0,255,136,0.08);
 }
 
 .button-link {
@@ -214,21 +345,38 @@ button:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 14px;
+  margin-top: 6px;
+  margin-bottom: 0;
+}
+
+.button-row button {
+  margin-bottom: 0;  /* ⬅ KEY FIX */
 }
 
 .input-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 14px;
-  margin-top: 16px;
+  display: flex;
+  justify-content: flex-start;
+  gap: 21px;
+  margin-top: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.input-grid > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  gap: 2px; /* ⬅ ADD THIS LINE HERE */
 }
 
 .input-grid label {
-  display: block;
-  margin-bottom: 8px;
+  margin-bottom: 0;  /* ⬅ remove extra spacing */
   color: rgba(255,255,255,0.72);
   font-size: 14px;
+}
+
+.input-grid input {
+  margin-top: 0;
 }
 
 .footer {
@@ -237,10 +385,146 @@ button:hover {
   padding: 20px;
 }
 
+.hold-tooltip {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+}
+
+.hold-tooltip-text {
+  visibility: hidden;
+  opacity: 0;
+  width: 220px;
+  background: rgba(15, 23, 42, 0.96);
+  color: #ffffff;
+  text-align: left;
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 10px;
+  padding: 8px 10px;
+  position: absolute;
+  z-index: 50;
+  bottom: 125%;
+  left: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+  transition: opacity 0.2s ease;
+}
+
+.hold-tooltip:hover .hold-tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
 @media (max-width: 700px) {
+
+  .mobile-movement-row {
+    display: block;
+    grid-column: 2 / 4;
+    text-align: right;
+    padding-right: 52px;
+    margin-top: -6px;
+  }
+
+  .mobile-movement-row .mobile-movement-marker {
+    display: inline-block !important;
+    white-space: nowrap;
+  }
+
+  .desktop-movement-marker {
+    display: none !important;
+  }
+
+  .mobile-movement-marker {
+    display: none !important;
+  }
+
   .dashboard-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 14px;
+    padding-right: 14px;
+    overflow-x: hidden;
+  }
+
+  .movement-marker-wrap {
+    min-width: 54px;
+    max-width: 64px;
+    overflow: hidden;
+  }
+
+  .movement-marker-wrap span {
+    min-width: 54px !important;
+    font-size: 9px !important;
+    line-height: 1.1;
+    white-space: normal;
+  }
+
+  .premium-banner,
+  .dashboard-header,
+  .stats-row,
+  .grid,
+  .odds-section,
+  .odds-item {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .dashboard-header,
+  .premium-banner,
+  .grid,
+  .card,
+  .odds-section {
+    overflow-wrap: anywhere;
+  }
+
+  .dashboard-header h1 {
+    font-size: 28px;
+    line-height: 1.15;
+  }
+
+  .dashboard-header p,
+    .banner-right,
+    .card .muted,
+    .pick,
+    #top-pick,
+    #arb-pick,
+    #guidance-pick {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .dashboard-header {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .dashboard-header > div {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .dashboard-header h1 {
+    max-width: 100%;
+    font-size: 28px;
+    line-height: 1.15;
+    overflow-wrap: normal;
+  }
+
+
+  .banner-right {
+    text-align: left;
+  }
+
+  body {
+    overflow-x: hidden;
   }
 
   .nav {
@@ -248,19 +532,851 @@ button:hover {
     gap: 10px;
     align-items: flex-start;
   }
+
+  .stats-row {
+    width: 100%;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    justify-content: stretch;
+    margin: 8px 0 12px 0;
+  }
+
+  .stat-card {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .header-actions button {
+    width: 100%;
+  }
+
+  .button-row {
+    flex-direction: column;
+  }
+
+  .button-row button {
+    width: 100%;
+  }
+
+  
+  .nav {
+    padding: 12px 20px;
+  }
+
+  .logo {
+    font-size: 18px;
+  }
+
+  .nav a {
+    margin-left: 0;
+    font-size: 14px;
+  }
+
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden !important;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  .container,
+  .dashboard-header,
+  .premium-banner,
+  .stats-row,
+  .stat-card,
+  .grid,
+  .card,
+  .odds-section,
+  .odds-item {
+    max-width: 100vw !important;
+  }
+
+  .betting-tools-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .betting-tools-stack {
+    width: 100%;
+  }
+
+  .dashboard-header {
+    width: auto !important;
+  }
+
+  .dashboard-header h1,
+  .dashboard-header p {
+    width: 100%;
+    max-width: calc(100vw - 28px);
+  }
+
+  }
+
+  #merged-guidance-link {
+    margin-top: 14px;
+    background: #00ff88;
+    color: #04110a;
+    border: none;
+    font-weight: 700;
+
+    transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  }
+
+  #merged-guidance-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px rgba(0,0,0,0.28);
+    filter: brightness(1.03);
+  }
+
+#merged-guidance-link:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.2);
 }
 
-#guidance-link {
-  margin-top: 14px;
-  background: #00ff88;
-  color: #04110a;
-  border: none;
-  font-weight: 700;
- }
+.premium-loading {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at top, rgba(59,130,246,0.14), transparent 30%),
+    linear-gradient(180deg, #0b1020 0%, #111827 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
 }
+
+.premium-loading.hidden {
+  display: none;
+}
+
+.premium-loading-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(17, 24, 39, 0.96);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 22px;
+  padding: 28px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.28);
+}
+
+.premium-loading-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  margin-top: 14px;
+}
+
+.premium-loading-text {
+  margin-top: 8px;
+  color: #cbd5e1;
+  font-size: 0.95rem;
+}
+
+.premium-spinner {
+  width: 42px;
+  height: 42px;
+  margin: 0 auto;
+  border-radius: 999px;
+  border: 4px solid rgba(255,255,255,0.12);
+  border-top-color: #00ff88;
+  animation: premiumSpin 0.8s linear infinite;
+}
+
+@keyframes premiumSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes topPickPulse {
+  0% {
+    box-shadow: 0 16px 36px rgba(0,255,136,0.12), 0 10px 30px rgba(0,0,0,0.22);
+  }
+  50% {
+    box-shadow: 0 18px 42px rgba(0,255,136,0.18), 0 10px 30px rgba(0,0,0,0.22);
+  }
+  100% {
+    box-shadow: 0 16px 36px rgba(0,255,136,0.12), 0 10px 30px rgba(0,0,0,0.22);
+  }
+}
+
+@keyframes scorePulse {
+  0% {
+    color: #00ff88;
+    background: rgba(34,197,94,0);
+    text-shadow: 0 0 0 rgba(34,197,94,0);
+    border-radius: 999px;
+  }
+
+  15% {
+    color: #ffffff;
+    background: rgba(34,197,94,0.18);
+    text-shadow:
+      0 0 10px rgba(34,197,94,0.9),
+      0 0 22px rgba(34,197,94,0.65);
+    border-radius: 999px;
+  }
+
+  70% {
+    color: #ffffff;
+    background: rgba(34,197,94,0.12);
+    text-shadow:
+      0 0 8px rgba(34,197,94,0.65),
+      0 0 16px rgba(34,197,94,0.4);
+    border-radius: 999px;
+  }
+
+  100% {
+    color: #00ff88;
+    background: rgba(34,197,94,0);
+    text-shadow: 0 0 0 rgba(34,197,94,0);
+    border-radius: 999px;
+  }
+}
+
+    .bet-guidance-note {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    .why-pick-toggle {
+      margin-top: 12px;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 0.2s ease;
+      letter-spacing: 0.2px;
+    }
+
+    .why-pick-toggle:hover {
+      opacity: 0.8;
+    }
+
+    .helper-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #00ff88;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      user-select: none;
+      width: fit-content;
+      margin-top: 10px;
+      text-align: left;
+    }
+
+    .helper-toggle::-webkit-details-marker {
+      display: none;
+    }
+
+    .helper-toggle::marker {
+      content: "";
+    }
+
+    .helper-toggle.open .helper-arrow {
+      transform: rotate(90deg);
+    }
+
+    .helper-arrow {
+      display: inline-block;
+      font-size: 9px;
+      line-height: 1;
+      transition: transform 0.25s ease;
+    }
+
+
+    .why-pick-content {
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      margin-top: 0;
+      text-align: center;
+      line-height: 1.4;
+      transition: max-height 0.25s ease, opacity 0.25s ease, margin-top 0.25s ease;
+    }
+
+    .why-pick-content.open {
+      max-height: 400px;
+      opacity: 1;
+      margin-top: 8px;
+      transform: translateY(0);
+    }
+
+     #arb-explainer {
+       font-size: 14px;
+       line-height: 1.4;
+       max-width: 90%;
+       margin-left: auto;
+       margin-right: auto;
+    }
+
+    .why-pick-arrow {
+      display: inline-block;
+      margin-left: 6px;
+      font-size: 10px;
+      transition: transform 0.25s ease;
+    }
+
+    .why-pick-toggle.open .why-pick-arrow {
+      transform: rotate(90deg);
+    }
+
+    .card h3 {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+
+    .high-confidence {
+      color: #00ff88;
+      font-weight: 600;
+    }
+
+    .medium-confidence {
+      color: #facc15;
+      font-weight: 500;
+    }
+
+    .high-edge {
+      color: #00ff88;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+
+    .medium-edge {
+      color: #facc15;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    .top-pick-hot {
+      border: 1px solid rgba(0,255,136,0.22);
+      box-shadow: 0 16px 36px rgba(0,255,136,0.12), 0 10px 30px rgba(0,0,0,0.22);
+      animation: topPickPulse 2.2s ease-in-out infinite;
+    }
+
+    .top-pick-medium {
+      border: 1px solid rgba(250,204,21,0.22);
+      box-shadow: 0 14px 30px rgba(250,204,21,0.08), 0 10px 30px rgba(0,0,0,0.22);
+    }
+
+.empty-state {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 18px;
+  text-align: center;
+  color: #d1d5db;
+}
+
+.empty-state strong {
+  display: block;
+  font-size: 1rem;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #9ca3af;
+}
+
+.teams-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.game-status {
+  font-size: 18px;
+  font-weight: 700;
+  color: inherit;
+  margin-left: 8px;
+  transition: color 0.25s ease, text-shadow 0.25s ease;
+}
+
+.game-status.live {
+  color: #22c55e;
+  text-shadow: 0 0 10px rgba(34,197,94,0.35);
+}
+
+.game-status.soon {
+  color: #fbbf24;
+}
+
+.game-status.final {
+  color: #9ca3af;
+}
+
+.mlb-linescore {
+  display: grid;
+  align-items: center;
+  column-gap: 6px;
+  row-gap: 5px;
+  font-size: 13px;
+  line-height: 1.1;
+  white-space: nowrap;
+  margin-left: -30px;
+}
+
+.mlb-linescore span,
+.mlb-linescore strong {
+  text-align: center;
+}
+
+.mlb-inning {
+  color: #9ca3af;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.current-inning {
+  position: relative;
+  color: #00ff88;
+  font-weight: 900;
+  text-shadow: 0 0 8px rgba(0,255,136,.55);
+}
+
+.inning-arrow {
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #00ff88;
+  font-size: 11px;
+  line-height: 1;
+  text-shadow: 0 0 8px rgba(0,255,136,.8);
+}
+
+.current-inning-run {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: rgba(0, 255, 136, 0.14);
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.22);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mlb-total-label {
+  color: #00ff88;
+  font-weight: 900;
+  font-size: 13px;
+}
+
+.mlb-team {
+  color: #00ff88;
+  font-weight: 900;
+  text-align: left !important;
+}
+
+.mlb-run {
+  color: #f8fafc;
+  font-weight: 800;
+}
+
+.mlb-total {
+  color: #00ff88;
+  font-size: 21px;
+  font-weight: 900;
+  text-shadow: 0 0 8px rgba(0, 255, 136, 0.30);
+}
+
+.basketball-linescore {
+  display: grid;
+  align-items: center;
+  column-gap: 7px;
+  row-gap: 5px;
+  font-size: 13px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.basketball-linescore span,
+.basketball-linescore strong {
+  text-align: center;
+}
+
+.basketball-period {
+  color: #9ca3af;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.current-period {
+  color: #00ff88;
+  font-weight: 900;
+  text-shadow: 0 0 8px rgba(0,255,136,.55);
+}
+
+.basketball-total-label {
+  color: #00ff88;
+  font-weight: 900;
+  font-size: 13px;
+}
+
+.basketball-team {
+  color: #00ff88;
+  font-weight: 900;
+  text-align: left !important;
+}
+
+.basketball-score {
+  color: #f8fafc;
+  font-weight: 800;
+}
+
+.basketball-total {
+  color: #00ff88;
+  font-size: 21px;
+  font-weight: 900;
+  text-shadow: 0 0 8px rgba(0, 255, 136, 0.30);
+}
+
+.football-linescore {
+  display: grid;
+  align-items: center;
+  column-gap: 7px;
+  row-gap: 5px;
+  font-size: 13px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.football-linescore span,
+.football-linescore strong {
+  text-align: center;
+}
+
+.football-period {
+  color: #9ca3af;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.football-total-label {
+  color: #00ff88;
+  font-weight: 900;
+  font-size: 13px;
+}
+
+.football-team {
+  color: #00ff88;
+  font-weight: 900;
+  text-align: left !important;
+}
+
+.football-score {
+  color: #f8fafc;
+  font-weight: 800;
+}
+
+.football-total {
+  color: #00ff88;
+  font-size: 23px;
+  font-weight: 950;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.35);
+}
+
+.soccer-scoreboard {
+  display: grid;
+  gap: 5px;
+  min-width: 110px;
+}
+
+.soccer-score-row {
+  display: grid;
+  grid-template-columns: 54px 36px;
+  align-items: center;
+  gap: 16px;
+  line-height: 1.1;
+}
+
+.soccer-team {
+  color: #00ff88;
+  font-size: 15px;
+  font-weight: 900;
+  text-align: left;
+}
+
+.soccer-total {
+  color: #00ff88;
+  font-size: 23px;
+  font-weight: 950;
+  text-align: right;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.35);
+}
+
+.hockey-linescore {
+  display: grid;
+  align-items: center;
+  column-gap: 7px;
+  row-gap: 5px;
+  font-size: 13px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.hockey-linescore span,
+.hockey-linescore strong {
+  text-align: center;
+}
+
+.hockey-period {
+  color: #9ca3af;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.hockey-total-label {
+  color: #00ff88;
+  font-weight: 900;
+  font-size: 13px;
+}
+
+.hockey-team {
+  color: #00ff88;
+  font-weight: 900;
+  text-align: left !important;
+}
+
+.hockey-score {
+  color: #f8fafc;
+  font-weight: 800;
+}
+
+.hockey-total {
+  color: #00ff88;
+  font-size: 23px;
+  font-weight: 950;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.35);
+}
+
+.game-summary-scoreboard {
+  display: grid;
+  grid-template-columns: auto;
+  grid-template-rows: auto auto;
+  align-items: start;
+  justify-items: start;
+  gap: 4px;
+  min-width: 360px;
+}
+
+.game-summary-status {
+  color: #00ff88;
+  text-align: left;
+}
+
+.game-summary-status-main {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.game-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #00ff88;
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.75);
+  flex: 0 0 auto;
+}
+
+.game-summary-status-context {
+  margin-top: 0;
+  margin-left: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+
+  position: relative;
+  top: 0px;
+}
+
+.game-summary-score {
+  display: grid;
+  gap: 3px;
+}
+
+.game-summary-score-row {
+  display: grid;
+  grid-template-columns: 48px 34px;
+  align-items: center;
+  gap: 14px;
+  line-height: 1.1;
+}
+
+.game-summary-score-row span {
+  color: #00ff88;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.game-summary-score-row strong {
+  color: #00ff88;
+  font-size: 22px;
+  font-weight: 950;
+  text-align: right;
+}
+
+.game-summary-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 28px;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.game-summary-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.game-summary-right {
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 260px;
+}
+
+.game-market-signal {
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.limited-market-warning {
+  margin-bottom: 10px;
+  font-size: 11px;
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.game-signal-pill {
+  margin-bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  background: rgba(0,255,136,0.08);
+  border: 1px solid rgba(0,255,136,0.16);
+  color: #00ff88;
+}
+
+.game-signal-pill.strong {
+  background: rgba(0,255,136,0.14);
+  border-color: rgba(0,255,136,0.28);
+}
+
+@media (max-width: 700px) {
+  .game-summary-header {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .game-summary-right {
+    justify-content: flex-start;
+    min-width: 0;
+  }
+}
+
+
+@media (max-width: 600px) {
+
+  .mobile-hide {
+    display: none !important;
+  }
+
+  .stat-updated-card {
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+  }
+
+  .container {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .odds-item {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .market-gap-badge {
+    display: none !important;
+  }
+
+  .odds-action-row {
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    justify-content: flex-end !important;
+    gap: 4px !important;
+  }
+
+  .odds-action-row > span:first-child {
+    display: none !important;
+  }
+
+  .odds-grid-row {
+    grid-template-columns: 20px minmax(140px,1fr) 58px 16px 64px !important;
+    gap: 6px !important;
+    align-items: start !important;
+  }
+
+  .odds-list label.odds-grid-row {
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+  }
+
+  
+  .desktop-movement-marker {
+    display: none !important;
+  }
+
+}
+
 </style>
 </head>
 <body>
+
 <script>
 async function checkAccess() {
   const email = localStorage.getItem("sco_bets_email");
@@ -276,6 +1392,7 @@ async function checkAccess() {
 
     if (!data.access) {
       window.location.href = "/index.html";
+      return;
     }
   } catch (err) {
     console.error(err);
@@ -283,122 +1400,342 @@ async function checkAccess() {
   }
 }
 
-checkAccess();
+window.addEventListener("DOMContentLoaded", checkAccess);
 </script>
 
-<div class="nav">
+  <div class="nav">
   <div class="logo">SCO Bets AI</div>
   <div>
-    <a href="index.html">Home</a>
-    <a href="https://billing.stripe.com/p/login/dRm7sL4wKdjW6ercfy7ss00" target="_blank" rel="noopener">Manage Subscription</a>
+    <a href="index.html" id="nav-home-button">Home</a>
   </div>
 </div>
 
 <div class="container">
-  <div class="dashboard-header">
+  <div class="dashboard-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:0px;">
     <div>
-      <h1>Premium Dashboard</h1>
-      <div class="muted">Live odds, AI picks, and arbitrage tools — all in one place</div>
+      <h1>Sports Betting Intelligence Dashboard</h1>
+      
+      <p class="premium-trust-line" style="margin: 6px 0 14px 0;">
+        Compare odds, track market movement, and identify value before placing a bet.
+      </p>
     </div>
 
-    <div class="header-actions">
+    <div class="header-actions" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <div>
+        <label for="sport-select" class="sport-label">Sport:</label>
+        <select id="sport-select" style="margin-left:8px; padding:8px 12px; min-height:42px; border-radius:10px; background:#0f172a; color:white; border:1px solid #00ff88;">
+          <option value="baseball_mlb">⚾ MLB</option>
+          <option value="basketball_wnba">🏀 WNBA</option>
+          <option value="soccer_usa_mls">⚽ MLS</option>
+          <option value="americanfootball_nfl">🏈 NFL</option>
+
+          <option disabled>────────────</option>
+          <option disabled>Off Season</option>
+
+          <option value="basketball_ncaab">🏀 NCAA (M)</option>
+          <option value="basketball_wncaab">🏀 NCAA (W)</option>
+          <option value="basketball_nba">🏀 NBA</option>
+        </select>
+      </div>
+
+    <div>
+      <label for="team-select" class="sport-label">Team:</label>
+      <select id="team-select" onchange="localStorage.setItem('selectedTeam', this.value); jumpToSelectedTeam();" style="margin-left:8px; padding:8px 12px; min-height:42px; border-radius:10px; background:#0f172a; color:white; border:1px solid #00ff88;">
+        <option value="">All Teams</option>
+      </select>
+    </div>
+
       <button id="refresh-odds-btn" onclick="loadOdds()">Refresh Odds</button>
     </div>
   </div>
 
-  <div class="stats-row">
+  <div class="stats-row" style="margin-top:0px; margin-bottom:18px;">
     <div class="stat-card">
-      <div class="stat-label">Live Games</div>
-      <div id="stat-games" class="stat-value">--</div>
-    </div>
+      <div style="display:flex; justify-content:space-between; gap:12px;">
+    
+        <div style="text-align:left; flex:1;">
+          <div class="stat-label">Today's Games</div>
+          <div id="stat-today-games" class="stat-value">--</div>
+        </div>
 
-    <div class="stat-card">
-      <div class="stat-label">Best Line Advantage</div>
-      <div id="stat-edge" class="stat-value">--</div>
+        <div style="width:1px; background:rgba(255,255,255,0.04);"></div>
+
+        <div style="text-align:left; flex:1;">
+          <div class="stat-label">Available Games</div>
+          <div id="stat-games" class="stat-value">--</div>
+        </div>
+
+      </div>
     </div>
 
     <div class="stat-card">
       <div class="stat-label">Arb Opportunities</div>
-      <div id="stat-arb" class="stat-value">--</div>
+      <div id="stat-arb" class="stat-value">Loading...</div>
     </div>
 
-    <div class="stat-card">
+    <div class="stat-card mobile-hide" id="value-opportunities-card" style="cursor:pointer;">
+      <div class="stat-label">Value Opportunities</div>
+      <div id="stat-edge" class="stat-value">Loading...</div>
+
+      <div id="value-opportunities-list" class="muted" style="display:none; margin-top:10px; font-size:12px;"></div>
+    </div>
+
+    <div class="stat-card stat-updated-card">
       <div class="stat-label">Last Updated</div>
-      <div id="stat-updated" class="stat-value">--</div>
+      <div id="stat-updated" class="stat-value">Loading...</div>
     </div>
   </div>
 
-  <div class="banner">
-    🔥 Welcome to SCO Bets Pro — premium access active.
+  <div class="premium-banner mobile-hide">
+  <span class="banner-left">
+    Live sportsbook pricing, value analysis, and market opportunities are now active.
+  </span>
+
+  <span class="banner-right">
+    Live odds — refresh to stay ahead of line movement.
+  </span>
+</div>
+
+<div class="grid">
+  <div class="card" id="top-pick-card">
+  <h3>Bet Guidance</h3>
+  <div id="top-pick" class="pick">Loading...</div>
+  <div id="top-confidence" class="muted"></div>
+  <div id="top-meta"></div>
+  <div id="top-status" class="muted" style="margin-top:8px;"></div>
+
+  <div class="why-pick-toggle" onclick="toggleWhy('top-confidence-reason', this)">
+  <span class="why-pick-label">Why this recommendation?</span>
+  <span class="why-pick-arrow">▼</span>
+</div>
+
+<div id="top-confidence-reason" class="muted why-pick-content"></div>
+
+<div class="card-divider"></div>
+
+<div style="text-align:center; margin-top:14px;">
+  <a
+    id="merged-guidance-link"
+    href="#"
+    target="_blank"
+    rel="noopener"
+    style="
+      display:none;
+      padding:12px 22px;
+      border-radius:12px;
+      background:#00ff88;
+      color:#04110a;
+      font-weight:700;
+      text-decoration:none;
+      font-size:14px;
+      box-shadow:0 6px 16px rgba(0,255,136,0.25);
+      transition: all 0.2s ease;
+    "
+  >
+    Open Sportsbook
+  </a>
+</div>
+</div>
+
+  <div class="card">
+    <h3>Arbitrage Watch</h3>
+    <div id="arb-pick" class="pick">Scanning...</div>
+    <div id="arb-details" class="muted"></div>
+
+    <div class="why-pick-toggle" onclick="toggleWhy('arb-explainer', this)">
+      <span class="why-pick-label">What is arbitrage?</span>
+      <span class="why-pick-arrow">▼</span>
+    </div>
+
+    <div id="arb-explainer" class="muted why-pick-content">
+      Arbitrage happens when different sportsbooks offer prices that allow a guaranteed profit.<br><br>
+
+      These opportunities are rare and can disappear quickly as sportsbooks update their odds.<br><br>
+
+      When available, compare both prices and act quickly before the market adjusts.
+    </div>
+</div>
+
+    <div class="card" id="biggest-movers-card">
+      <h3>📈 Biggest Movers</h3>
+      <div id="biggest-movers" class="pick">Scanning line movement...</div>
+      <div id="biggest-movers-details" class="muted"></div>
+
+      <div class="why-pick-toggle" onclick="toggleWhy('biggest-movers-explainer', this)">
+        <span class="why-pick-label">What does this mean?</span>
+        <span class="why-pick-arrow">▼</span>
+      </div>
+
+      <div id="biggest-movers-explainer" class="muted why-pick-content">
+        Biggest Movers highlights the largest recent odds changes we have detected.<br><br>
+
+        A move does not automatically mean a bet should be placed.<br><br>
+
+        It is a signal worth reviewing, especially when the same team continues moving across multiple sportsbooks.<br><br>
+
+       </div>
+    </div>
+
+    <div class="card" id="completed-games-card">
+      <h3>🏁 Recent Results</h3>
+
+      <div id="completed-games-list" class="muted">
+        Waiting for completed games...
+      </div>
+    </div>
+ </div>
+
+  <div class="card odds-section">
+    <h3 id="odds-heading">Live NCAA Basketball Odds</h3>
+
+  <div id="odds-status" class="muted" style="margin-top:8px;">Loading live odds...</div>
+  <div id="last-updated" class="muted" style="margin-top:4px;"></div>
+
+  <div class="helper-toggle" onclick="toggleWhy('odds-help-content', this)">
+    <span class="helper-arrow">▶</span>
+    <span>How to read the odds below</span>
   </div>
 
-  <div class="grid">
-    <div class="card">
-      <h3>Top AI Pick</h3>
-      <div id="top-pick" class="pick">Loading...</div>
-      <div id="top-confidence" class="muted"></div>
-      <div id="top-reason" class="muted" style="margin-top:10px;"></div>
-    </div>
+  <div id="odds-help-content" class="muted why-pick-content" style="font-size:12px; line-height:1.5; text-align:left; max-width:760px;">
+      ✔ Best Price = Best price across sportsbooks<br>
+      ✔ +Value = Better than market average (worth considering)<br>
+      ✔ No Edge = Market odds are worse than Fair Odds<br>
+      ✔ Fair Odds = Our estimate of what the odds should be without sportsbook margin
+  </div>
 
-    <div class="card">
-      <h3>Arbitrage Watch</h3>
-      <div id="arb-pick" class="pick">Scanning...</div>
-      <div id="arb-details" class="muted"></div>
-    </div>
+  <div class="helper-toggle" onclick="toggleWhy('dashboard-philosophy', this)">
+    <span class="helper-arrow">▶</span>
+    <span>Why line value matters</span>
+  </div>
 
-    <div class="card">
-      <h3>Bet Guidance</h3>
-      <div id="guidance-pick" class="pick">Waiting for live data...</div>
-      <div id="guidance-book" class="muted"></div>
-      <div id="guidance-action" class="muted" style="margin-top:10px;"></div>
-      <a id="guidance-link" class="button-link" href="#" target="_blank" rel="noopener" style="display:none;">
-        Place Bet
-      </a>
+  <div id="dashboard-philosophy" class="muted why-pick-content" style="font-size:12px; line-height:1.5; text-align:left; max-width:760px;">
+    A team can still be favored to win and be a poor bet at the current odds.<br>
+    We evaluate the value of the line — not just who is likely to win.<br>
+    Sometimes the best decision is to wait for better odds or sit the game out entirely.
+  </div>
 
-      <div id="guidance-note" class="muted" style="margin-top:10px; font-size:12px; opacity:0.7;">
-        Odds can change quickly. Always confirm the line before placing a bet.
+  <div id="odds-list" class="odds-list"></div>
+
+  <div class="section-title">Betting Tools</div>
+
+  <div class="betting-tools-grid" style="display:grid; grid-template-columns:minmax(260px, 360px) minmax(400px, 480px); gap:20px; align-items:start; margin-top:24px;">
+
+    <div class="betting-tools-stack" style="display:flex; flex-direction:column; gap:28px;">
+      <div class="card" style="padding-bottom:34px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+          <h3 style="margin:0;">Bet Slip Tools</h3>
+
+          <button
+            onclick="clearSelectedBets()"
+            style="
+              background:transparent;
+              border:none;
+              color:#94a3b8;
+              cursor:pointer;
+              font-size:12px;
+              font-weight:600;
+              padding:0;
+            "
+          >
+            ↺ Clear
+          </button>
+        </div>
+
+        <div class="muted">
+          Copy or print your selected sportsbook bets before placing them.
+        </div>
+
+        <div id="selected-bet-count" style="
+          margin-top:10px;
+          font-size:13px;
+          color:#00ff88;
+          font-weight:600;
+        ">
+          Selected Bets: 0
+        </div>
+
+        <div id="selected-bet-preview" style="
+          margin-top:12px;
+          font-size:13px;
+          color:#cbd5e1;
+          line-height:1.5;
+        ">
+        </div>
+
+        <div class="button-row" style="margin-top:18px; justify-content:center;">
+          <button onclick="copySelectedBets()">Copy Selected Bets</button>
+          <button onclick="printBetSlip()">Print Bet Slip</button>
+        </div>
+
+        <div style="
+          margin-top:18px;
+          font-size:12px;
+          color:#94a3b8;
+          text-align:center;
+          line-height:1.4;
+        ">
+          Verify sportsbook odds before placing your bets.
+        </div>
+
+        <div id="selected-result" class="muted" style="margin-top:14px;"></div>
+      </div>
+
+      <div class="card" style="padding-bottom:24px;">
+        <h3>Member Tools</h3>
+        <div class="muted">Manage your membership and billing information.</div>
+
+        <div style="text-align:center; margin-top:32px;">
+          <button
+            id="manage-subscription-btn"
+            onclick="openCustomerPortal()"
+            style="
+              display:inline-block;
+              padding:12px 22px;
+              border-radius:12px;
+              background:#00ff88;
+              color:#04110a;
+              font-weight:700;
+              text-decoration:none;
+              font-size:14px;
+              box-shadow:0 6px 16px rgba(0,255,136,0.25);
+              transition: all 0.2s ease;
+              border:none;
+              cursor:pointer;
+            "
+          >
+            Manage Subscription
+          </button>
+        </div>
+
+        <div class="muted" style="margin-top:10px; text-align:center; font-size:12px;">
+          Secure email access through Stripe
+        </div>
       </div>
     </div>
 
-    <div class="card">
-      <h3>Premium Tools</h3>
-      <div class="muted">Access picks, live odds, arbitrage opportunities, and billing tools from one place.</div>
-      <a class="button-link" href="https://billing.stripe.com/p/login/dRm7sL4wKdjW6ercfy7ss00" target="_blank" rel="noopener">Manage Subscription</a>
-    </div>
-  </div>
+    <div class="card arb-card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="margin:0; flex:1; min-width:180px;">Arbitrage Bet Calculator</h3>
 
-  <div class="card" style="margin-top:24px;">
-    <h3 id="odds-heading">Live NCAA Basketball Odds</h3>
-
-    <div style="margin-top:12px;">
-      <label for="sport-select" class="muted">Choose sport:</label>
-      <select id="sport-select" onchange="loadOdds()" style="margin-left:10px;">
-        <option value="basketball_nba" selected>NBA</option>
-        <option value="basketball_ncaab">Men's NCAA Basketball</option>
-      </select>
-    </div>
-
-    <div id="odds-status" class="muted" style="margin-top:12px;">Loading live odds...</div>
-    <div id="last-updated" class="muted" style="margin-top:6px;"></div>
-
-    <div class="button-row">
-      <button onclick="copySelectedBets()">Copy Selected Bets</button>
-      <button onclick="printBetSlip()">Print Bet Slip</button>
-    </div>
-
-    <div class="section-title">Bet Slip Tools</div>
-    <div id="selected-result" class="muted"></div>
-
-    <div class="section-title">Live Odds Board</div>
-    <div id="odds-list" class="odds-list"></div>
-
-    <div class="section-title">Arbitrage Tools</div>
-
-    <div class="card" style="margin-top:24px;">
-      <h3>Arbitrage Bet Calculator</h3>
+        <button
+          id="reset-arb-btn"
+          onclick="resetArbitrageCalculator()"
+          style="
+            background:transparent;
+            border:none;
+            color:#94a3b8;
+            cursor:pointer;
+            font-size:12px;
+            font-weight:600;
+            padding:0;
+          "
+        >
+          ↺ Reset
+        </button>
+      </div>
       <div class="muted">Enter your bankroll and the two American odds.</div>
 
-      <div class="input-grid">
+      <div class="input-grid" style="display:grid; grid-template-columns:1fr; gap:18px;">
         <div>
           <label>Total Bankroll ($)</label>
           <input id="bankroll" type="number" value="100">
@@ -415,20 +1752,22 @@ checkAccess();
         </div>
       </div>
 
-      <div class="button-row">
-        <button onclick="calculateArb()">Calculate Arbitrage</button>
-        <button onclick="fillFromBestArb()">Auto-Fill From Arbitrage Watch</button>
-        <button onclick="copyBetPlan()">Copy Bet Plan</button>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:22px;">
+        <button onclick="calculateArb()">🧮 Calculate Arbitrage</button>
+        <button onclick="fillFromBestArb()">🔄 Auto-Fill From Arb Watch</button>
+        <button onclick="copyBetPlan()">📋 Copy Bet Plan</button>
+        <button onclick="printBetPlan()">🖨️ Print Bet Plan</button>
       </div>
 
       <div id="arb-result" style="margin-top:20px; line-height:1.8;"></div>
     </div>
-  </div>
-</div>
 
-<div class="footer">© 2026 SCO Creates</div>
+  </div>
+
+<div class="footer" id="premium-footer" style="display:none;">© 2026 SCO Creates</div>
 
 <script>
+
 let currentBestArb = null;
 
 function toDecimal(odds) {
@@ -438,44 +1777,145 @@ function toDecimal(odds) {
 function americanToDecimal(odds) {
   return odds > 0 ? (odds / 100) + 1 : (100 / Math.abs(odds)) + 1;
 }
+function americanToProbability(odds) {
+  if (odds > 0) {
+    return 100 / (odds + 100);
+  } else {
+    return Math.abs(odds) / (Math.abs(odds) + 100);
+  }
+}
 
 function isReasonableOdds(odds) {
   return odds >= -1000 && odds <= 1000;
 }
-
 function isOutlierOdds(odds) {
   return odds < -1000 || odds > 1000;
 }
 
+function getSportsbookLogo(bookName) {
+  const logos = {
+    'FanDuel': `<span style="display:inline-block; min-width:68px; padding:3px 8px; border-radius:999px; background:#1e3a8a; color:#fff; font-size:12px; font-weight:600; text-align:center;">FanDuel</span>`,
+    'DraftKings': `<span style="display:inline-block; min-width:68px; padding:3px 8px; border-radius:999px; background:#166534; color:#fff; font-size:12px; font-weight:600; text-align:center;">DraftKings</span>`,
+    'BetMGM': `<span style="display:inline-block; min-width:68px; padding:3px 8px; border-radius:999px; background:#6b4f1d; color:#fff; font-size:12px; font-weight:600; text-align:center;">BetMGM</span>`,
+    'Caesars': `<span style="display:inline-block; min-width:68px; padding:3px 8px; border-radius:999px; background:#7c2d12; color:#fff; font-size:12px; font-weight:600; text-align:center;">Caesars</span>`,
+    'ESPN BET': `<span style="display:inline-block; min-width:68px; padding:3px 8px; border-radius:999px; background:#991b1b; color:#fff; font-size:12px; font-weight:600; text-align:center;">ESPN BET</span>`,
+    'Fanatics': `<span style="display:inline-block; min-width:68px; padding:3px 8px; border-radius:999px; background:#b91c1c; color:#fff; font-size:12px; font-weight:600; text-align:center;">Fanatics</span>`
+  };
+
+  return logos[bookName] || `<span style="display:inline-block; min-width:68px; padding:3px 8px; border-radius:999px; background:#374151; color:#fff; font-size:12px; font-weight:600; text-align:center;">${bookName}</span>`;
+}
+
+function showOpenFeedback(bookTitle) {
+  const result = document.getElementById('selected-result');
+
+  if (!result) return;
+
+  result.innerHTML =
+    `<span style="color:#00ff88;">Opening ${bookTitle}... Verify odds before placing.</span>`;
+
+  setTimeout(() => {
+    if (result.innerHTML.includes(`Opening ${bookTitle}`)) {
+      result.innerHTML = '';
+    }
+  }, 2500);
+}
+
+function resetArbitrageCalculator() {
+  const bankroll = document.getElementById('bankroll');
+  const odds1 = document.getElementById('odds1');
+  const odds2 = document.getElementById('odds2');
+
+  const team1Label = document.getElementById('team1-label');
+  const team2Label = document.getElementById('team2-label');
+
+  const result = document.getElementById('arb-result');
+
+  if (bankroll) bankroll.value = 100;
+  if (odds1) odds1.value = -110;
+  if (odds2) odds2.value = 110;
+
+  if (team1Label) team1Label.textContent = 'Team 1 Odds';
+  if (team2Label) team2Label.textContent = 'Team 2 Odds';
+
+  if (result) result.innerHTML = '';
+}
+
+
+function trackOddsRowClick(bookName, gameName, teamName, odds) {
+  console.log(`ODDS ROW CLICK: ${bookName} | ${gameName} | ${teamName} | ${odds}`);
+
+  if (window.gtag) {
+    gtag('event', 'odds_row_click', {
+      event_category: 'engagement',
+      event_label: `${bookName} | ${gameName} | ${teamName} | ${odds}`
+    });
+  }
+}
+
 function renderBookmakersWithHighlights(game) {
   const bestByTeam = {};
+  const pricesByTeam = {};
 
-  game.bookmakers.forEach(book => {
-    book.odds.forEach(outcome => {
+    let bestEdgeInGame = -999;
+    let bestEdgeKey = null;
+
+  (game.bookmakers || []).forEach(book => {
+    (book.odds || []).forEach(outcome => {
+      if (!pricesByTeam[outcome.name]) {
+        pricesByTeam[outcome.name] = [];
+      }
+
+pricesByTeam[outcome.name].push(outcome.price);
+
       if (!bestByTeam[outcome.name] || outcome.price > bestByTeam[outcome.name].price) {
         bestByTeam[outcome.name] = {
           price: outcome.price,
           book: book.title
         };
       }
+      if (outcome.edgePercent !== null && outcome.edgePercent > bestEdgeInGame) {
+        bestEdgeInGame = outcome.edgePercent;
+        bestEdgeKey = `${book.title}|${outcome.name}|${outcome.price}`;
+      }
+
     });
   });
 
-  return game.bookmakers.map(book => {
+  const consensusByTeam = {};
+  const marketRangeByTeam = {};
+  const marketCountByTeam = {};
+
+  Object.keys(pricesByTeam).forEach(team => {
+    const prices = pricesByTeam[team].filter(price => typeof price === 'number');
+    const marketCount = prices.length;
+    marketCountByTeam[team] = marketCount;
+
+    if (prices.length > 0) {
+      const total = prices.reduce((sum, price) => sum + price, 0);
+      consensusByTeam[team] = Math.round(total / prices.length);
+
+      const highestPrice = Math.max(...prices);
+      const lowestPrice = Math.min(...prices);
+      marketRangeByTeam[team] = highestPrice - lowestPrice;
+    }
+  });
+
+  return (game.bookmakers || []).map((book, index) => {
     const isArbBook =
       currentBestArb &&
-      `${game.away} vs ${game.home}` === currentBestArb.game &&
+      getGameKey(game) === currentBestArb.gameKey &&
       (book.title === currentBestArb.book1 || book.title === currentBestArb.book2);
 
-    const oddsHtml = book.odds.map(o => {
+      const oddsHtml = (book.odds || []).map(o => {
+        
       const isBest =
         bestByTeam[o.name] &&
         bestByTeam[o.name].price === o.price &&
         bestByTeam[o.name].book === book.title;
 
       const isArbSelection =
-        currentBestArb &&
-        `${game.away} vs ${game.home}` === currentBestArb.game &&
+                    currentBestArb &&
+                   getGameKey(game) === currentBestArb.gameKey &&
         (
           (o.name === currentBestArb.team1 && book.title === currentBestArb.book1 && o.price === currentBestArb.price1) ||
           (o.name === currentBestArb.team2 && book.title === currentBestArb.book2 && o.price === currentBestArb.price2)
@@ -483,47 +1923,457 @@ function renderBookmakersWithHighlights(game) {
 
       const isOutlier = isOutlierOdds(o.price);
 
-      let textStyle = '';
-      if (isArbSelection) {
+      const previousLine = findPreviousOddsLine(game, book.title, o.name);
+      const openingLine = findOpeningOddsLine(game, book.title, o.name);
+      const lineKey = `${game.home}|${game.away}|${book.title}|${o.name}`;
+      const openingMovementAmount =
+        openingLine
+          ? Math.abs(Number(o.price) - Number(openingLine.price))
+          : 0;
+
+      const lineMovement =
+       previousLine && Number(previousLine.price) !== Number(o.price)
+           ? Number(o.price) > Number(previousLine.price)
+           ? 'up'
+           : 'down'
+         : null;
+
+       if (lineMovement) {
+         lineMovementTimestamps[lineKey] = Date.now();
+       }
+
+      const movementAmount =
+        previousLine
+          ? Math.abs(Number(o.price) - Number(previousLine.price))
+          : 0;
+
+      const sameDirectionMoves = window.biggestMovers.filter(m =>
+        m.game === `${game.away} vs ${game.home}` &&
+        m.team === o.name &&
+        m.movement === lineMovement
+      ).length;
+
+    if (previousLine) {
+
+               const duplicateMoverExists = window.biggestMovers.some(m =>
+                   m.gameKey === getGameKey(game) &&
+                   m.team === o.name &&
+                   m.book === book.title &&
+                   Number(m.previousPrice) === Number(previousLine.price) &&
+                   Number(m.price) === Number(o.price)
+               );
+
+               const previousPrice = Number(previousLine.price);
+               const currentPrice = Number(o.price);
+
+              const isUnrealisticMove =
+                   Math.abs(previousPrice) >= 1000 ||
+                  Math.abs(currentPrice) >= 1000 ||
+                  movementAmount >= 500;
+
+              if (
+                  !duplicateMoverExists &&
+                  !isUnrealisticMove &&
+                 movementAmount > 0 &&
+                 lineMovement
+             ) {
+               window.biggestMovers.push({
+                    team: o.name,
+                    price: o.price,
+                    previousPrice: previousLine.price,
+                    book: book.title,
+                    game: `${game.away} vs ${game.home}`,
+                    gameKey: getGameKey(game),
+                    movement: lineMovement,
+                    amount: movementAmount,
+                    pressureCount: sameDirectionMoves + 1,
+                    timestamp: Date.now()
+                });
+            }
+        }
+
+      const lastMovementTime = lineMovementTimestamps[lineKey];
+
+      const secondsSinceMovement = lastMovementTime
+        ? Math.floor((Date.now() - lastMovementTime) / 1000)
+        : null;
+
+      let freshnessLabel = '';
+
+      if (secondsSinceMovement !== null) {
+
+        const minutesAgo = Math.floor(secondsSinceMovement / 60);
+
+        if (secondsSinceMovement < 60) {
+          freshnessLabel = `Updated ${secondsSinceMovement}s ago`;
+
+        } else if (minutesAgo < 30) {
+          freshnessLabel = `Updated ${minutesAgo}m ago`;
+
+        } else {
+          freshnessLabel = `⚠ Stale ${minutesAgo}m`;
+        }
+      }
+
+      const isBestOpportunity =
+        bestEdgeKey === `${book.title}|${o.name}|${o.price}`;
+
+      const consensusPrice = consensusByTeam[o.name];
+      const marketGap = typeof consensusPrice === 'number'
+        ? o.price - consensusPrice
+        : 0;
+
+      const marketRange = marketRangeByTeam[o.name] || 0;
+      const marketCount = marketCountByTeam[o.name] || 0;
+
+      const dynamicGapThreshold =
+        Math.abs(consensusPrice) >= 1000
+          ? 140
+          : Math.abs(consensusPrice) >= 500
+            ? 90
+            : 25;
+
+      const isLaggingMarket =
+        (marketCount >= 3) &&
+        (marketRange >= dynamicGapThreshold * 1.5) &&
+        (bestByTeam[o.name]?.price === o.price);
+
+      const isMarketOutlier =
+        (marketCount >= 3) &&
+        (o.price > consensusPrice) &&
+        (marketGap >= dynamicGapThreshold) &&
+        (marketRange >= dynamicGapThreshold) &&
+        (bestByTeam[o.name]?.price === o.price);
+
+      let textStyle = 'color:#9ca3af;'; // default muted
+
+      if (o.edgePercent > 0) {
+        // ONLY true value pops
+        textStyle = 'color:#00ff88; font-weight:700; text-shadow:0 0 6px rgba(0,255,136,0.4);';
+      } else if (isArbSelection) {
         textStyle = 'color:#00ff88; font-weight:700; text-decoration:underline;';
-      } else if (isBest) {
-        textStyle = 'color:#00ff88; font-weight:700;';
       } else if (isOutlier) {
         textStyle = 'color:#888;';
       }
 
-      const outlierBadge = isOutlier
-        ? '<span style="color:#ffcc00; font-size:11px; margin-left:6px;">(Outlier)</span>'
+      const outlierBadge = isOutlier && !isMarketOutlier
+        ? `<span style="
+            display:inline-flex;
+            align-items:center;
+            white-space:nowrap;
+            gap:3px;
+            margin-left:8px;
+            position:relative;
+            top:-4px;
+            font-size:11px;
+            padding:2px 8px;
+            border-radius:999px;
+            background:rgba(255,204,0,0.14);
+            color:#ffcc00;
+            font-weight:600;
+            cursor:help;
+          "
+          title="This price differs significantly from the broader market. Verify availability before betting — unusual prices can change quickly."
+        >
+          Outlier ⓘ
+        </span>`
         : '';
 
-      return `
-        <label style="display:block; margin-top:6px; cursor:pointer;">
-          <input
-            type="checkbox"
-            class="bet-checkbox"
-            data-game="${game.away} vs ${game.home}"
-            data-book="${book.title}"
-            data-team="${o.name}"
-            data-odds="${o.price}"
-            style="margin-right:8px;"
-          >
-          <span style="${textStyle}">${o.name}: ${o.price}</span>
-          ${outlierBadge}
-        </label>
-      `;
+      const marketGapBadge = isMarketOutlier
+        ? `<span class="market-gap-badge" style="
+            display:inline-flex;
+            align-items:center;
+            margin-left:8px;
+            position:relative;
+            top:-4px;
+            font-size:11px;
+            white-space:nowrap;
+            padding:2px 8px;
+            border-radius:999px;
+            background:rgba(56,189,248,0.10);
+            color:#7dd3fc;
+            font-weight:600;
+            cursor:help;
+          "
+          onmousedown="event.preventDefault(); event.stopPropagation();"
+          onclick="event.preventDefault(); event.stopPropagation();"
+          title="This sportsbook currently offers the most favorable price found. Verify before betting — odds can update quickly."
+        >
+          Best Price ⓘ
+        </span>`
+        : '';
+
+      const laggingMarketBadge = isLaggingMarket && !isMarketOutlier
+        ? `<span style="
+            display:inline-flex;
+            align-items:center;
+            margin-left:8px;
+            position:relative;
+            top:-4px;
+            font-size:11px;
+            white-space:nowrap;
+            padding:2px 8px;
+            border-radius:999px;
+            background:rgba(251,191,36,0.10);
+            color:#facc15;
+            font-weight:600;
+            cursor:help;
+          "
+          title="This sportsbook price is behind the broader market. Verify before betting — odds can update quickly."
+        >
+          Line Lagging ⓘ
+        </span>`
+        : '';
+
+      const bestBadge =
+        isBest && o.edgePercent > 0
+          ? '<span style="margin-left:8px; font-size:11px; padding:2px 6px; border-radius:999px; background:rgba(34,197,94,0.18); color:#22c55e; font-weight:600;">Best  Line</span>'
+          : '';
+
+      const bestOpportunityBadge = isBestOpportunity && !isBest && o.edgePercent > 0
+        ? '<span style="font-size:11px; padding:2px 6px; border-radius:999px; background:rgba(34,197,94,0.18); color:#22c55e; font-weight:600;">Best Opportunity</span>'
+        : '';
+
+      const bestLineButton = game.status === 'final'
+        ? `<span
+             style="
+               margin-left:0px;
+               margin-top:0px;
+               font-size:10px;
+               padding:3px 9px;
+               border-radius:999px;
+               background:rgba(148,163,184,0.12);
+               color:#94a3b8;
+               font-weight:600;
+               border:1px solid rgba(148,163,184,0.15);
+               display:inline-block;
+             "
+           >Closed</span>`
+        : `<a
+             href="${getSportsbookUrl(book.title)}"
+             target="_blank"
+             rel="noopener"
+             onclick="showOpenFeedback('${book.title}'); trackOddsRowClick('${book.title}', '${game.away} vs ${game.home}', '${o.name}', '${o.price}')"
+             style="
+               margin-left:0px;
+               margin-top:0px;
+               font-size:10px;
+               padding:3px 9px;
+               border-radius:999px;
+               background:${isArbSelection
+                 ? 'rgba(251,191,36,0.92)'
+                 : o.edgePercent > 0
+                   ? 'rgba(0,255,136,0.88)'
+                   : 'rgba(255,255,255,0.08)'};
+               color:${isArbSelection
+                 ? '#111827'
+                 : o.edgePercent > 0
+                   ? '#04110a'
+                   : '#cbd5e1'};
+               text-decoration:none;
+               font-weight:${o.edgePercent > 0 || isArbSelection ? '700' : '600'};
+               border:${o.edgePercent > 0 || isArbSelection
+                 ? 'none'
+                 : '1px solid rgba(255,255,255,0.08)'};
+               display:inline-block;
+             "
+             title="Open ${book.title}. Verify current odds before placing your bet."
+          >Open</a>`;
+
+      const movementLevel =
+        movementAmount >= 200
+          ? 'major'
+          : movementAmount >= 75
+          ? 'notable'
+          : 'minor';
+
+      const movementColor =
+        lineMovement === 'up'
+          ? movementLevel === 'major'
+            ? '#00ff88'
+            : movementLevel === 'notable'
+            ? '#34d399'
+            : '#86efac'
+          : movementLevel === 'major'
+          ? '#fbbf24'
+          : movementLevel === 'notable'
+          ? '#facc15'
+          : '#fde68a';
+
+      const movementGlow =
+        movementLevel === 'major'
+          ? lineMovement === 'up'
+            ? '0 0 10px rgba(0,255,136,0.35)'
+            : '0 0 10px rgba(251,191,36,0.35)'
+          : 'none';
+
+      const movementSize =
+        movementLevel === 'major'
+          ? '11px'
+          : '10px';
+
+      const desktopMovementMarker = lineMovement && previousLine
+                     ? `<span class="desktop-movement-marker" style="
+                                 display:inline-flex;
+                                 align-items:center;
+                                 justify-content:center;
+                                gap:1px;
+                                min-width:42px;
+                               font-size:${movementSize};
+                               font-weight:800;
+                               color:${movementColor};
+                               text-shadow:${movementGlow};
+                         ">
+                                ${previousLine.price > 0 ? '+' : ''}${previousLine.price}
+                                →
+                               ${o.price > 0 ? '+' : ''}${o.price}
+                       </span>`
+                    : '<span class="desktop-movement-marker" style="display:inline-block; min-width:42px;"></span>';
+
+     const mobileMovementMarker = lineMovement && previousLine
+                   ? `<span class="mobile-movement-marker" style="
+                            display:none;
+                            font-size:12px;
+                            font-weight:800;
+                            color:${movementColor};
+                            text-shadow:${movementGlow};
+                      ">
+                           ${previousLine.price > 0 ? '+' : ''}${previousLine.price}
+                          →
+                           ${o.price > 0 ? '+' : ''}${o.price}
+                   </span>`
+                  : '';
+
+      const sign = o.price > 0 ? '+' : '';
+      let rowStyle = 'display:flex; align-items:center; gap:12px; margin-top:4px; cursor:pointer;';
+
+      if (o.edgePercent > 2) {
+        // strong value
+        rowStyle += ' padding:6px 8px; border-radius:10px; background:rgba(0,255,136,0.12); border:1px solid rgba(0,255,136,0.25); box-shadow:0 0 12px rgba(0,255,136,0.2);';
+      } else if (o.edgePercent > 0) {
+        // normal value
+        rowStyle += ' padding:6px 8px; border-radius:10px; background:rgba(0,255,136,0.07); border:1px solid rgba(0,255,136,0.18);';
+      }
+ return `
+  <label class="odds-grid-row" style="${rowStyle}; display:grid; grid-template-columns:24px 250px 64px 70px 90px; align-items:start; gap:8px;">
+    <input
+      type="checkbox"
+      class="bet-checkbox"
+      onchange="updateSelectedBetCount()"
+      data-game="${game.away} vs ${game.home}"
+      data-book="${book.title}"
+      data-team="${o.name}"
+      data-odds="${o.price}"
+      style="margin:5px 0 0 0; transform:scale(0.9); opacity:0.8;"
+    >
+
+    <span class="odds-team-info" style="${textStyle}; min-width:0;">
+      <span>${o.name}:</span>
+
+      <span style="display:block; font-size:11px; color:#9ca3af; margin-top:2px;">
+        ${o.edgePercent !== null
+          ? o.edgePercent >= 3
+            ? `🔥 <strong>+${o.edgePercent}% Strong Value</strong>`
+            : o.edgePercent > 0
+              ? `<strong>+${o.edgePercent}% Value</strong>`
+              : `No edge (${o.edgePercent}%)`
+          : ''}
+        ${o.fairOdds !== null ? ` · Fair Odds: ${o.fairOdds > 0 ? '+' : ''}${o.fairOdds}` : ''}
+      </span>
+
+      ${openingMovementAmount > 0 ? `
+                   <span style="display:block; font-size:10px; color:#64748b; margin-top:1px; line-height:1.25;">
+                         First seen: ${openingLine.price > 0 ? '+' : ''}${openingLine.price}
+                         ${freshnessLabel ? `<br>${freshnessLabel}` : ''}
+                   </span>
+      ` : ''}
+    </span>
+
+    <span class="mobile-odds-price" style="text-align:right; font-weight:700;">${sign}${o.price}</span>
+
+    <span class="movement-marker-wrap" style="text-align:center;">${desktopMovementMarker}</span>
+
+    <span class="odds-action-row" style="display:flex; align-items:flex-start; gap:8px; min-width:0;">
+
+    <span style="padding-top:8px; display:flex; align-items:center;">
+      ${outlierBadge}
+      ${marketGapBadge}
+      ${laggingMarketBadge}
+      ${bestBadge}
+      ${bestOpportunityBadge}
+    </span>
+    
+    ${bestLineButton}
+                    </span>
+
+                    ${mobileMovementMarker ? `
+                       <span class="mobile-movement-row">
+                             ${mobileMovementMarker}
+                       </span>
+                    ` : ''}
+            </label>
+   `;
     }).join('');
 
-    const bookStyle = isArbBook
-      ? 'margin-top:10px; padding:10px; border-radius:8px; border:1px solid #00ff88; background:#0f2a1d;'
-      : 'margin-top:10px;';
+    const hasPositiveValue = (book.odds || []).some(o => o.edgePercent > 0);
+    const hasStrongValue = (book.odds || []).some(o => o.edgePercent >= 3);
+
+    let bookStyle = 'margin-top:10px;';
+
+    if (hasStrongValue) {
+      bookStyle = 'margin-top:10px; padding:10px; border-radius:8px; border:1px solid #00ff88; background:rgba(0,255,136,0.10); box-shadow:0 0 14px rgba(0,255,136,0.18);';
+    } else if (hasPositiveValue) {
+      bookStyle = 'margin-top:10px; padding:10px; border-radius:8px; border:1px solid rgba(34,197,94,0.45); background:rgba(34,197,94,0.07);';
+    } else if (isArbBook) {
+      bookStyle = 'margin-top:10px; padding:10px; border-radius:8px; border:1px solid #00ff88; background:#0f2a1d;';
+    }
 
     const badge = isArbBook
       ? '<div style="color:#00ff88; font-size:12px; margin-bottom:6px;">Recommended for arbitrage</div>'
       : '';
 
     return `
-      <div style="${bookStyle}">
-        <span class="muted">${book.title}</span>
+      <div
+                       class="sportsbook-row"
+                       data-book="${book.title}"
+                       style="${bookStyle}; padding-top:${index === 0 ? '0' : '14px'}; border-top:none; margin-top:${index === 0 ? '0' : '10px'};"
+                >
+        <div style="margin-bottom:2px;">${getSportsbookLogo(book.title)}</div>
+
+        <div style="font-size:11px; color:#9ca3af; margin-bottom:4px;">
+          ${book.holdLevel ? `
+            <span class="hold-tooltip">
+              ${book.holdLevel} (${book.marketHoldPercent}%) ⓘ
+              <span class="hold-tooltip-text">
+                ${
+                  book.holdLevel.includes('Low')
+                    ? 'Lower sportsbook margin built into the odds.'
+                    : book.holdLevel.includes('Medium')
+                      ? 'Typical sportsbook pricing.'
+                      : 'Sportsbook keeps more edge built into the odds.'
+                }
+              </span>
+            </span>
+          ` : ''}
+
+          ${book.lastUpdate ? (() => {
+            const secondsOld = (Date.now() - new Date(book.lastUpdate).getTime()) / 1000;
+
+            const ageText = secondsOld < 60
+              ? `${Math.max(1, Math.round(secondsOld))}s ago`
+              : `${Math.round(secondsOld / 60)}m ago`;
+
+            if (secondsOld <= 90) {
+              return `<span style="color:#00ff88; font-weight:700;"> • Updated ${ageText}</span>`;
+            }
+
+            if (secondsOld <= 300) {
+              return `<span style="color:#fbbf24; font-weight:600;"> • Updated ${ageText}</span>`;
+            }
+
+    return `<span style="color:#f87171; font-weight:600;"> • Potentially stale • ${ageText}</span>`;
+          })() : ''}
+        </div>
         ${badge}
         ${oddsHtml}
       </div>
@@ -573,6 +2423,58 @@ function calculateArb() {
       Guaranteed Profit: <strong>$${profit.toFixed(2)}</strong>
     `;
   }
+}
+
+function printBetPlan() {
+  const result = document.getElementById('arb-result');
+
+  if (!result || result.innerText.trim() === "") {
+    result.innerHTML = '<span style="color:#ff8080;">No arbitrage opportunity available to print.</span>';
+    return;
+  }
+
+  const resultText = result.innerText.trim();
+
+  if (!resultText.includes("Arbitrage Opportunity Found")) {
+    result.innerHTML = '<span style="color:#ff8080;">No arbitrage opportunity available to print.</span>';
+    return;
+  }
+
+  const printWindow = window.open('', '', 'width=600,height=600');
+
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Arbitrage Bet Plan</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #ffffff;
+            color: #000000;
+          }
+          h2 {
+            margin-bottom: 20px;
+          }
+          .plan {
+            font-size: 18px;
+            line-height: 1.6;
+          }
+        </style>
+      </head>
+      <body>
+        <h2>Arbitrage Bet Plan</h2>
+        <div class="plan">
+          ${result.innerHTML}
+        </div>
+      </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+  printWindow.close();
 }
 
 async function copyBetPlan() {
@@ -633,6 +2535,10 @@ Guaranteed Profit: $${profit.toFixed(2)}`;
 function fillFromBestArb() {
   const result = document.getElementById('arb-result');
 
+  document.getElementById('odds1').value = '';
+  document.getElementById('odds2').value = '';
+  document.getElementById('arb-result').innerHTML = '';
+
   if (!currentBestArb) {
     result.innerHTML = '<span style="color:#ff8080;">No live arbitrage opportunity is available to auto-fill right now.</span>';
     return;
@@ -645,6 +2551,126 @@ function fillFromBestArb() {
   document.getElementById('team2-label').textContent = `${currentBestArb.team2} Odds`;
 
   result.innerHTML = '<span style="color:#00ff88;">Calculator filled from live arbitrage watch.</span>';
+
+  calculateArb();
+  }
+
+  window.calculateSelectedArb = function(arbIndex) {
+    returnScrollPosition = window.scrollY;
+
+    const navButton = document.getElementById('nav-home-button');
+
+    if (navButton) {
+               navButton.textContent = 'Return';
+               navButton.href = '#';
+
+              navButton.onclick = (e) => {
+                   e.preventDefault();
+
+                  window.scrollTo({
+                        top: returnScrollPosition,
+                        behavior: 'smooth'
+                     });
+
+                    returnScrollPosition = null;
+                   navButton.textContent = 'Home';
+                   navButton.href = 'index.html';
+                  navButton.onclick = null;
+              };
+         }
+
+          const result = document.getElementById('arb-result');
+          const selectedArb = window.activeArbs?.[arbIndex];
+
+        document.getElementById('odds1').value = '';
+        document.getElementById('odds2').value = '';
+        document.getElementById('arb-result').innerHTML = '';
+
+        if (!selectedArb) {
+          result.innerHTML = '<span style="color:#ff8080;">This arbitrage opportunity is no longer available.</span>';
+          return;
+        }
+
+        document.getElementById('odds1').value = selectedArb.price1;
+        document.getElementById('odds2').value = selectedArb.price2;
+
+        document.getElementById('team1-label').textContent = `${selectedArb.team1} Odds`;
+        document.getElementById('team2-label').textContent = `${selectedArb.team2} Odds`;
+
+        result.innerHTML = '<span style="color:#00ff88;">Calculator filled from selected arbitrage opportunity.</span>';
+
+        calculateArb();
+
+        const calculatorCard = document.querySelector('.arb-card');
+
+        if (calculatorCard) {
+          const yOffset = -90;
+          const y = calculatorCard.getBoundingClientRect().top + window.pageYOffset + yOffset;
+
+          window.scrollTo({
+            top: y,
+            behavior: 'smooth'
+          });
+        }
+      };
+
+function updateSelectedBetCount() {
+  const countBox = document.getElementById('selected-bet-count');
+  const previewBox = document.getElementById('selected-bet-preview');
+
+  const selected = Array.from(
+    document.querySelectorAll('.bet-checkbox:checked')
+  );
+
+  if (countBox) {
+    countBox.textContent = `Selected Bets: ${selected.length}`;
+  }
+
+  if (previewBox) {
+    if (!selected.length) {
+      previewBox.innerHTML = '';
+      return;
+    }
+
+    previewBox.innerHTML = selected
+      .map(bet => {
+        const sign = Number(bet.dataset.odds) > 0 ? '+' : '';
+
+        return `
+          <div style="
+            padding:8px 0;
+            border-top:1px solid rgba(255,255,255,0.08);
+          ">
+            <strong>${bet.dataset.book}</strong><br>
+            <span style="
+              color:#ffffff;
+              font-weight:700;
+          ">
+           ${bet.dataset.team} ${sign}${bet.dataset.odds}
+          </span><br>
+            <span style="color:#94a3b8;">
+              ${bet.dataset.game}
+            </span>
+          </div>
+        `;
+      })
+      .join('');
+  }
+}
+
+function clearSelectedBets() {
+  document.querySelectorAll('.bet-checkbox:checked').forEach(box => {
+    box.checked = false;
+  });
+
+  updateSelectedBetCount();
+
+  const result = document.getElementById('selected-result');
+
+  if (result) {
+    result.innerHTML =
+      '<span style="color:#94a3b8;">Selected bets cleared.</span>';
+  }
 }
 
 async function copySelectedBets() {
@@ -750,28 +2776,1221 @@ function printBetSlip() {
   win.print();
 }
 
-function getSportsbookUrl(bookName) {
-  const urls = {
-    // Replace these with your affiliate links later
-    'FanDuel': 'https://sportsbook.fanduel.com/',
-    'DraftKings': 'https://sportsbook.draftkings.com/',
-    'BetMGM': 'https://sports.betmgm.com/',
-    'Caesars': 'https://www.caesars.com/sportsbook-and-casino',
-    'ESPN BET': 'https://espnbet.com/',
-    'Fanatics': 'https://sportsbook.fanatics.com/'
+  const sportsbookShortNames = {
+    DraftKings: 'DK',
+    FanDuel: 'FD',
+    BetMGM: 'MGM',
+    Caesars: 'CZR',
+    'ESPN BET': 'ESPN',
+    Fanatics: 'FAN'
   };
 
-  return urls[bookName] || 'https://www.google.com/search?q=' + encodeURIComponent(bookName + ' sportsbook');
+
+function getSportsbookUrl(bookName, sportOverride = null) {
+  const sportSelect = document.getElementById('sport-select');
+  const selectedSport = sportOverride || (sportSelect ? sportSelect.value : 'baseball_mlb');
+
+    const links = {
+        "DraftKings": {
+             base: "https://sportsbook.draftkings.com/",
+             sports: {
+                  baseball_mlb: "https://sportsbook.draftkings.com/leagues/baseball/mlb",
+                  basketball_wnba: "https://sportsbook.draftkings.com/leagues/basketball/wnba",
+                  basketball_nba: "https://sportsbook.draftkings.com/leagues/basketball/nba",
+                  basketball_ncaab: "https://sportsbook.draftkings.com/leagues/basketball/ncaab",
+                 americanfootball_nfl: "https://sportsbook.draftkings.com/leagues/football/nfl",
+                 soccer_usa_mls: "https://sportsbook.draftkings.com/leagues/soccer/mls"
+             },
+            affiliate: null
+       },
+
+        "FanDuel": {
+             base: "https://sportsbook.fanduel.com/",
+             sports: {
+                  baseball_mlb: "https://sportsbook.fanduel.com/navigation/mlb",
+                  basketball_wnba: "https://sportsbook.fanduel.com/navigation/wnba",
+                  basketball_nba: "https://sportsbook.fanduel.com/navigation/nba",
+                  basketball_ncaab: "https://sportsbook.fanduel.com/navigation/ncaab",
+                  americanfootball_nfl: "https://sportsbook.fanduel.com/navigation/nfl",
+                  soccer_usa_mls: "https://sportsbook.fanduel.com/soccer?tab=mls"
+            },
+           affiliate: null
+       },
+
+        "BetMGM": {
+             base: "https://sports.betmgm.com/",
+             sports: {
+                  baseball_mlb: "https://www.betmgm.com/en/sports/baseball-23/betting/usa-9/mlb-75"
+             },
+            affiliate: null
+       },
+
+        "Caesars": {
+             base: "https://sportsbook.caesars.com/",
+             sports: {
+                  baseball_mlb: "https://www.caesars.com/sportsbook-and-casino/sports/mlb/"
+             },
+            affiliate: null
+        },
+
+        "ESPN BET": {
+             base: "https://espnbet.com/",
+             sports: {
+                  baseball_mlb: "https://www.espn.com/mlb/odds",
+                  basketball_wnba: "https://www.espn.com/wnba/odds",
+                  basketball_nba: "https://www.espn.com/nba/odds",
+                  basketball_ncaab: "https://www.espn.com/mens-college-basketball/odds",
+                  americanfootball_nfl: "https://www.espn.com/nfl/odds",
+                  soccer_usa_mls: "https://www.espn.com/soccer/"
+             },
+            affiliate: null
+          },
+
+        "Fanatics": {
+             base: "https://betfanatics.com/",
+             sports: {
+                  baseball_mlb: "https://betfanatics.com/mlb"
+             },
+            affiliate: null
+          }
+     };
+
+  const book = links[bookName];
+
+  if (!book) {
+    return 'https://www.google.com/search?q=' + encodeURIComponent(bookName + ' sportsbook');
+  }
+
+  return book.affiliate || book.sports?.[selectedSport] || book.base;
 }
 
-async function loadOdds() {
+async function openCustomerPortal() {
+  
+  const email = (localStorage.getItem('sco_bets_email') || '').trim().toLowerCase();
+ 
+  if (!email) {
+    alert('No subscriber email found. Please log in again.');
+    window.location.href = '/index.html';
+    return;
+  }
+
+  try {
+    const btn = document.getElementById('manage-subscription-btn');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Opening...';
+    }
+
+    const res = await fetch('/api/create-portal-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+
+    const data = await res.json();
+    
+    if (!res.ok || !data.url) {
+      throw new Error(data.details || data.error || 'Unable to open billing portal');
+    }
+
+    window.location.href = data.url;
+
+    } catch (err) {
+      console.error('Manage Subscription error:', err);
+      alert(err.message || 'Could not open subscription portal right now.');
+    } finally {
+    const btn = document.getElementById('manage-subscription-btn');
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Manage Subscription';
+    }
+  }
+}
+
+function extractScores(game) {
+  if (!Array.isArray(game?.scores)) {
+    return null;
+  }
+
+  const scores = {};
+
+  game.scores.forEach(team => {
+    if (team?.name && team?.score !== undefined) {
+      scores[team.name] = team.score;
+    }
+  });
+
+  return scores;
+}
+
+
+function getLiveScoreChangeClass(game) {
+  const scoreList = extractScores(game);
+
+  const gameKey = getGameKey(game);
+
+  if (!scoreList || !gameKey) {
+    return '';
+  }
+
+  const currentScoreKey = JSON.stringify(scoreList);
+  const previousScoreKey = previousLiveScores[gameKey];
+
+  previousLiveScores[gameKey] = currentScoreKey;  
+
+  if (previousScoreKey && previousScoreKey !== currentScoreKey) {
+    return 'score-changed';
+  }
+
+  return '';
+}
+
+function normalizeStatusText(value) {
+  if (!value) return '';
+
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/_/g, ' ');
+}
+
+function getGameKey(game) {
+    const normalize = value =>
+      String(value || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
+
+  const dateKey = String(
+      game?.commence_time ||
+      game?.espnStatus?.date ||
+      ''
+    ).slice(0, 10);
+
+    return `${normalize(game?.away)}_${normalize(game?.home)}_${dateKey}`;
+  }
+
+ function ensureCompletedGamesCache() {
+  if (!window.completedGamesCache) {
+    window.completedGamesCache = {};
+  }
+
+  return window.completedGamesCache;
+}
+
+function upsertCompletedGameFromApi(espnGame, sport) {
+  if (!espnGame?.gameKey) return;
+
+  const cache = ensureCompletedGamesCache();
+
+  let savedCache = {};
+
+  try {
+    savedCache = JSON.parse(
+      localStorage.getItem(`scoCompletedGamesCache_${sport}`) || '{}'
+    );
+  } catch (err) {
+    savedCache = {};
+  }
+
+  const existing =
+    cache[espnGame.gameKey] ||
+    savedCache[espnGame.gameKey] ||
+    null;
+
+  cache[espnGame.gameKey] = {
+    ...(existing || {}),
+    home: espnGame.homeTeam,
+    away: espnGame.awayTeam,
+    sport,
+    status: 'final',
+    cachedFinal: true,
+    cachedAt:
+      existing?.cachedAt ||
+      Date.now(),
+    completedObservedAt:
+      existing?.completedObservedAt ||
+      null,
+    espnStatus: espnGame
+  };
+}
+
+function markGameSeenLive(game) {
+  const gameKey = getGameKey(game);
+
+  if (!gameKey) return;
+
+  window.liveGamesSeen = window.liveGamesSeen || {};
+  window.liveGamesSeen[gameKey] = true;
+
+  try {
+    sessionStorage.setItem(
+      'scoLiveGamesSeen',
+      JSON.stringify(window.liveGamesSeen)
+    );
+  } catch (err) {
+    // In-memory tracking still works if session storage fails.
+  }
+}
+
+function markGameCompletedIfObserved(game, sport) {
+  const gameKey = getGameKey(game);
+
+  if (!gameKey) return;
+
+  const cache = ensureCompletedGamesCache();
+
+  let savedCache = {};
+
+  try {
+    savedCache = JSON.parse(
+      localStorage.getItem(`scoCompletedGamesCache_${sport}`) || '{}'
+    );
+  } catch (err) {
+    savedCache = {};
+  }
+
+  const existing =
+    cache[gameKey] ||
+    savedCache[gameKey] ||
+    null;
+
+  const wasSeenLive = !!window.liveGamesSeen?.[gameKey];
+
+  cache[gameKey] = {
+    ...(existing || {}),
+    ...game,
+    id: `cached-${gameKey}`,
+    sport,
+    status: 'final',
+    cachedFinal: true,
+    cachedAt:
+      existing?.cachedAt ||
+      Date.now(),
+    completedObservedAt:
+      existing?.completedObservedAt ||
+      (wasSeenLive ? new Date().toISOString() : null)
+  };
+}
+function getOddsKey(game, bookTitle, outcomeName) {
+  return `${getGameKey(game)}-${bookTitle || ''}-${outcomeName || ''}`;
+}
+
+function getMarketConsensusLabel(marketPrices) {
+  if (!Array.isArray(marketPrices) || marketPrices.length < 2) {
+    return 'Limited market data';
+  }
+
+  const validPrices = marketPrices
+    .map(p => Number(p.price))
+    .filter(price => !isNaN(price));
+
+  if (validPrices.length < 2) {
+    return 'Limited market data';
+  }
+
+  const maxPrice = Math.max(...validPrices);
+  const minPrice = Math.min(...validPrices);
+  const spread = Math.abs(maxPrice - minPrice);
+
+  if (spread <= 10) {
+    return 'Books mostly aligned';
+  }
+
+  if (spread <= 25) {
+    return 'Moderate market disagreement';
+  }
+
+  return 'Major market disagreement';
+}
+
+function formatGameStatus(commenceTime, game = null) {
+  if (!commenceTime) {
+    return { text: '', isLive: false, status: 'unknown' };
+  }
+
+  const statusInfo = {
+    text: '',
+    subtext: '',
+    status: 'upcoming',
+    isLive: false,
+    isFinal: false,
+    isClosed: false,
+    cssClass: 'upcoming'
+  };
+
+  const gameDate = new Date(commenceTime);
+
+  if (isNaN(gameDate.getTime())) {
+    return { text: '', isLive: false, status: 'unknown' };
+  }
+
+  const now = new Date();
+  const apiStatus = normalizeStatusText(game?.status);
+  const apiCompleted = game?.completed === true;
+  const hasScores = Array.isArray(game?.scores) && game.scores.length > 0;
+
+  const gameKey = getGameKey(game);
+
+  
+  const apiPeriod = game?.period || game?.quarter || game?.inning || '';
+  const apiClock = game?.clock || game?.game_clock || '';
+
+  const selectedSport = document.getElementById('sport-select')?.value || '';
+  const liveWindowHours = selectedSport === 'baseball_mlb' ? 3.5 : 3;
+  const gameEnd = new Date(gameDate.getTime() + liveWindowHours * 60 * 60 * 1000);
+
+  if (
+  apiStatus === 'delayed' ||
+  apiStatus === 'postponed' ||
+  apiStatus === 'suspended' ||
+  game?.espnStatus?.statusName === 'STATUS_DELAYED' ||
+  game?.espnStatus?.statusName === 'STATUS_RAIN_DELAY' ||
+  game?.espnStatus?.statusName === 'STATUS_POSTPONED' ||
+  game?.espnStatus?.statusName === 'STATUS_SUSPENDED'
+) {
+  const statusText =
+    game?.espnStatus?.statusDescription ||
+    game?.espnStatus?.statusDetail ||
+    apiStatus;
+
+  return {
+    ...statusInfo,
+    text: statusText
+      ? statusText.charAt(0).toUpperCase() + statusText.slice(1)
+      : 'Delayed',
+    status: 'delayed',
+    isClosed: true,
+    cssClass: 'warning'
+  };
+}
+
+   if (
+            apiCompleted ||
+            apiStatus === 'final' ||
+           apiStatus === 'completed' ||
+           game?.espnStatus?.statusState === 'post' ||
+          game?.espnStatus?.statusName === 'STATUS_FINAL' ||
+         game?.espnStatus?.statusDescription === 'Final'
+     ) {
+
+    return {
+      ...statusInfo,
+      text: 'Final',
+      status: 'final',
+      isFinal: true,
+      isClosed: true,
+      cssClass: 'final'
+    };
+  }
+
+  if (
+    apiStatus === 'halftime' ||
+    apiStatus === 'half time' ||
+    apiStatus === 'intermission'
+  ) {
+    return {
+      ...statusInfo,
+      text: 'Halftime',
+      status: 'halftime',
+      isLive: true,
+      cssClass: 'live'
+    };
+  }
+
+
+  if (
+          apiStatus === 'live' ||
+          apiStatus === 'in progress' ||
+          apiStatus === 'in_progress' ||
+          game?.espnStatus?.statusState === 'in'
+       ) {
+
+    const espn = game?.espnStatus;
+
+const espnScoreText = espn
+  ? `${espn.awayShort} ${espn.awayScore} - ${espn.homeShort} ${espn.homeScore}`
+  : '';
+
+let espnDetail = espn?.statusDetail || '';
+
+if (selectedSport.includes('basketball') && espn?.clock && espn?.period) {
+  espnDetail = `${espn.clock} Q${espn.period}`;
+}
+
+if (espn?.statusDescription === 'Halftime' || espn?.statusDetail === 'Halftime') {
+  espnDetail = 'HALFTIME';
+}
+
+if (espn?.statusDescription === 'End of Period') {
+  espnDetail = `End Q${espn.period}`;
+}
+
+const scoreList = extractScores(game);
+const scoreText = scoreList
+  ? Object.entries(scoreList)
+      .map(([team, score]) => `${team} ${score}`)
+      .join(' • ')
+  : '';
+
+const liveText = espn && espn.statusState === 'in'
+  ? `LIVE • ${espnDetail} • ${espnScoreText}`
+  : apiPeriod && apiClock
+    ? `${apiPeriod} • ${apiClock}`
+    : apiPeriod
+      ? `${apiPeriod}`
+      : scoreText
+        ? `LIVE: ${scoreText}`
+        : 'LIVE';
+
+    return {
+      ...statusInfo,
+      text: liveText,
+      status: 'live',
+      isLive: true,
+      cssClass: 'live'
+    };
+  }
+
+ if (now >= gameDate && now <= gameEnd) {
+  return {
+    ...statusInfo,
+    text: 'LIVE',
+    isLive: true,
+    status: 'live',
+    cssClass: 'live'
+  };
+}
+
+  const isToday = gameDate.toDateString() === now.toDateString();
+  const minutesUntilStart = (gameDate - now) / (1000 * 60);
+
+  if (minutesUntilStart > 0 && minutesUntilStart <= 30) {
+    return {
+      ...statusInfo,
+      text: `STARTING SOON • ${gameDate.toLocaleTimeString([], {
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      })}`,
+      status: 'soon',
+      cssClass: 'soon'
+    };
+  }
+
+  if (isToday && now < gameDate) {
+    return {
+      ...statusInfo,
+      text: `Starts ${gameDate.toLocaleTimeString([], {
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      })}`,
+      status: 'soon',
+      cssClass: 'soon'
+    };
+  }
+
+  if (now > gameEnd) {
+    return {
+      ...statusInfo,
+      text: 'Market Closed / Awaiting Final',
+      status: 'closed',
+      isClosed: true,
+      cssClass: 'closed'
+    };
+  }
+
+  return {
+    ...statusInfo,
+    text: gameDate.toLocaleString([], {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    }),
+    status: 'upcoming',
+    cssClass: 'upcoming'
+  };
+}
+
+ function buildMiniScoreboard(game) {
+  const espn = game?.espnStatus;
+
+console.log({
+  game: `${espn?.awayShort} @ ${espn?.homeShort}`,
+  statusName: espn?.statusName,
+  statusDescription: espn?.statusDescription,
+  statusDetail: espn?.statusDetail,
+  statusState: espn?.statusState
+});
+
+  const selectedSport = document.getElementById('sport-select')?.value || '';
+  const gameDate = new Date(game.commence_time || game.commenceTime || game.startTime);
+
+  if (!espn) {
+  const hasValidStartTime =
+    gameDate instanceof Date &&
+    !Number.isNaN(gameDate.getTime());
+
+  if (!hasValidStartTime) {
+    return '';
+  }
+
+  const startTime = gameDate.toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short'
+  });
+
+  return `
+    <div style="
+      display:flex;
+      justify-content:flex-end;
+      align-items:flex-start;
+      min-width:190px;
+    ">
+      <div style="
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        padding:6px 12px;
+        border-radius:999px;
+        background:rgba(255,255,255,0.07);
+        border:1px solid rgba(255,255,255,0.14);
+        color:#d1d5db;
+        font-size:12px;
+        font-weight:800;
+        letter-spacing:0.04em;
+        white-space:nowrap;
+      ">
+        ● STARTS ${startTime}
+      </div>
+    </div>
+  `;
+}
+
+  const isDelayed =
+          espn.statusName === 'STATUS_RAIN_DELAY' ||
+          espn.statusName === 'STATUS_DELAYED' ||
+          espn.statusDescription === 'Rain Delay' ||
+          espn.statusDescription === 'Delayed';
+
+  const isLive =
+          espn.statusState === 'in' &&
+          !isDelayed;
+  const isFinal =
+    espn.statusState === 'post' ||
+    espn.statusName === 'STATUS_FINAL' ||
+    espn.statusDescription === 'Final';
+
+  const awayAbbr = espn.awayShort || 'AWY';
+  const homeAbbr = espn.homeShort || 'HME';
+
+  const awayScore = espn.awayScore ?? 0;
+  const homeScore = espn.homeScore ?? 0;
+
+  let statusLabel = 'STARTS';
+  let context = '';
+
+  if (isFinal) {
+          statusLabel = 'FINAL';
+     } else if (isDelayed) {
+  statusLabel = 'DELAYED';
+
+  const delayContext = String(
+    espn.statusDescription ||
+    espn.statusDetail ||
+    ''
+  ).trim();
+
+  const normalizedDelayContext = delayContext.toLowerCase();
+
+  context =
+    normalizedDelayContext === 'delayed' ||
+    normalizedDelayContext.startsWith('delayed,')
+      ? ''
+      : delayContext;
+      } else if (isLive) {
+    statusLabel = 'LIVE';
+    context = espn.statusDetail || espn.statusDescription || '';
+
+    if (selectedSport.includes('basketball') && espn.clock && espn.period) {
+      context = `${espn.clock} Q${espn.period}`;
+    }
+
+    if (espn.statusDescription === 'Halftime' || espn.statusDetail === 'Halftime') {
+      context = 'HALFTIME';
+    }
+
+    if (espn.statusDescription === 'End of Period') {
+      context = `End Q${espn.period}`;
+    }
+  } else if (!isNaN(gameDate.getTime())) {
+  const now = new Date();
+  const isToday = gameDate.toDateString() === now.toDateString();
+
+  context = isToday
+    ? gameDate.toLocaleTimeString([], {
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      })
+    : gameDate.toLocaleString([], {
+        weekday: 'short',
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      });
+}
+
+  return `
+         <div class="game-summary-scoreboard">
+              <div class="game-summary-status">
+                   <div class="game-summary-status-main">
+                        <span class="game-status-dot"></span>
+                       <span>${statusLabel}</span>
+
+                       ${context ? `
+                          <span class="game-summary-status-context">${context}</span>
+                       ` : ''}
+               </div>
+         </div>
+
+      ${selectedSport.startsWith('baseball')
+                          ? buildMlbLinescore(espn)
+                          : selectedSport.startsWith('basketball')
+                            ? buildBasketballLinescore(espn)
+                            : selectedSport.startsWith('americanfootball')
+                              ? buildFootballLinescore(espn)
+                              : selectedSport.startsWith('soccer')
+                                ? buildSoccerScoreboard(espn)
+                                : selectedSport.startsWith('icehockey')
+                                  ? buildHockeyLinescore(espn)
+                                  : `
+                  <div class="game-summary-score">
+                       <div class="game-summary-score-row">
+                            <span>${awayAbbr}</span>
+                           <strong>${awayScore}</strong>
+                     </div>
+
+                   <div class="game-summary-score-row">
+                        <span>${homeAbbr}</span>
+                        <strong>${homeScore}</strong>
+                  </div>
+            </div>
+       `
+}
+    </div>
+  `;
+}
+
+function buildMlbLinescore(espn) {
+  const awayLinescores = espn.awayLinescores || [];
+  const homeLinescores = espn.homeLinescores || [];
+
+  const maxPeriod = Math.max(
+    9,
+    ...awayLinescores.map(ls => Number(ls.period) || 0),
+    ...homeLinescores.map(ls => Number(ls.period) || 0)
+  );
+
+  const periods = Array.from({ length: maxPeriod }, (_, i) => i + 1);
+
+  const detail = String(espn.statusDetail || '').toLowerCase();
+  const isTop = detail.includes('top');
+  const isBottom = detail.includes('bottom');
+  const currentPeriod = Number(espn.period);
+
+  /*
+   * ESPN can report statusState="in" and period=1 during a
+   * pregame rain delay. Do not highlight an inning until there
+   * is evidence that actual play has begun.
+   */
+  const isDelayed =
+  espn.statusName === 'STATUS_RAIN_DELAY' ||
+  espn.statusName === 'STATUS_DELAYED' ||
+  espn.statusDescription === 'Rain Delay' ||
+  espn.statusDescription === 'Delayed';
+
+const hasRecordedInningActivity =
+  awayLinescores.length > 0 ||
+  homeLinescores.length > 0;
+
+const hasActualPlayStarted =
+  hasRecordedInningActivity ||
+  (!isDelayed && (isTop || isBottom));
+
+  const getValue = (linescores, period) => {
+    const found = linescores.find(
+      ls => Number(ls.period) === period
+    );
+
+    if (found) {
+      return found.displayValue;
+    }
+
+    return '';
+  };
+
+  const gridColumns = `42px repeat(${periods.length}, 24px) 34px`;
+
+  return `
+    <div class="mlb-linescore" style="grid-template-columns:${gridColumns};">
+      <span></span>
+
+      ${periods.map(period => {
+        const current =
+          hasActualPlayStarted &&
+          currentPeriod === period;
+
+        return `
+          <span class="mlb-inning ${current ? 'current-inning' : ''}">
+            ${period}
+          </span>
+        `;
+      }).join('')}
+
+      <strong class="mlb-total-label">R</strong>
+
+      <span class="mlb-team">${espn.awayShort || 'AWY'}</span>
+
+      ${periods.map(period => {
+        const value = getValue(awayLinescores, period);
+
+        const isActive =
+          hasActualPlayStarted &&
+          isTop &&
+          currentPeriod === period;
+
+        return `
+          <span class="mlb-run ${isActive ? 'current-inning-run' : ''}">
+            ${isActive && value === '0' ? '' : value}
+          </span>
+        `;
+      }).join('')}
+
+      <strong class="mlb-total">${espn.awayScore ?? '-'}</strong>
+
+      <span class="mlb-team">${espn.homeShort || 'HME'}</span>
+
+      ${periods.map(period => {
+        const value = getValue(homeLinescores, period);
+
+        const isActive =
+          hasActualPlayStarted &&
+          isBottom &&
+          currentPeriod === period;
+
+        return `
+          <span class="mlb-run ${isActive ? 'current-inning-run' : ''}">
+            ${isActive && value === '0' ? '' : value}
+          </span>
+        `;
+      }).join('')}
+
+      <strong class="mlb-total">${espn.homeScore ?? '-'}</strong>
+    </div>
+  `;
+}
+
+function buildBasketballLinescore(espn) {
+  const maxPeriod = Math.max(
+    4,
+    ...(espn.awayLinescores || []).map(ls => Number(ls.period) || 0),
+    ...(espn.homeLinescores || []).map(ls => Number(ls.period) || 0)
+  );
+
+  const periods = Array.from({ length: maxPeriod }, (_, i) => i + 1);
+
+  const getLabel = (period) => {
+    return period <= 4 ? period : `OT${period - 4}`;
+  };
+
+ const getValue = (linescores, period) => {
+  const found = (linescores || []).find(ls => Number(ls.period) === period);
+
+  if (found) {
+    return found.displayValue ?? '';
+  }
+
+  return '';
+};
+
+  const gridColumns = `42px repeat(${periods.length}, 34px) 40px`;
+
+  return `
+    <div class="basketball-linescore" style="grid-template-columns:${gridColumns};">
+      <span></span>
+      ${periods.map(period => {
+        const current =
+             espn.statusType === 'in_progress' &&
+             Number(espn.period) === period;
+
+        return `
+          <span class="basketball-period ${current ? 'current-period' : ''}">
+            ${getLabel(period)}
+          </span>
+        `;
+      }).join('')}
+      <strong class="basketball-total-label">T</strong>
+
+      <span class="basketball-team">${espn.awayShort || 'AWY'}</span>
+      ${periods.map(period => {
+          const current =
+               espn.statusType === 'in_progress' &&
+               Number(espn.period) === period;
+
+         return `
+             <span class="basketball-score ${current ? 'current-period' : ''}">
+                   ${getValue(espn.awayLinescores, period)}
+             </span>
+         `;
+     }).join('')}
+      <strong class="basketball-total">${espn.awayScore ?? '-'}</strong>
+
+      <span class="basketball-team">${espn.homeShort || 'HME'}</span>
+             ${periods.map(period => {
+                 const current =
+                      espn.statusType === 'in_progress' &&
+                     Number(espn.period) === period;
+
+                 return `
+                     <span class="basketball-score ${current ? 'current-period' : ''}">
+                           ${getValue(espn.homeLinescores, period)}
+                    </span>
+               `;
+           }).join('')}
+      <strong class="basketball-total">${espn.homeScore ?? '-'}</strong>
+    </div>
+  `;
+}
+
+function buildFootballLinescore(espn) {
+  const maxPeriod = Math.max(
+    4,
+    ...(espn.awayLinescores || []).map(ls => Number(ls.period) || 0),
+    ...(espn.homeLinescores || []).map(ls => Number(ls.period) || 0)
+  );
+
+  const periods = Array.from({ length: maxPeriod }, (_, i) => i + 1);
+
+  const getLabel = (period) => {
+    return period <= 4 ? period : `OT${period - 4}`;
+  };
+
+  const getValue = (linescores, period) => {
+    const found = (linescores || []).find(ls => Number(ls.period) === period);
+    return found ? found.displayValue : '-';
+  };
+
+  const gridColumns = `42px repeat(${periods.length}, 34px) 40px`;
+
+  return `
+    <div class="football-linescore" style="grid-template-columns:${gridColumns};">
+      <span></span>
+      ${periods.map(period => {
+        const current = Number(espn.period) === period;
+
+        return `
+          <span class="football-period ${current ? 'current-period' : ''}">
+            ${getLabel(period)}
+          </span>
+        `;
+      }).join('')}
+      <strong class="football-total-label">T</strong>
+
+      <span class="football-team">${espn.awayShort || 'AWY'}</span>
+      ${periods.map(period => `<span class="football-score">${getValue(espn.awayLinescores, period)}</span>`).join('')}
+      <strong class="football-total">${espn.awayScore ?? '-'}</strong>
+
+      <span class="football-team">${espn.homeShort || 'HME'}</span>
+      ${periods.map(period => `<span class="football-score">${getValue(espn.homeLinescores, period)}</span>`).join('')}
+      <strong class="football-total">${espn.homeScore ?? '-'}</strong>
+    </div>
+  `;
+}
+
+function buildSoccerScoreboard(espn) {
+  return `
+    <div class="soccer-scoreboard">
+      <div class="soccer-score-row">
+        <span class="soccer-team">${espn.awayShort || 'AWY'}</span>
+        <strong class="soccer-total">${espn.awayScore ?? '-'}</strong>
+      </div>
+
+      <div class="soccer-score-row">
+        <span class="soccer-team">${espn.homeShort || 'HME'}</span>
+        <strong class="soccer-total">${espn.homeScore ?? '-'}</strong>
+      </div>
+    </div>
+  `;
+}
+
+function buildHockeyLinescore(espn) {
+  const maxPeriod = Math.max(
+    3,
+    ...(espn.awayLinescores || []).map(ls => Number(ls.period) || 0),
+    ...(espn.homeLinescores || []).map(ls => Number(ls.period) || 0)
+  );
+
+  const periods = Array.from({ length: maxPeriod }, (_, i) => i + 1);
+
+  const getLabel = (period) => {
+    return period <= 3 ? period : `OT${period - 3}`;
+  };
+
+  const getValue = (linescores, period) => {
+    const found = (linescores || []).find(ls => Number(ls.period) === period);
+    return found ? found.displayValue : '-';
+  };
+
+  const gridColumns = `42px repeat(${periods.length}, 34px) 40px`;
+
+  return `
+    <div class="hockey-linescore" style="grid-template-columns:${gridColumns};">
+      <span></span>
+      ${periods.map(period => {
+        const current = Number(espn.period) === period;
+
+        return `
+          <span class="hockey-period ${current ? 'current-period' : ''}">
+            ${getLabel(period)}
+          </span>
+        `;
+      }).join('')}
+      <strong class="hockey-total-label">T</strong>
+
+      <span class="hockey-team">${espn.awayShort || 'AWY'}</span>
+      ${periods.map(period => `<span class="hockey-score">${getValue(espn.awayLinescores, period)}</span>`).join('')}
+      <strong class="hockey-total">${espn.awayScore ?? '-'}</strong>
+
+      <span class="hockey-team">${espn.homeShort || 'HME'}</span>
+      ${periods.map(period => `<span class="hockey-score">${getValue(espn.homeLinescores, period)}</span>`).join('')}
+      <strong class="hockey-total">${espn.homeScore ?? '-'}</strong>
+    </div>
+  `;
+}
+
+function formatResultTime(cachedAt) {
+  if (!cachedAt) return '';
+
+  const date = new Date(cachedAt);
+  if (isNaN(date.getTime())) return '';
+
+  const now = new Date();
+
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const gameDay = new Date(date);
+  gameDay.setHours(0, 0, 0, 0);
+
+  const time = date.toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit'
+  });
+
+  if (gameDay.getTime() === today.getTime()) {
+    return `Today • ${time}`;
+  }
+
+  if (gameDay.getTime() === yesterday.getTime()) {
+    return `Yesterday • ${time}`;
+  }
+
+  const daysOld = Math.floor((today - gameDay) / (1000 * 60 * 60 * 24));
+
+  if (daysOld < 7) {
+    return `${date.toLocaleDateString([], { weekday: 'short' })} • ${time}`;
+  }
+
+  return `${date.toLocaleDateString([], {
+    month: 'short',
+    day: 'numeric'
+  })} • ${time}`;
+}
+
+
+function getGameTitle(game) {
+  const away = game.away || game.away_team;
+  const home = game.home || game.home_team;
+
+  if (away && home) {
+    return `${away} vs ${home}`;
+  }
+
+  const firstBook = (game.bookmakers || [])[0];
+  const outcomes = (firstBook && firstBook.odds) || [];
+
+  if (outcomes.length >= 2) {
+    return `${outcomes[0].name} vs ${outcomes[1].name}`;
+  }
+
+  return 'Matchup unavailable';
+}
+
+   function getGameCommenceTime(game) {
+    return game.commence_time || game.commenceTime || game.start_time || game.startTime || null;
+  }
+
+  function toggleWhy(contentId, el) {
+    const content = document.getElementById(contentId);
+    if (!content || !el) return;
+
+    content.classList.toggle('open');
+    el.classList.toggle('open');
+  }
+
+  function jumpToSelectedTeam() {
+          const teamSelect = document.getElementById('team-select');
+          if (!teamSelect) return;
+
+         const selectedTeam = teamSelect.value;
+         if (!selectedTeam) return;
+
+         const gameCards = document.querySelectorAll('.game-card');
+
+         for (const card of gameCards) {
+           const away = card.getAttribute('data-away-team') || '';
+           const home = card.getAttribute('data-home-team') || '';
+
+           if (away === selectedTeam || home === selectedTeam) {
+      returnScrollPosition = window.scrollY;
+
+      const navButton = document.getElementById('nav-home-button');
+
+      if (navButton) {
+                     navButton.textContent = 'Return';
+                     navButton.href = '#';
+
+                    navButton.onclick = (e) => {
+                         e.preventDefault();
+
+                         window.scrollTo({
+                               top: returnScrollPosition,
+                               behavior: 'smooth'
+                           });
+
+                          returnScrollPosition = null;
+                          navButton.textContent = 'Home';
+                          navButton.href = 'index.html';
+                          navButton.onclick = null;
+                      };
+                 }
+
+               const yOffset = -80;
+     const y = card.getBoundingClientRect().top + window.pageYOffset + yOffset;
+
+     window.scrollTo({
+                   top: y,
+                   behavior: 'smooth'
+               });
+               break;
+            }
+         }
+       }
+ 
+  async function loadOdds() {
+    const teamSelectReset = document.getElementById('team-select');
+    if (teamSelectReset) {
+               teamSelectReset.innerHTML = '<option value="">All Teams</option>';
+               teamSelectReset.value = '';
+           }
+
+  let returnScrollPosition = null;
+
+  window.activateReturnButton = function() {
+          const navButton = document.getElementById('nav-home-button');
+
+          if (!navButton || returnScrollPosition === null) return;
+
+          navButton.textContent = 'Return';
+          navButton.href = '#';
+
+          navButton.onclick = (e) => {
+               e.preventDefault();
+
+              window.scrollTo({
+  top: returnScrollPosition,
+  behavior: 'smooth'
+});
+
+document.querySelectorAll('.sportsbook-row[data-original-order]').forEach(row => {
+  const container = row.parentElement;
+  const rows = [...container.querySelectorAll('.sportsbook-row')];
+
+  rows
+    .sort((a, b) => Number(a.dataset.originalOrder) - Number(b.dataset.originalOrder))
+    .forEach(sortedRow => {
+      sortedRow.style.boxShadow = '';
+      sortedRow.style.background = '';
+      sortedRow.style.borderRadius = '';
+      container.appendChild(sortedRow);
+    });
+});
+
+returnScrollPosition = null;
+navButton.textContent = 'Home';
+             navButton.href = 'index.html';
+             navButton.onclick = null;
+         };
+   };
+
+  let currentOddsSnapshot;
+
   const status = document.getElementById('odds-status');
   const list = document.getElementById('odds-list');
   const statGames = document.getElementById('stat-games');
+  const statTodayGames = document.getElementById('stat-today-games');
   const statEdge = document.getElementById('stat-edge');
   const statArb = document.getElementById('stat-arb');
   const statUpdated = document.getElementById('stat-updated');
   const refreshBtn = document.getElementById('refresh-odds-btn');
+  const sportSelect = document.getElementById('sport-select');
+  const urlSport = new URLSearchParams(window.location.search).get('sport');
+  let savedSport = urlSport || localStorage.getItem('selectedSport');
+
+  if (savedSport === 'basketball_ncaaw') {
+         savedSport = 'basketball_wncaab';
+         localStorage.setItem('selectedSport', savedSport);
+     }
+
+  if (savedSport && sportSelect) {
+         const hasSavedOption = Array.from(sportSelect.options).some(
+              option => option.value === savedSport
+    );
+
+    if (hasSavedOption) {
+        sportSelect.value = savedSport;
+    } else {
+       sportSelect.value = 'baseball_mlb';
+       localStorage.setItem('selectedSport', 'baseball_mlb');
+   }
+}
+
+  const sport = sportSelect ? sportSelect.value : 'baseball_mlb';
+  const heading = document.getElementById('odds-heading');
+
+  if (sport === 'basketball_nba') {
+          heading.textContent = 'Live NBA Odds';
+      } else if (sport === 'baseball_mlb') {
+         heading.textContent = 'Live MLB Odds';
+      } else if (sport === 'basketball_wnba') {
+        heading.textContent = 'Live WNBA Odds';
+      } else if (sport === 'soccer_usa_mls') {
+        heading.textContent = 'Live MLS Odds';
+      } else if (sport === 'americanfootball_nfl') {
+        heading.textContent = 'Live NFL Odds';
+      } else if (sport === 'basketball_ncaab') {
+        heading.textContent = "Live NCAA (M) Odds";
+      } else if (sport === 'basketball_wncaab') {
+        heading.textContent = "Live NCAA (W) Odds";
+      }
+
 
   if (refreshBtn) {
     refreshBtn.disabled = true;
@@ -782,7 +4001,37 @@ async function loadOdds() {
     status.textContent = 'Refreshing live odds...';
   }
 
-  try {
+  const loadingSportLabel =
+          sport === 'baseball_mlb'
+               ? 'MLB'
+               : sport === 'basketball_wnba'
+              ? 'WNBA'
+              : sport === 'soccer_usa_mls'
+              ? 'MLS'
+              : sport === 'americanfootball_nfl'
+              ? 'NFL'
+              : sport === 'basketball_nba'
+              ? 'NBA'
+              : sport === 'basketball_wncaab'
+              ? 'NCAA (W)'
+              : 'NCAA (M)';
+
+  if (statGames) statGames.textContent = '...';
+  if (statEdge) statEdge.textContent = '...';
+  if (statArb) statArb.textContent = '...';
+  if (statUpdated) statUpdated.textContent = 'Loading';
+
+  const topPick = document.getElementById('top-pick');
+  const topReason = document.getElementById('top-reason');
+  const arbPick = document.getElementById('arb-pick');
+  const arbDetails = document.getElementById('arb-details');
+
+  if (topPick) topPick.textContent = `Loading ${loadingSportLabel} market insight...`;
+  if (topReason) topReason.textContent = 'Analyzing live sportsbook pricing.';
+  if (arbPick) arbPick.textContent = `Checking ${loadingSportLabel} arbitrage...`;
+  if (arbDetails) arbDetails.textContent = 'Scanning sportsbook price differences.';
+
+    try {
     const sportSelect = document.getElementById('sport-select');
     const sport = sportSelect ? sportSelect.value : 'basketball_nba';
 
@@ -790,63 +4039,228 @@ async function loadOdds() {
     if (!res.ok) throw new Error('Failed to load odds');
 
     const payload = await res.json();
+
     const games = Array.isArray(payload.games) ? payload.games : [];
 
-    if (statGames) statGames.textContent = String(games.length);
+    const completedGames = Array.isArray(payload.completedGames)
+                 ? payload.completedGames
+                  : [];
+
+completedGames.forEach(espnGame => {
+  upsertCompletedGameFromApi(espnGame, sport);
+});
+
+try {
+  localStorage.setItem(
+    `scoCompletedGamesCache_${sport}`,
+    JSON.stringify(window.completedGamesCache)
+  );
+} catch (err) {
+  // Ignore storage errors.
+}
+
+    currentOddsSnapshot = JSON.parse(JSON.stringify(games));
+
+
+    if (statGames) {
+               const availableGames = games.filter(game => {
+                    const status = String(game.status || '').toLowerCase();
+
+                   return (
+                        status !== 'final' &&
+                        status !== 'completed'
+                    );
+                });
+
+              statGames.textContent = String(availableGames.length);
+         }
+
+   if (statTodayGames) {
+            const todayLocalDate = new Date().toLocaleDateString('en-CA');
+
+    const todayGames = games.filter(game => {
+                if (!game.commence_time) return false;
+
+               const gameLocalDate = new Date(game.commence_time).toLocaleDateString('en-CA');
+
+               const isClosed =
+                    game.status === 'final' ||
+                    game.status === 'completed' ||
+                    game.completed === true ||
+                    game.cachedFinal === true;
+
+      return gameLocalDate === todayLocalDate && !isClosed;
+           });
+
+           statTodayGames.textContent = String(todayGames.length);
+    }
 
     const sportLabel =
-      payload.sport === 'basketball_nba'
-        ? 'Live NBA Odds'
-        : "Live Men's College Basketball Odds";
+                payload.sport === 'basketball_nba'
+                     ? 'Live NBA Odds'
+                     : payload.sport === 'basketball_wnba'
+                    ? 'Live WNBA Odds'
+                    : payload.sport === 'baseball_mlb'
+                   ? 'Live MLB Odds'
+                   : payload.sport === 'soccer_usa_mls'
+                   ? 'Live MLS Odds'
+                   : payload.sport === 'americanfootball_nfl'
+                   ? 'Live NFL Odds'
+                   : payload.sport === 'basketball_wncaab'
+                  ? 'Live NCAA (W) Odds'
+                  : 'Live NCAA (M) Odds';
 
     const oddsHeading = document.getElementById('odds-heading');
     if (oddsHeading) oddsHeading.textContent = sportLabel;
 
     const now = new Date();
+    window.scoLastOddsUpdate = now;
+
     const formattedTime = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
     if (statUpdated) statUpdated.textContent = formattedTime;
 
     const lastUpdated = document.getElementById('last-updated');
     if (lastUpdated) {
-      lastUpdated.textContent = `Last updated: ${formattedTime}`;
+      lastUpdated.textContent = `Last updated: ${formattedTime} · Updated just now`;
     }
 
     if (status) {
-      status.textContent = 'Live odds updated';
+      status.textContent = '';
     }
 
     if (!games.length) {
-      if (list) list.innerHTML = '<div class="muted">No games available right now.</div>';
+
+               const offseasonSports = {
+                     basketball_nba: {
+                           title: '🏀 NBA is currently in the offseason',
+                          message: 'Regular season odds will automatically appear here once sportsbooks begin posting games.'
+                    },
+                    basketball_ncaab: {
+                           title: '🏀 NCAA Men\'s Basketball is currently in the offseason',
+                           message: 'Odds will automatically appear here once sportsbooks begin posting games.'
+                    },
+                    basketball_wncaab: {
+                         title: '🏀 NCAA Women\'s Basketball is currently in the offseason',
+                         message: 'Odds will automatically appear here once sportsbooks begin posting games.'
+                    }
+                    ,
+       americanfootball_nfl: {
+                        title: '🏈 NFL preseason begins soon',
+                       message: 'Odds will automatically appear here as sportsbooks begin posting preseason games.'
+                  }
+
+                };
+
+               const offseason = offseasonSports[sport];
+
+               if (list) {
+                   list.innerHTML = offseason
+                         ? `
+                           <div style="text-align:center; padding:28px 20px;">
+                                <div style="font-size:22px; font-weight:700; color:#00ff88; margin-bottom:12px;">
+                                      ${offseason.title}
+                          </div>
+                         <div class="muted" style="max-width:520px; margin:0 auto; line-height:1.6;">
+                               ${offseason.message}
+                        </div>
+                  </div>
+               `
+               : '<div class="muted">No games available right now.</div>';
+          }
 
       const topPick = document.getElementById('top-pick');
       const topConfidence = document.getElementById('top-confidence');
       const topReason = document.getElementById('top-reason');
       const arbPick = document.getElementById('arb-pick');
       const arbDetails = document.getElementById('arb-details');
+      const topMeta = document.getElementById('top-meta');
+      const topPickCard = document.getElementById('top-pick-card');
+      const topConfidenceReason = document.getElementById('top-confidence-reason');
+      if (topConfidenceReason) {
+        topConfidenceReason.textContent = '';
+      }
+ 
+      if (topPick) topPick.textContent = 'No positive value opportunity right now';
+      if (topConfidence) {
+        topConfidence.textContent = '';
+        topConfidence.className = 'muted';
+      }
+      if (topReason) topReason.textContent =
+                    'Markets are efficiently priced right now. We only highlight opportunities when real value exists.';
+      if (topMeta) {
+        topMeta.textContent = '';
+        topMeta.className = '';
+      }
 
-      if (topPick) topPick.textContent = 'No pick available';
-      if (topConfidence) topConfidence.textContent = '';
-      if (topReason) topReason.textContent = '';
       if (arbPick) arbPick.textContent = 'No arbitrage currently';
       if (arbDetails) arbDetails.textContent = 'No games available';
 
-      if (statEdge) statEdge.textContent = '0.0 pts';
-      if (statArb) statArb.textContent = '0';
+      if (statGames) {
+        statGames.textContent = '0';
+        statGames.classList.remove('positive');
+      }
+
+      if (statEdge) {
+                    statEdge.textContent = '0';
+                    statEdge.classList.remove('positive');
+                }
+
+      if (statArb) {
+        statArb.textContent = '0';
+        statArb.classList.remove('positive');
+      }
 
       if (refreshBtn) {
         refreshBtn.disabled = false;
         refreshBtn.textContent = 'Refresh Odds';
       }
+
+      if (topPickCard) {
+        topPickCard.classList.remove('top-pick-hot', 'top-pick-medium');
+      }
+
       return;
     }
 
     let bestValuePick = null;
     let biggestEdge = 0;
+    let closestValuePick = null;
+    let closestEdge = -999;
+    let valueOpportunityCount = 0;
+    let valueOpportunities = [];
+
+    try {
+                const savedMoversForSport = localStorage.getItem(`scoBiggestMovers_${sport}`);
+                window.biggestMovers = savedMoversForSport ? JSON.parse(savedMoversForSport) : [];
+          } catch (err) {
+             window.biggestMovers = [];
+         }
+
+    window.previousLiveScores = window.previousLiveScores || {};
+    window.completedGamesCache = window.completedGamesCache || {};
+
+    try {
+               const savedCompletedGames = localStorage.getItem(`scoCompletedGamesCache_${sport}`);
+
+               if (savedCompletedGames) {
+                   window.completedGamesCache = {
+                         ...JSON.parse(savedCompletedGames),
+                         ...window.completedGamesCache
+                  };
+               }
+          } catch (err) {
+            // If storage fails, completed games still work for this session.
+          }
+    window.finalizedGames = window.finalizedGames || {};
+
+    const previousLiveScores = window.previousLiveScores;
+    const completedGamesCache = window.completedGamesCache;
+    const finalizedGames = window.finalizedGames;
 
     games.forEach(game => {
       const teamMarkets = {};
-
+      
       (game.bookmakers || []).forEach(book => {
         (book.odds || []).forEach(outcome => {
           if (!isReasonableOdds(outcome.price)) return;
@@ -855,114 +4269,410 @@ async function loadOdds() {
             teamMarkets[outcome.name] = [];
           }
 
-          teamMarkets[outcome.name].push({
-            price: outcome.price,
-            book: book.title
-          });
-        });
-      });
-
-      Object.keys(teamMarkets).forEach(team => {
-        const prices = teamMarkets[team];
-        if (prices.length < 2) return;
-
-        const avg = prices.reduce((sum, p) => sum + p.price, 0) / prices.length;
-
-        prices.forEach(p => {
-          const edge = p.price - avg;
-
-          if (edge > biggestEdge) {
-            biggestEdge = edge;
-            bestValuePick = {
-              team,
-              price: p.price,
-              book: p.book,
-              average: avg,
-              edge: edge
-            };
-          }
-        });
-      });
+      teamMarkets[outcome.name].push({
+                      price: outcome.price,
+                      book: book.title,
+                      edgePercent: outcome.edgePercent,
+                      impliedProb: outcome.impliedProbability
+                });
     });
+  });
+
+  Object.keys(teamMarkets).forEach(team => {
+    const prices = teamMarkets[team];
+    if (prices.length < 2) return;
+
+    const avgProb =
+      prices.reduce((sum, p) => sum + p.impliedProb, 0) / prices.length;
+
+    let bestLine = prices[0];
+
+    prices.forEach(p => {
+                if ((p.impliedProb ?? 999) < (bestLine.impliedProb ?? 999)) {
+                    bestLine = p;
+                }
+            });
+
+    const edgePercent = Number(((avgProb - bestLine.impliedProb) * 100).toFixed(1));
+
+    const MIN_EDGE = 1.5;
+
+    if (edgePercent > closestEdge) {
+      closestEdge = edgePercent;
+      closestValuePick = {
+        team,
+        price: bestLine.price,
+        book: bestLine.book,
+        edge: edgePercent,
+        game: getGameTitle(game),
+        marketCount: prices.length,
+        marketPrices: prices
+      };
+    }
+
+    if (edgePercent >= MIN_EDGE) {
+               valueOpportunityCount++;
+
+               valueOpportunities.push({
+                     team,
+                     price: bestLine.price,
+                     book: bestLine.book,
+                     edge: edgePercent,
+                     game: getGameTitle(game)
+                 });
+            }
+
+    if (edgePercent >= MIN_EDGE && edgePercent > biggestEdge) {
+      biggestEdge = edgePercent;
+      bestValuePick = {
+        team,
+        price: bestLine.price,
+        book: bestLine.book,
+        averageProbability: avgProb,
+        bestProbability: bestLine.impliedProb,
+        edge: edgePercent,
+        game: getGameTitle(game),
+        marketCount: prices.length,
+        marketPrices: prices
+      };
+    }
+  });
+});
 
     const topPick = document.getElementById('top-pick');
     const topConfidence = document.getElementById('top-confidence');
     const topReason = document.getElementById('top-reason');
+    const topConfidenceReason = document.getElementById('top-confidence-reason');
 
     if (bestValuePick) {
-      if (statEdge) statEdge.textContent = `+${bestValuePick.edge.toFixed(0)} better`;
-
       const sign = bestValuePick.price > 0 ? '+' : '';
 
-      let confidence = 'Low';
-      if (bestValuePick.edge >= 20) {
-        confidence = 'High';
-      } else if (bestValuePick.edge >= 10) {
-        confidence = 'Medium';
-      }
+    if (statEdge) {
+      const edgeValue = bestValuePick.edge;
 
-      if (topPick) {
-        topPick.textContent = `${bestValuePick.team} (${sign}${bestValuePick.price})`;
-      }
+    statEdge.textContent = String(valueOpportunityCount);
+    statEdge.classList.toggle('positive', valueOpportunityCount > 0);
+  }
 
-      if (topConfidence) {
-        topConfidence.textContent = `Confidence: ${confidence} — best value found at ${bestValuePick.book}`;
-      }
+    const valueCard = document.getElementById('value-opportunities-card');
+    const valueList = document.getElementById('value-opportunities-list');
 
-      if (topReason) {
-        topReason.textContent =
-          `Line is ${bestValuePick.edge.toFixed(1)} points better than the market average of ${bestValuePick.average.toFixed(1)}.`;
-      }
+    if (valueCard && valueList) {
+               valueOpportunities.sort((a, b) => b.edge - a.edge);
 
-      const guidancePick = document.getElementById('guidance-pick');
-      const guidanceBook = document.getElementById('guidance-book');
-      const guidanceAction = document.getElementById('guidance-action');
-      const guidanceLink = document.getElementById('guidance-link');
+               if (valueOpportunities.length) {
+                   valueList.innerHTML = valueOpportunities
+                        .slice(0, 10)
+                       .map(opportunity => {
+                          const sign = opportunity.price > 0 ? '+' : '';
 
-      if (guidancePick) {
-        guidancePick.textContent = `${bestValuePick.team} (${sign}${bestValuePick.price})`;
-      }
+                          return `
+                             <div
+                                   class="value-opportunity-item"
+                                   data-game="${opportunity.game}"
+             data-book="${opportunity.book}"
+                                   style="padding:6px 0; border-top:1px solid rgba(255,255,255,0.08); cursor:pointer;"
+                             >
+                                 <strong style="
+                                            color:#00ff88;
+                                            font-size:15px;
+                                           font-weight:800;
+                                           display:block;
+                                           margin-bottom:0px;
+           ">
+                                          ${opportunity.team} (${sign}${opportunity.price})
+                           </strong>
+                          <span style="display:block; margin-top:1px;">
+                                ${opportunity.book} • ${opportunity.edge.toFixed(1)}% edge
+                          </span>
+                         </div>
+                    `;
+               })
+              .join('');
 
-      if (guidanceBook) {
-        guidanceBook.textContent = `Best available line at ${bestValuePick.book}`;
-      }
+     valueCard.onclick = () => {
+           valueList.style.display =
+                valueList.style.display === 'none' ? 'block' : 'none';
+     };
 
-      if (guidanceAction) {
-        guidanceAction.textContent =
-          `Suggested action: place this bet at ${bestValuePick.book} because it offers the strongest value compared to the market.`;
-      }
+     valueList.querySelectorAll('.value-opportunity-item').forEach(item => {
+          item.onclick = (e) => {
+               e.stopPropagation();
 
-      if (guidanceLink) {
-        guidanceLink.textContent = `Place Bet at ${bestValuePick.book}`;
-        guidanceLink.href = getSportsbookUrl(bestValuePick.book);
-        guidanceLink.style.display = 'inline-block';
-      }
+               const selectedGame = item.dataset.game;
+              const matchingGame = games.find(game =>
+                   getGameTitle(game) === selectedGame
+             );
 
-   } else {
-      if (statEdge) statEdge.textContent = 'No edge';
-      if (topPick) topPick.textContent = 'No pick available';
-      if (topConfidence) topConfidence.textContent = '';
-      if (topReason) topReason.textContent = 'No reasonable lines available right now.';
-
-      const guidancePick = document.getElementById('guidance-pick');
-      const guidanceBook = document.getElementById('guidance-book');
-      const guidanceAction = document.getElementById('guidance-action');
-      const guidanceLink = document.getElementById('guidance-link');
-
-      if (guidancePick) guidancePick.textContent = 'No guidance available';
-      if (guidanceBook) guidanceBook.textContent = '';
-      if (guidanceAction) guidanceAction.textContent = 'No strong value edge is available right now.';
-      if (guidanceLink) {
-        guidanceLink.style.display = 'none';
-        guidanceLink.href = '#';
+            if (matchingGame) {
+               scrollToGame(`game-${getGameKey(matchingGame)}`, item.dataset.book);
+            }
+         };
+    });
+  } else {
+     valueList.style.display = 'none';
+     valueList.innerHTML = '';
+     valueCard.onclick = null;
    }
+}
+
+  if (topPick) {
+          topPick.textContent = `${bestValuePick.team} (${sign}${bestValuePick.price}) at ${bestValuePick.book}`;
+
+          topPick.style.cursor = 'pointer';
+          topPick.title = 'View game';
+
+          topPick.onclick = () => {
+               const matchingGame = games.find(game =>
+                    getGameTitle(game) === bestValuePick.game
+               );
+
+              if (matchingGame) {
+                   scrollToGame(`game-${getGameKey(matchingGame)}`, bestValuePick.book);
+              }
+          };
+      }
+
+  const topPickCard = document.getElementById('top-pick-card');
+
+  if (topConfidence) {
+  let confidence = 'Low';
+  let confidenceClass = '';
+
+  if (bestValuePick.edge >= 6) {
+    confidence = 'High';
+    confidenceClass = 'high-confidence';
+  } else if (bestValuePick.edge >= 3) {
+    confidence = 'Medium';
+    confidenceClass = 'medium-confidence';
+  }
+
+  const strengthStatus =
+          confidence === 'High'
+               ? '<span style="color:#ff8c00;">🔥</span> Strong value opportunity detected'
+               : confidence === 'Medium'
+               ? '<span style="color:#00ff88;">✓</span> Worth monitoring'
+               : '<span style="color:#fbbf24;">⚠</span> Below value threshold';
+
+  topConfidence.textContent = `Strength: ${confidence} • ${bestValuePick.book}`;
+
+  const topStatus = document.getElementById('top-status');
+
+  if (topStatus) {
+    topStatus.innerHTML = strengthStatus;
+  }
+
+  topConfidence.className = `muted ${confidenceClass}`;
+
+  if (topConfidenceReason) {
+         const consensus = getMarketConsensusLabel(bestValuePick.marketPrices);
+
+         const marketLines = Array.isArray(bestValuePick.marketPrices)
+              ? bestValuePick.marketPrices
+                  .map(p => `${p.book}: ${p.price > 0 ? '+' : ''}${p.price}`)
+                  .join('<br>')
+              : '';
+
+         const strengthReason =
+              bestValuePick.edge >= 6
+                   ? `High strength because this line shows a significant pricing advantage versus the current market.`
+                      : bestValuePick.edge >= 3
+                         ? `Medium strength because this line offers a noticeable pricing advantage versus the current market.`
+                         : `Low strength because this is currently the best available price, but the advantage remains below our value threshold.`;
+
+         topConfidenceReason.innerHTML =
+              `${strengthReason}<br><br>
+
+               This is the best price we found.<br><br>
+
+               Market Consensus:<br>
+               ${consensus.replace('market ', '')}${marketLines ? `<br><br>${marketLines}` : ''}<br><br>
+
+               Since odds move quickly, better prices can disappear fast.`;
+   }
+
+  if (topPickCard) {
+    topPickCard.classList.remove('top-pick-hot', 'top-pick-medium');
+
+    if (bestValuePick.edge >= 20) {
+      topPickCard.classList.add('top-pick-hot');
+    } else if (bestValuePick.edge >= 10) {
+      topPickCard.classList.add('top-pick-medium');
+    }
+  }
+}
+
+  const topMeta = document.getElementById('top-meta');
+  if (topMeta) {
+          topMeta.textContent = `${bestValuePick.edge}% better than market average`;
+
+         let edgeClass = '';
+         if (bestValuePick.edge >= 20) edgeClass = 'high-edge';
+         else if (bestValuePick.edge >= 10) edgeClass = 'medium-edge';
+
+        topMeta.className = edgeClass;
     }
 
+ if (topReason) {
+       topReason.textContent = `${bestValuePick.game} • ${bestValuePick.edge.toFixed(1)}% edge vs current market average`;
+  }
+
+  const activeLink = document.getElementById('merged-guidance-link');
+
+  if (activeLink) {
+
+           activeLink.textContent = `🔥 Open ${bestValuePick.book} — Best Price Available Right Now`;
+           const url = getSportsbookUrl(bestValuePick.book);
+
+           activeLink.href = url;
+
+           activeLink.onclick = (e) => {
+                e.preventDefault();
+
+      if (typeof gtag === 'function') {
+        gtag('event', 'sportsbook_click', {
+          sportsbook: bestValuePick.book,
+          game: bestValuePick.game,
+          source_card: 'bet_guidance',
+          event_category: 'engagement',
+          event_label: `${bestValuePick.book} | ${bestValuePick.game}`
+        });
+      }
+
+      setTimeout(() => {
+        window.open(url, '_blank');
+      }, 150);
+    };
+
+    activeLink.style.display = 'block';
+    activeLink.style.margin = '12px auto 0 auto';
+    activeLink.style.textAlign = 'center';
+
+    activeLink.style.boxShadow = '0 0 18px rgba(34,197,94,0.28)';
+    activeLink.style.transition = 'all 0.2s ease';
+  }
+
+} else {
+  if (statEdge) {
+          statEdge.textContent = String(valueOpportunityCount);
+          statEdge.classList.toggle('positive', valueOpportunityCount > 0);
+}
+
+  if (topPick && closestValuePick) {
+         const sign = closestValuePick.price > 0 ? '+' : '';
+         topPick.textContent =
+           `${closestValuePick.team} (${sign}${closestValuePick.price}) at ${closestValuePick.book}`;
+
+         topPick.style.cursor = 'pointer';
+         topPick.title = 'View game';
+
+         topPick.onclick = () => {
+           const matchingGame = games.find(game =>
+             `${game.away} vs ${game.home}` === closestValuePick.game
+           );
+
+           if (matchingGame) {
+             scrollToGame(`game-${getGameKey(matchingGame)}`, closestValuePick.book);
+           }
+         };
+       } else if (topPick) {
+         topPick.textContent = 'No better line detected';
+         topPick.style.cursor = 'default';
+         topPick.title = '';
+         topPick.onclick = null;
+       }
+
+  if (topConfidence) {
+          topConfidence.innerHTML = closestValuePick
+                ? `${closestValuePick.edge.toFixed(1)}% better than market average.<br><br>
+
+                   Better pricing does not always mean positive value.`
+      : 'Markets look efficiently priced right now — no strong value currently exists. Check again soon as lines move.';
+
+    topConfidence.className = 'muted';
+  }
+
+  if (topReason) {
+          topReason.textContent = 'No positive value exists right now. Odds shift frequently — refresh or check back shortly.';
+     }
+
+  if (topConfidenceReason) {
+          if (closestValuePick) {
+
+            const consensus = getMarketConsensusLabel(closestValuePick.marketPrices);
+
+            const marketLines = Array.isArray(closestValuePick.marketPrices)
+                  ? closestValuePick.marketPrices
+                           .map(p => `${p.book}: ${p.price > 0 ? '+' : ''}${p.price}`)
+                           .join('<br>')
+                   : '';
+
+         topConfidenceReason.innerHTML =
+                          `This is currently the strongest opportunity across the sportsbooks we track.<br><br>
+
+                            The pricing is better than the market, but not strong enough to qualify as a positive-value opportunity.<br><br>
+
+                            Market Consensus:<br>
+                            ${consensus.replace('market ', '')}${marketLines ? `<br><br>${marketLines}` : ''}<br><br>
+
+                           Sometimes the best decision is to wait.`;
+
+                    } else {
+
+                     topConfidenceReason.textContent =
+                          'No confidence score is shown because no qualifying value edge currently exists.';
+
+                    }
+               }
+
+  const topMeta = document.getElementById('top-meta');
+  if (topMeta) {
+    topMeta.textContent = '';
+    topMeta.className = '';
+  }
+
+  const topPickCard = document.getElementById('top-pick-card');
+  if (topPickCard) {
+    topPickCard.classList.remove('top-pick-hot', 'top-pick-medium');
+  }
+
+  if (topConfidence) {
+          topConfidence.textContent =
+               'Sportsbooks are currently priced very similarly — no clear value edge right now.';
+     }
+
+  if (topConfidenceReason) {
+          topConfidenceReason.innerHTML =
+               'We identified the best currently available sportsbook price for this market, but it does not currently offer positive value.<br><br>' +
+               'Sometimes the best move is to wait.';
+     } 
+
+  const activeLink = document.getElementById('merged-guidance-link');
+
+  if (activeLink) {
+         activeLink.style.display = 'none';
+         activeLink.href = '#';
+         activeLink.style.boxShadow = 'none';
+       }
+}
     let bestArb = null;
     let bestArbEdge = 0;
+    let closestArb = null;
+    let closestArbGap = 999;
+    let activeArbs = [];
 
     games.forEach(game => {
-      const teamPrices = {};
+               const gameStatusInfo = formatGameStatus(getGameCommenceTime(game), game);
+
+              const isGameClosedForArb =
+                   game.status === 'final' ||
+                  game.cachedFinal ||
+                 gameStatusInfo.status === 'final' ||
+                 gameStatusInfo.status === 'closed';
+
+             if (isGameClosedForArb) return;
+
+             const teamPrices = {};
 
       (game.bookmakers || []).forEach(book => {
         (book.odds || []).forEach(outcome => {
@@ -992,15 +4702,45 @@ async function loadOdds() {
       const dec1 = toDecimal(price1);
       const dec2 = toDecimal(price2);
       const implied = (1 / dec1) + (1 / dec2);
+      const arbGap = (implied - 1) * 100;
 
-      if (implied < 1) {
+      if (arbGap >= 0 && arbGap < closestArbGap) {
+        closestArbGap = arbGap;
+        closestArb = {
+                           game: getGameTitle(game),
+                           gameKey: getGameKey(game),
+                           team1,
+          team2,
+          book1: teamPrices[team1].book,
+          book2: teamPrices[team2].book,
+          price1,
+          price2,
+          gap: arbGap
+        };
+      }
+
+     if (implied < 1) {
         const edge = (1 - implied) * 100;
+
+     activeArbs.push({
+                  game: getGameTitle(game),
+                  gameKey: getGameKey(game),
+       gameCardId: `game-${getGameKey(game)}`,
+                 team1,
+                 team2,
+                 book1: teamPrices[team1].book,
+                 book2: teamPrices[team2].book,
+                 price1,
+                 price2,
+                 edge
+             });
 
         if (edge > bestArbEdge) {
           bestArbEdge = edge;
           bestArb = {
-            game: `${game.away} vs ${game.home}`,
-            team1,
+                                game: getGameTitle(game),
+                                gameKey: getGameKey(game),
+                                team1,
             team2,
             book1: teamPrices[team1].book,
             book2: teamPrices[team2].book,
@@ -1012,60 +4752,1250 @@ async function loadOdds() {
       }
     });
 
+     window.activeArbs = activeArbs;
+
+     window.scrollToGame = function(gameCardId, sportsbookName = null, arbBooks = []) {
+                      returnScrollPosition = window.scrollY;
+                      activateReturnButton();
+
+                  const gameCard = document.getElementById(gameCardId);
+
+                  if (!gameCard) {
+                      console.warn('Game card not found:', gameCardId);
+                      return;
+                 }
+
+      if (Array.isArray(arbBooks) && arbBooks.length === 2) {
+                   const rowsContainer = gameCard.querySelector('.sportsbook-rows') || gameCard;
+                   const rows = [...gameCard.querySelectorAll('.sportsbook-row')];
+
+                   rows.forEach((row, index) => {
+                         if (!row.dataset.originalOrder) {
+                             row.dataset.originalOrder = index;
+                        }
+                    });
+
+                  const arbRows = rows.filter(row => arbBooks.includes(row.dataset.book));
+                 const otherRows = rows.filter(row => !arbBooks.includes(row.dataset.book));
+
+                 [...arbRows, ...otherRows].forEach(row => {
+                   rowsContainer.appendChild(row);
+               });
+
+              arbRows.forEach(row => {
+                   row.style.borderRadius = '14px';
+                  row.style.background = 'rgba(0,255,136,0.10)';
+                  row.style.boxShadow = '0 0 18px rgba(0,255,136,0.35)';
+              });
+         }
+
+              const isArbFocus = Array.isArray(arbBooks) && arbBooks.length === 2;
+     const yOffset = isArbFocus ? -80 : -250;
+     const y = gameCard.getBoundingClientRect().top + window.pageYOffset + yOffset;
+
+              window.scrollTo({
+                   top: y,
+                   behavior: 'smooth'
+               });
+
+              if (sportsbookName) {
+                  setTimeout(() => {
+                       const rows = gameCard.querySelectorAll('.sportsbook-row');
+
+                       rows.forEach(row => {
+                             row.style.boxShadow = '';
+                            row.style.borderRadius = '';
+                            row.style.background = '';
+                        });
+
+                       const targetRow = [...rows].find(row =>
+                             row.dataset.book === sportsbookName
+                           );
+
+                          if (targetRow) {
+                              targetRow.scrollIntoView({
+                                   behavior: 'smooth',
+                                   block: 'center'
+                               });
+
+                              targetRow.style.borderRadius = '14px';
+                              targetRow.style.background = 'rgba(0,255,136,0.10)';
+                              targetRow.style.boxShadow = '0 0 18px rgba(0,255,136,0.35)';
+
+                              setTimeout(() => {
+                                   targetRow.style.boxShadow = '';
+                                   targetRow.style.background = '';
+                                 }, 3500);
+                           }
+                        }, 450);
+                    }
+               };
+
+     function renderBiggestMoversCard() {
+
+      const biggestMoversEl = document.getElementById('biggest-movers');
+      const biggestMoversDetails = document.getElementById('biggest-movers-details');
+
+      const recentMoversRaw = window.biggestMovers.filter(mover =>
+                   mover.timestamp && Date.now() - mover.timestamp <= 5 * 60 * 1000
+              );
+
+      const seenMovers = new Set();
+
+      const recentMovers = recentMoversRaw.filter(mover => {
+               const key = [
+                   mover.gameKey,
+                   mover.book,
+                   mover.team,
+                   mover.previousPrice,
+                   mover.price
+                ].join('|');
+
+               if (seenMovers.has(key)) {
+                   return false;
+               }
+
+              seenMovers.add(key);
+              return true;
+          });
+
+      if (recentMovers.length > 0) {
+        const sortedMovers = recentMovers
+          .sort((a, b) => b.amount - a.amount)
+          .slice(0, 3);
+
+        if (biggestMoversEl) {
+          biggestMoversEl.innerHTML = sortedMovers
+            .map(mover => {
+              const currentSign = mover.price > 0 ? '+' : '';
+              const previousSign = mover.previousPrice > 0 ? '+' : '';
+              const arrow = mover.movement === 'up' ? '↗' : '↘';
+
+              const secondsAgo = Math.floor((Date.now() - mover.timestamp) / 1000);
+
+              const movedAgo =
+                secondsAgo < 60
+                  ? `${secondsAgo}s ago`
+                  : `${Math.floor(secondsAgo / 60)}m ago`;
+
+              const moverGameId = `game-${mover.gameKey}`;
+
+              return `
+               <div
+                                              onclick="scrollToGame('${moverGameId}', '${mover.book}')"
+                                              style="
+                                                   cursor:pointer;
+                                                   padding:8px 0;
+                                             "
+                                        >
+                <div style="
+                  display:flex;
+                  justify-content:space-between;
+                  gap:10px;
+                  align-items:center;
+                  font-weight:700;
+                  color:#e5e7eb;
+                ">
+                  <span style="color:${mover.movement === 'up' ? '#00ff88' : '#fbbf24'};">${mover.team}</span>
+
+                  <span style="
+                                                      color:${mover.movement === 'up' ? '#00ff88' : '#fbbf24'};
+                                                      font-size:18px;
+                                                      white-space:nowrap;
+                                                      flex-shrink:0;
+                  ">
+                                                      ${arrow} ${previousSign}${mover.previousPrice} → ${currentSign}${mover.price}
+                                              </span>
+                                           
+                </div>
+
+                <div style="
+                  margin-top:3px;
+                  font-size:11px;
+                  color:#94a3b8;
+                ">
+                  ${mover.book} • ${mover.game}
+                  <span style="color:#64748b;"> • Moved ${movedAgo}</span>
+                  ${
+                    mover.pressureCount >= 2
+                                                           ? '<span title="Multiple sportsbooks have moved this team in the same direction. This can indicate increased betting activity, new information, or sportsbooks adjusting their pricing.  Market pressure is a signal worth investigating, but does not automatically mean a bet should be placed." style="color:#00ff88; font-weight:700; cursor:help;"> • Market pressure ⓘ</span>'
+                                                 : ''
+                  }
+               </div>
+
+                                        <div class="card-divider"></div>
+             </div>
+           `;
+            })
+            .join('');
+           }
+       
+
+        if (biggestMoversDetails) {
+          biggestMoversDetails.textContent =
+            `Top ${sortedMovers.length} recent movement signal${sortedMovers.length > 1 ? 's' : ''} from the last 5 minutes.`;
+       }
+      } else {
+        if (biggestMoversEl) {
+                          biggestMoversEl.innerHTML = `
+                             <div>No major line movement right now</div>
+                            <div class="card-divider"></div>
+                       `;
+                     }
+
+        if (biggestMoversDetails) {
+                          biggestMoversDetails.textContent =
+                               'We will highlight notable odds movement here as markets update.';
+                    }
+      }
+      }
     const arbPick = document.getElementById('arb-pick');
     const arbDetails = document.getElementById('arb-details');
 
     if (bestArb) {
       currentBestArb = bestArb;
-      if (statArb) statArb.textContent = '1+';
-      if (arbPick) arbPick.textContent = bestArb.game;
+      if (statArb) statArb.textContent = `${activeArbs.length} Active`;
+      if (arbPick) {
+                     if (activeArbs.length === 1) {
+                           const primaryArb = activeArbs[0];
+
+                           arbPick.textContent = 'Live arbitrage detected';
+                           arbPick.style.cursor = 'default';
+                           arbPick.onclick = null;
+                    } else {
+                         arbPick.textContent = `${activeArbs.length} arbitrage opportunities active`;
+                         arbPick.style.cursor = 'default';
+                         arbPick.onclick = null;
+                    }
+                }
+
       if (arbDetails) {
-        arbDetails.textContent =
-          `${bestArb.edge.toFixed(2)}% arbitrage — ${bestArb.team1} at ${bestArb.book1} (${bestArb.price1}), ${bestArb.team2} at ${bestArb.book2} (${bestArb.price2})`;
-      }
+                   arbDetails.innerHTML = activeArbs
+                        .sort((a, b) => b.edge - a.edge)
+                       .map((arb, arbIndex) => `
+                              <div style="
+                                         padding:10px 0;
+                            ">
+                           <div style="margin-top:6px;">
+                                 <div style="
+                                             color:#00ff88;
+                                             font-size:28px;
+                                            font-weight:800;
+                                            line-height:1.2;
+         ">
+                                         ${arb.game}
+                              </div>
+
+                             <div style="
+                                         color:#00ff88;
+                                         font-size:16px;
+                                        font-weight:600;
+                                        margin-top:8px;
+          ">
+                                    ${arb.edge.toFixed(2)}% edge available
+                         </div>
+                         </div>
+
+                        <div
+                                  onclick="scrollToGame('${arb.gameCardId}', null, ['${arb.book1}', '${arb.book2}'])"
+                                  style="
+                                            margin-top:10px;
+                                            cursor:pointer;
+                                            color:#ffffff;
+                                            font-weight:700;
+                                            line-height:1.4;
+                          "
+             >
+                                 ${arb.team1} at ${arb.book1} (${arb.price1})<br>
+                                 ${arb.team2} at ${arb.book2} (${arb.price2})
+
+                           <div style="
+                                margin-top:8px;
+                                display:flex;
+                               gap:14px;
+                               justify-content:center;
+                              flex-wrap:wrap;
+         ">
+                            <span
+                                  style="
+                                       color:#60a5fa;
+                                       cursor:pointer;
+                                       font-size:12px;
+                                       font-weight:600;
+                                  "
+                                  onclick="event.stopPropagation(); scrollToGame('${arb.gameCardId}', null, ['${arb.book1}', '${arb.book2}'])"
+                            >
+                                🔍 View Game
+                           </span>
+
+                          <span
+                                style="
+                                     color:#fbbf24;
+                                     cursor:pointer;
+                                     font-size:12px;
+                                     font-weight:600;
+                                "
+            onclick="event.stopPropagation(); calculateSelectedArb(${arbIndex})"
+                           >
+                             ⚡ Calculate Arb
+                          </span>
+                     </div>
+                 </div>
+
+                       <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:10px;">
+                             <a
+                                  href="${getSportsbookUrl(arb.book1)}"
+                                  target="_blank"
+                                  rel="noopener"
+                                  style="display:inline-block; padding:8px 13px; border-radius:999px; background:rgba(0,255,136,0.88); color:#04110a; font-weight:700; text-decoration:none; font-size:12px;"
+                            >
+                                  Open ${sportsbookShortNames[arb.book1] || arb.book1}
+                            </a>
+
+                           <a
+                                href="${getSportsbookUrl(arb.book2)}"
+                                target="_blank"
+                                rel="noopener"
+                                style="display:inline-block; padding:8px 13px; border-radius:999px; background:rgba(251,191,36,0.92); color:#111827; font-weight:700; text-decoration:none; font-size:12px;"
+                           >
+                                Open ${sportsbookShortNames[arb.book2] || arb.book2}
+                          </a>
+                    </div>
+                   ${arbIndex < activeArbs.length - 1 ? '<div class="card-divider"></div>' : ''}
+               </div>
+           `)
+           .join('') + '<div class="card-divider"></div>';
+}
+
+} else {
+  currentBestArb = null;
+  if (statArb) statArb.textContent = '0';
+  if (arbPick) arbPick.textContent = 'No arbitrage opportunity right now';
+
+  if (arbDetails) {
+  let arbMessage = '';
+
+  if (closestArb) {
+    if (closestArb.gap < 0.01) {
+      arbMessage =
+        '🔥 Extremely close — less than 0.01% from becoming profitable. Waiting for additional line movement.';
+    } else if (closestArb.gap < 2) {
+      arbMessage =
+        `🔥 Near arbitrage: ${closestArb.gap.toFixed(2)}% gap. Very close, but not enough for a guaranteed profit yet.`;
+    } else if (closestArb.gap < 4) {
+      arbMessage =
+        `Closest arb gap: ${closestArb.gap.toFixed(2)}%. Close, but not enough for a guaranteed profit.`;
     } else {
-      currentBestArb = null;
-      if (statArb) statArb.textContent = '0';
-      if (arbPick) arbPick.textContent = 'No arbitrage currently';
-      if (arbDetails) {
-        arbDetails.textContent = 'Best comparison shows no guaranteed edge right now';
-      }
+      arbMessage =
+        `Closest arb gap: ${closestArb.gap.toFixed(2)}%. Markets are still too far apart for arbitrage.`;
     }
+  } else {
+    arbMessage =
+      'Markets are being scanned live for potential opportunities.';
+  }
+
+  arbDetails.innerHTML = `
+    <div>${arbMessage}</div>
+    <div class="card-divider"></div>
+  `;
+}
+}
 
     if (list) {
-      list.innerHTML = games.map(game => `
-        <div class="odds-item">
-          <strong>${game.away} vs ${game.home}</strong><br>
-          ${renderBookmakersWithHighlights(game)}
+      const COMPLETED_GAME_CACHE_MS = 6 * 60 * 60 * 1000;
+
+      const mergedGames = [
+        ...games,
+        ...Object.values(completedGamesCache).filter(cachedGame => {
+                       if (cachedGame.sport && cachedGame.sport !== sport) {
+                            return false;
+                       }
+          const stillFresh =
+            cachedGame.cachedAt &&
+            Date.now() - cachedGame.cachedAt <= COMPLETED_GAME_CACHE_MS;
+
+          const stillInApi = games.some(activeGame =>
+            getGameKey(activeGame) === getGameKey(cachedGame)
+          );
+
+          return stillFresh && !stillInApi;
+        })
+      ];
+
+      const sortedGames = [...mergedGames].sort((a, b) => {
+        const statusA = formatGameStatus(getGameCommenceTime(a), a);
+        const statusB = formatGameStatus(getGameCommenceTime(b), b);
+
+        const getStatusRank = (game, statusInfo) => {
+                          const isFinalGame =
+                               game.status === 'final' ||
+                               game.cachedFinal ||
+                               game.espnStatus?.statusState === 'post' ||
+                               statusInfo.status === 'final' ||
+                               statusInfo.status === 'closed';
+
+                    if (isFinalGame) return 6;
+
+                    if (
+                        game.status === 'live' ||
+                        statusInfo.status === 'live' ||
+                        statusInfo.status === 'halftime'
+                     ) return 1;
+
+                    if (statusInfo.status === 'soon') return 2;
+                    if (statusInfo.status === 'upcoming') return 3;
+                    if (['delayed', 'postponed', 'suspended'].includes(statusInfo.status)) return 5;
+
+                    return 7;
+                };
+
+const rankA = getStatusRank(a, statusA);
+const rankB = getStatusRank(b, statusB);
+
+if (rankA !== rankB) {
+  return rankA - rankB;
+}
+
+const aIsFinal = rankA === 6;
+const bIsFinal = rankB === 6;
+
+if (aIsFinal && bIsFinal) {
+  const aCompletedTime = new Date(
+    a.completedAt ||
+    a.espnStatus?.completedAt ||
+    a.espnStatus?.date ||
+    a.cachedAt ||
+    0
+  ).getTime();
+
+  const bCompletedTime = new Date(
+    b.completedAt ||
+    b.espnStatus?.completedAt ||
+    b.espnStatus?.date ||
+    b.cachedAt ||
+    0
+  ).getTime();
+
+  return bCompletedTime - aCompletedTime;
+}
+
+        // Then sort by strongest available edge
+        const bestEdgeA = Math.max(
+          ...((a.bookmakers || []).flatMap(book =>
+            (book.odds || []).map(o => Number(o.edgePercent) || 0)
+          )),
+          0
+        );
+
+        const bestEdgeB = Math.max(
+          ...((b.bookmakers || []).flatMap(book =>
+            (book.odds || []).map(o => Number(o.edgePercent) || 0)
+          )),
+          0
+        );
+
+        if (bestEdgeA !== bestEdgeB) {
+          return bestEdgeB - bestEdgeA;
+        }
+
+        // Then sort by start time
+        const timeA = new Date(getGameCommenceTime(a)).getTime();
+        const timeB = new Date(getGameCommenceTime(b)).getTime();
+
+        if (timeA !== timeB) {
+          return timeA - timeB;
+        }
+
+        // Final fallback: sort alphabetically when start times are identical
+        return getGameTitle(a).localeCompare(getGameTitle(b));
+      });
+
+        const teamSelect = document.getElementById('team-select');
+        if (teamSelect) {
+                          const teams = new Set();
+
+                          sortedGames.forEach(game => {
+                               const awayTeam = game.away || game.away_team || '';
+                               const homeTeam = game.home || game.home_team || '';
+
+                               if (awayTeam) teams.add(awayTeam);
+                               if (homeTeam) teams.add(homeTeam);
+                           });
+
+                          teamSelect.innerHTML = '<option value="">All Teams</option>' +
+                            Array.from(teams)
+                                         .sort()
+                                         .map(team => `<option value="${team}">${team}</option>`)
+                                         .join('');
+
+         const savedTeam = localStorage.getItem('selectedTeam');
+
+         if (savedTeam && teams.has(savedTeam)) {
+                            teamSelect.value = savedTeam;
+                        } else {
+                           localStorage.removeItem('selectedTeam');
+                       }
+                       }
+
+      
+      list.innerHTML = sortedGames.map(game => {
+        const title = getGameTitle(game);
+        const gameCardId = `game-${getGameKey(game)}`;
+        const awayTeam = game.away || game.away_team || '';
+        const homeTeam = game.home || game.home_team || '';
+
+        const allEdges = (game.bookmakers || []).flatMap(book =>
+          (book.odds || []).map(o => ({
+            team: o.name,
+            edge: Number(o.edgePercent) || 0
+          }))
+        );
+
+        const bestGameEdgeObj = allEdges.reduce(
+          (best, current) => current.edge > best.edge ? current : best,
+          { team: '', edge: 0 }
+        );
+
+        const bestGameEdge = bestGameEdgeObj.edge;
+ 
+        const hasStrongValue = bestGameEdge >= 3;
+        const hasValue = bestGameEdge > 0;
+
+        const isFinalGame = game.status === 'final';
+
+        const hasArbitrage =
+                         !isFinalGame &&
+                        currentBestArb &&
+                       getGameKey(game) === currentBestArb.gameKey;
+
+        const bookmakerCount = (game.bookmakers || []).length;
+        const hasLimitedMarketCoverage = bookmakerCount < 2;
+
+        const gameSignal = isFinalGame
+          ? ''
+          : hasArbitrage
+            ? '⚡ Arbitrage Watch'
+            : hasStrongValue
+              ? '🔥 Strong Value'
+              : hasValue
+                ? '+EV Opportunity'
+                : '';
+
+        let displayText = '';
+        let isLiveStatus = false;
+        let isFinalStatus = false;
+
+          
+
+          const scoreChangeClass = isLiveStatus ? getLiveScoreChangeClass(game) : '';
+          const scoreAnimation = 'none';
+
+        if (
+                          game.status === 'final' ||
+                          game.espnStatus?.statusState === 'post'
+                       ) {
+                          isFinalStatus = true;
+
+                         const completedKey = getGameKey(game);
+
+                         if (completedKey) {
+                                                                       markGameCompletedIfObserved(game, sport);
+
+                                                                       try {
+                                                                            localStorage.setItem(
+                                                                               `scoCompletedGamesCache_${sport}`,
+                                                                              JSON.stringify(window.completedGamesCache)
+                                                                            );
+                                                                       } catch (err) {
+                                                                         // If storage fails, completed games still work for this session.
+                                                                      }
+                                                                 }
+
+                        const finalScores = Array.isArray(game.scores) ? game.scores : [];
+
+                        const homeScore =
+                             finalScores.find(s => s.name === game.home)?.score ??
+                             game.espnStatus?.homeScore;
+
+                        const awayScore =
+                              finalScores.find(s => s.name === game.away)?.score ??
+                              game.espnStatus?.awayScore;
+
+                        const hasValidScores =
+                             homeScore !== undefined &&
+                             awayScore !== undefined &&
+                             homeScore !== null &&
+                             awayScore !== null;
+
+         const isPostponed =
+                             game.status === 'postponed' ||
+                            game.espnStatus?.state === 'postponed' ||
+                            String(game.espnStatus?.description || '').toLowerCase().includes('postponed');
+
+         if (isPostponed) {
+                            displayText = 'POSTPONED • Market closed';
+                        } else if (hasValidScores) {
+                            displayText = `Final: ${awayScore}-${homeScore} • Market closed`;
+                         } else {
+                            displayText = 'Final • Market closed';
+                        }
+                    } else {
+                       const gameStatus = formatGameStatus(getGameCommenceTime(game), game);
+
+                      displayText = gameStatus.text;
+                      isLiveStatus = gameStatus.isLive;
+
+                      if (
+                                                               gameStatus.status !== 'final' &&
+                                                               gameStatus.status !== 'closed'
+                                                            ) {
+                                                              markGameSeenLive(game);
+                                                           }
+
+                      if (isLiveStatus && !displayText) {
+                                                              displayText = 'LIVE';
+                                                          }
+                                                          }
+
+        if (isFinalStatus) {
+          return `
+            <div id="${gameCardId}" class="odds-item game-card" data-away-team="${awayTeam}" data-home-team="${homeTeam}" style="
+              padding:16px;
+              border-radius:14px;
+              background:rgba(17,24,39,0.85);
+              border:1px solid rgba(148,163,184,0.12);
+             box-shadow:0 0 10px rgba(148,163,184,0.05);
+            ">
+              <div style="
+                display:flex;
+                align-items:center;
+                gap:8px;
+                flex-wrap:wrap;
+              ">
+                <strong style="font-size:22px; color:white;">${title}</strong>
+                <span style="color:#94a3b8; font-weight:700;">• ${displayText}</span>
+              </div>
+            </div>
+          `;
+        }
+
+        return `
+          <div id="${gameCardId}" class="odds-item game-card" data-away-team="${awayTeam}" data-home-team="${homeTeam}" style="
+            padding:16px;
+            border-radius:14px;
+            background:rgba(17,24,39,0.85);
+            border:${isLiveStatus
+              ? '1px solid rgba(0,255,136,0.22)'
+              : isFinalStatus
+                ? '1px solid rgba(148,163,184,0.12)'
+                : '1px solid rgba(255,255,255,0.05)'};
+            box-shadow:${isLiveStatus
+              ? '0 0 18px rgba(0,255,136,0.08)'
+              : isFinalStatus
+                ? '0 0 10px rgba(148,163,184,0.05)'
+                : 'none'};
+          ">
+    
+            <div class="game-summary-header">
+  <div class="game-summary-left">
+    <div class="game-summary-title">${title}</div>
+  </div>
+
+  <div class="game-summary-right">
+    ${buildMiniScoreboard(game)}
+  </div>
+</div>
+
+<div class="game-market-signal">
+  ${hasArbitrage
+    ? 'Arbitrage opportunity active'
+    : bestGameEdge > 0
+      ? `Best edge: ${bestGameEdgeObj.team} +${bestGameEdge.toFixed(1)}%`
+      : 'No positive edge detected'}
+</div>
+
+${hasLimitedMarketCoverage && !isFinalStatus ? `
+  <div class="limited-market-warning">
+    Limited market coverage — verify pricing before betting
+  </div>
+` : ''}
+
+${gameSignal ? `
+  <div class="game-signal-pill ${hasStrongValue ? 'strong' : ''}">
+    ${gameSignal}
+  </div>
+` : ''}
+
+                         ${renderBookmakersWithHighlights(game)}
+
+          </div>
+        `;
+      }).join('');
+
+      renderBiggestMoversCard();
+    }
+
+} catch (err) {
+  console.error(err);
+
+  if (status) {
+    status.textContent = 'Live odds are temporarily unavailable. Please refresh shortly.';
+    status.classList.remove('positive');
+  }
+
+  const topPick = document.getElementById('top-pick');
+  const topConfidence = document.getElementById('top-confidence');
+  const topMeta = document.getElementById('top-meta');
+  const topConfidenceReason = document.getElementById('top-confidence-reason');
+  const arbPick = document.getElementById('arb-pick');
+  const arbDetails = document.getElementById('arb-details');
+  const topPickCard = document.getElementById('top-pick-card');
+  const topReason = document.getElementById('top-reason');
+
+  if (topPick) topPick.textContent = 'Live odds temporarily unavailable';
+
+  if (topConfidence) {
+    topConfidence.textContent = '';
+    topConfidence.className = 'muted';
+  }
+
+  if (topMeta) {
+    topMeta.textContent = '';
+    topMeta.className = '';
+  }
+
+  if (topConfidenceReason) {
+    topConfidenceReason.textContent = '';
+  }
+
+  if (arbPick) arbPick.textContent = 'Arbitrage data temporarily unavailable';
+  if (arbDetails) arbDetails.textContent = 'Please refresh shortly.';
+
+  if (topPick) topPick.textContent = 'Bet guidance temporarily unavailable';
+  if (topConfidence) topConfidence.textContent = '';
+  if (topConfidenceReason) topConfidenceReason.textContent = '';
+
+  const activeLink = document.getElementById('merged-guidance-link');
+
+  if (activeLink) {
+         activeLink.style.display = 'none';
+         activeLink.href = '#';
+         activeLink.textContent = 'View Sportsbook';
+       }
+
+  if (topPickCard) {
+    topPickCard.classList.remove('top-pick-hot', 'top-pick-medium');
+  }
+
+  if (statGames) {
+    statGames.textContent = '--';
+    statGames.classList.remove('positive');
+  }
+
+  if (statEdge) {
+    statEdge.textContent = '--';
+    statEdge.classList.remove('positive');
+  }
+
+  if (statArb) {
+    statArb.textContent = '--';
+    statArb.classList.remove('positive');
+  }
+
+  if (statUpdated) {
+    statUpdated.textContent = '--';
+    statUpdated.classList.remove('positive');
+  }
+
+} finally {
+  const completedGamesList = document.getElementById('completed-games-list');
+
+  if (completedGamesList) {
+      const completedRetentionMs = 6 * 60 * 60 * 1000;
+  const now = Date.now();
+
+  Object.keys(window.completedGamesCache || {}).forEach(key => {
+           const cachedAt = window.completedGamesCache[key]?.cachedAt || 0;
+
+           if (now - cachedAt > completedRetentionMs) {
+               delete window.completedGamesCache[key];
+           }
+       });
+
+  try {
+          const savedCompletedGamesForSport = localStorage.getItem(`scoCompletedGamesCache_${sport}`);
+
+         if (savedCompletedGamesForSport) {
+            window.completedGamesCache = {
+                  ...JSON.parse(savedCompletedGamesForSport),
+                  ...(window.completedGamesCache || {})
+            };
+        }
+    } catch (err) {
+       window.completedGamesCache = window.completedGamesCache || {};
+    }
+
+  const COMPLETED_GAME_STORAGE_MS = 24 * 60 * 60 * 1000;
+  const COMPLETED_GAME_DASHBOARD_MS = 6 * 60 * 60 * 1000;
+  const nowForCompletedCleanup = Date.now();
+
+  Object.keys(window.completedGamesCache || {}).forEach(key => {
+           const cachedAt = window.completedGamesCache[key]?.cachedAt || 0;
+
+           if (!cachedAt || nowForCompletedCleanup - cachedAt > COMPLETED_GAME_STORAGE_MS) {
+               delete window.completedGamesCache[key];
+           }
+       });
+
+try {
+           localStorage.setItem(
+                `scoCompletedGamesCache_${sport}`,
+               JSON.stringify(window.completedGamesCache || {})
+            );
+       } catch (err) {
+         // If storage fails, completed games still work for this session.
+       }
+
+let sharedCompletedGames = [];
+
+try {
+  const sharedResultsResponse = await fetch(
+    `/api/completed-games?sport=${encodeURIComponent(sport)}&hours=6`
+  );
+
+  if (sharedResultsResponse.ok) {
+    const sharedResultsPayload = await sharedResultsResponse.json();
+
+    sharedCompletedGames = Array.isArray(
+      sharedResultsPayload.completedGames
+    )
+      ? sharedResultsPayload.completedGames
+      : [];
+  }
+} catch (err) {
+  sharedCompletedGames = [];
+}
+
+const trustedSharedCompletedGames = sharedCompletedGames.filter(
+    game => game.completedObservedAt
+);
+
+console.log(
+    'TRUSTED SHARED COMPLETED GAMES:',
+  trustedSharedCompletedGames.length
+);
+
+  const localCompletedGames = Object.values(
+  JSON.parse(
+    localStorage.getItem(`scoCompletedGamesCache_${sport}`) || '{}'
+  )
+).filter(game => {
+  const recentTime =
+    game.completedObservedAt ||
+    game.cachedAt ||
+    0;
+
+  const recentTimeMs = new Date(recentTime).getTime();
+
+  const isRecentEnough =
+    recentTimeMs &&
+    Date.now() - recentTimeMs <= COMPLETED_GAME_DASHBOARD_MS;
+
+  const matchesCurrentSport =
+    !game.sport || game.sport === sport;
+
+  return isRecentEnough && matchesCurrentSport;
+});
+
+const mergedCompletedGames = [
+  ...trustedSharedCompletedGames
+];
+
+const completedGamesByKey = {};
+
+mergedCompletedGames.forEach(game => {
+  const gameKey = game.gameKey || getGameKey(game);
+
+  if (!gameKey || completedGamesByKey[gameKey]) {
+    return;
+  }
+
+  completedGamesByKey[gameKey] = game;
+});
+
+const completedGames = Object.values(completedGamesByKey)
+  .sort((a, b) => {
+    const aTime = new Date(
+      a.completedObservedAt || a.cachedAt || 0
+    ).getTime();
+
+    const bTime = new Date(
+      b.completedObservedAt || b.cachedAt || 0
+    ).getTime();
+
+    return bTime - aTime;
+  })
+  .slice(0, 5);
+
+    if (completedGames.length) {
+      completedGamesList.innerHTML = completedGames
+        .map(game => {
+          const title = `${game.away} vs ${game.home}`;
+
+         let scoreText = '';
+
+   if (game.espnStatus) {
+            scoreText = `${game.espnStatus.awayShort} ${game.espnStatus.awayScore} - ${game.espnStatus.homeShort} ${game.espnStatus.homeScore}`;
+        } else {
+           const scores = extractScores(game);
+
+           if (scores) {
+               scoreText = Object.entries(scores)
+                  .map(([team, score]) => `${team} ${score}`)
+                 .join(' - ');
+          }
+     }
+
+          const awayName = game.away || game.espnStatus?.awayTeam || 'Away';
+          const homeName = game.home || game.espnStatus?.homeTeam || 'Home';
+
+          const awayScore = game.espnStatus?.awayScore ?? '';
+          const homeScore = game.espnStatus?.homeScore ?? '';
+
+          const awayWon = Number(awayScore) > Number(homeScore);
+          const homeWon = Number(homeScore) > Number(awayScore);
+
+          const recentLabel = game.completedObservedAt
+                                ? formatResultTime(game.completedObservedAt)
+                                : '';
+
+         return `
+               <div style="padding:8px 0; border-bottom:2px solid rgba(255,255,255,0.14);">
+                    <div style="
+                                                                  color:#9ca3af;
+                                                                  font-size:11px;
+                                                                 font-weight:700;
+                                                                 margin-bottom:5px;
+                                                                 text-transform:none;
+                                                                 letter-spacing:0.04em;
+               ">
+                                                                 FINAL${recentLabel ? ` • ${recentLabel}` : ''}
+                                        </div>
+                    <div style="display:flex; justify-content:space-between; gap:12px;">
+                        <span style="
+                              ${awayWon ? 'color:#00ff88;font-weight:700;' : ''}
+        ">
+                             ${awayName}
+                      </span>
+                       <strong style="${awayWon ? 'color:#00ff88;font-weight:700;' : ''}">
+                              ${awayScore}
+                     </strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; gap:12px; margin-top:4px;">
+                         <span style="
+                               ${homeWon ? 'color:#00ff88;font-weight:700;' : ''}
+         ">
+                              ${homeName}
+                       </span>
+                        <strong style="${homeWon ? 'color:#00ff88;font-weight:700;' : ''}">
+                              ${homeScore}
+                       </strong>
+                    </div>
+               </div>
+    `;
+        })
+        .join('') + `
+          <div style="margin-top:14px; text-align:center;">
+                   <a
+                                                        href="results.html"
+                                                        onclick="sessionStorage.setItem('scoReturnToDashboard', JSON.stringify({ scrollY: window.scrollY, sport: document.getElementById('sport-select')?.value || 'baseball_mlb', team: document.getElementById('team-select')?.value || '' }));"
+  style="
+                                                          color:#60a5fa;
+                                                          font-size:14px;
+                                                          font-weight:700;
+                                                          text-decoration:none;
+                                                        "
+                                                >
+                                                        View All Results →
+                                                  </a>
+    </div>
+`;
+   } else {
+      completedGamesList.innerHTML = `
+          <div style="
+                    margin-top:18px;
+                    color:#00ff88;
+                    font-size:20px;
+                   font-weight:700;
+          ">
+               No completed games yet
+       </div>
+
+      <div style="
+                 margin-top:16px;
+                color:#d1d5db;
+                font-size:15px;
+                line-height:1.45;
+      ">
+          Completed games will appear here as today's events finish.
+    </div>
+
+    <div class="card-divider"></div>
+
+    <div style="
+              color:#9ca3af;
+             font-size:13px;
+             text-align:center;
+    ">
+         <div style="
+                   color:#9ca3af;
+                  font-size:13px;
+                  text-align:center;
+    ">
+                 Recent results update automatically.
         </div>
-      `).join('');
+
+       <div style="margin-top:12px; text-align:center;">
+                <a
+                           href="results.html"
+                          style="
+                                    color:#60a5fa;
+                                   font-size:14px;
+                                  font-weight:700;
+                                  text-decoration:none;
+                         "
+                >
+                       View All →
+            </a>
+ </div>
+    </div>
+ `;
+}
+}
+
+  if (refreshBtn) {
+    refreshBtn.disabled = false;
+    refreshBtn.textContent = 'Refresh Odds';
+  }
+
+  if (typeof currentOddsSnapshot !== 'undefined') {
+
+    if (!openingOddsSnapshot) {
+      openingOddsSnapshot = currentOddsSnapshot;
+
+      try {
+        localStorage.setItem(`scoOpeningOddsSnapshot_${sport}`, JSON.stringify(currentOddsSnapshot));
+      } catch (err) {
+        // If browser storage fails, opening line tracking will reset next visit.
+      }
     }
 
+  previousOddsSnapshot = currentOddsSnapshot;
+
+  try {
+    localStorage.setItem(`scoPreviousOddsSnapshot_${sport}`, JSON.stringify(currentOddsSnapshot));
+    localStorage.setItem(`scoLineMovementTimestamps_${sport}`, JSON.stringify(lineMovementTimestamps));
+    localStorage.setItem(`scoBiggestMovers_${sport}`, JSON.stringify(window.biggestMovers || []));
   } catch (err) {
-    console.error(err);
-
-    if (status) {
-      status.textContent = 'Could not load live odds right now.';
-    }
-
-    const topPick = document.getElementById('top-pick');
-    const arbPick = document.getElementById('arb-pick');
-
-    if (topPick) topPick.textContent = 'Unable to load';
-    if (arbPick) arbPick.textContent = 'Unable to scan';
-
-    if (statGames) statGames.textContent = '--';
-    if (statEdge) statEdge.textContent = '--';
-    if (statArb) statArb.textContent = '--';
-    if (statUpdated) statUpdated.textContent = '--';
-  } finally {
-    if (refreshBtn) {
-      refreshBtn.disabled = false;
-      refreshBtn.textContent = 'Refresh Odds';
-    }
+    // If browser storage fails, line movement still works for this session.
   }
 }
+
+}
+}  // closes async function loadOdds
+
+function findPreviousOddsLine(game, bookTitle, teamName) {
+  if (!previousOddsSnapshot) return null;
+
+  const gameKey = `${game.home}|${game.away}`;
+
+  const previousGame = previousOddsSnapshot.find(prevGame =>
+    `${prevGame.home}|${prevGame.away}` === gameKey
+  );
+
+  if (!previousGame) return null;
+
+  const previousBook = (previousGame.bookmakers || []).find(book =>
+    book.title === bookTitle
+  );
+
+  if (!previousBook) return null;
+
+  const previousOutcome = (previousBook.odds || []).find(outcome =>
+    outcome.name === teamName
+  );
+
+  return previousOutcome || null;
+}
+
+function findOpeningOddsLine(game, bookTitle, teamName) {
+  if (!openingOddsSnapshot) return null;
+
+  const gameKey = `${game.home}|${game.away}`;
+
+  const openingGame = openingOddsSnapshot.find(openGame =>
+    `${openGame.home}|${openGame.away}` === gameKey
+  );
+
+  if (!openingGame) return null;
+
+  const openingBook = (openingGame.bookmakers || []).find(book =>
+    book.title === bookTitle
+  );
+
+  if (!openingBook) return null;
+
+  const openingOutcome = (openingBook.odds || []).find(outcome =>
+    outcome.name === teamName
+  );
+
+  return openingOutcome || null;
+}
+
+
+// Stores previous odds in this browser so line movement can survive refresh/reopen
+let previousOddsSnapshot = null;
+let openingOddsSnapshot = null;
+let lineMovementTimestamps = {};
+
+window.biggestMovers = window.biggestMovers || [];
+
+try {
+  const selectedSportForMovers =
+    localStorage.getItem('selectedSport') ||
+    document.getElementById('sport-select')?.value ||
+    'baseball_mlb';
+
+  const savedBiggestMovers = localStorage.getItem(`scoBiggestMovers_${selectedSportForMovers}`);
+
+  window.biggestMovers = savedBiggestMovers
+    ? JSON.parse(savedBiggestMovers)
+    : [];
+} catch (err) {
+  window.biggestMovers = [];
+}
+
+try {
+  const savedSnapshot = localStorage.getItem(`scoPreviousOddsSnapshot_${document.getElementById('sport-select')?.value || 'basketball_nba'}`);
+  previousOddsSnapshot = savedSnapshot ? JSON.parse(savedSnapshot) : null;
+
+} catch (err) {
+  previousOddsSnapshot = null;
+}
+
+try {
+  const savedMovementTimestamps = localStorage.getItem(
+    `scoLineMovementTimestamps_${document.getElementById('sport-select')?.value || 'basketball_nba'}`
+  );
+  lineMovementTimestamps = savedMovementTimestamps
+    ? JSON.parse(savedMovementTimestamps)
+    : {};
+} catch (err) {
+  lineMovementTimestamps = {};
+}
+
+const sportSelect = document.getElementById('sport-select');
+const savedSport = localStorage.getItem('selectedSport');
+
+if (savedSport && sportSelect) {
+  sportSelect.value = savedSport;
+}
+
+if (sportSelect) {
+  sportSelect.addEventListener('change', () => {
+  localStorage.setItem('selectedSport', sportSelect.value);
+
+  const url = new URL(window.location.href);
+  url.searchParams.set('sport', sportSelect.value);
+  window.history.replaceState({}, '', url);
+
+  loadOdds();
+});
+}
+
 loadOdds();
+
+setTimeout(() => {
+  const shouldRestore = sessionStorage.getItem('scoShouldRestoreDashboardPosition');
+  const returnStateRaw = sessionStorage.getItem('scoReturnToDashboard');
+
+  if (shouldRestore === 'true' && returnStateRaw) {
+    try {
+      const returnState = JSON.parse(returnStateRaw);
+
+      if (typeof returnState.scrollY === 'number') {
+        window.scrollTo({
+          top: returnState.scrollY,
+          behavior: 'smooth'
+        });
+      }
+    } catch (err) {
+      // Ignore bad restore data.
+    }
+
+    sessionStorage.removeItem('scoShouldRestoreDashboardPosition');
+  }
+}, 900);
+
+setInterval(() => {
+  if (!document.hidden) {
+    loadOdds();
+  }
+}, 120000);
+
+// Update freshness text every second
+setInterval(() => {
+  const lastUpdated = document.getElementById('last-updated');
+
+  if (!lastUpdated || !window.scoLastOddsUpdate) return;
+
+  const secondsAgo = Math.floor(
+    (Date.now() - window.scoLastOddsUpdate.getTime()) / 1000
+  );
+
+  const formattedTime = window.scoLastOddsUpdate.toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit'
+  });
+
+  lastUpdated.textContent =
+  `Last updated: ${formattedTime} · Updated ${secondsAgo}s ago`;
+
+  if (secondsAgo >= 45) {
+    lastUpdated.style.color = '#fbbf24';
+  } else if (secondsAgo >= 30) {
+    lastUpdated.style.color = '#cbd5e1';
+  } else {
+    lastUpdated.style.color = '#9ca3af';
+  }
+}, 1000);
+
 </script>
+
+<div style="font-size:13px; opacity:0.8; margin-top:24px; text-align:center; color:#a7f3d0;">
+  We provide live market comparisons to help you find stronger prices faster.
+</div>
+
+<div style="font-size:12px; opacity:0.6; margin-top:30px; text-align:center; padding:20px; border-top:1px solid rgba(255,255,255,0.08);">
+  SCO Bets AI provides real-time odds, analytics, and best-line guidance across licensed sportsbooks. We may earn commissions from affiliate links. This platform does not     accept wagers and is intended for informational purposes only. Sports betting involves risk. Please bet responsibly. Must be 21+ and located in a legal betting jurisdiction  to participate.
+</div> 
+
+<script>
+function toggleWhy(id, el) {
+  const content = document.getElementById(id);
+  if (!content) return;
+
+  const isOpen = content.classList.contains('open');
+
+  if (isOpen) {
+    content.classList.remove('open');
+    el.classList.remove('open');
+  } else {
+    content.classList.add('open');
+    el.classList.add('open');
+  }
+}
+</script>
+
 </body>
 </html>
