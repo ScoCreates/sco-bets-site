@@ -406,7 +406,7 @@ if (possibleFinalGames.length > 0) {
   }
 
 await upsertCompletedGames(
-  completedGames,
+  gamesNeedingCompletion,
   requestedSport
 );
 
