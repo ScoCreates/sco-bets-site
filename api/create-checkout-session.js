@@ -38,7 +38,10 @@ module.exports = async (req, res) => {
         },
       ],
       customer_email: email || undefined,
-      success_url: `${process.env.SITE_URL}/success.html?paid=true&email=${encodeURIComponent(email || "")}`,
+      subscription_data: {
+        trial_period_days: 7,
+      },
+      success_url: `${process.env.SITE_URL}/success.html?paid=true&session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email || "")}`,
       cancel_url: `${process.env.SITE_URL}/index.html`,
     });
 

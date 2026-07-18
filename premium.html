@@ -1978,17 +1978,20 @@ pricesByTeam[outcome.name].push(outcome.price);
                  lineMovement
              ) {
                window.biggestMovers.push({
-                    team: o.name,
-                    price: o.price,
-                    previousPrice: previousLine.price,
-                    book: book.title,
-                    game: `${game.away} vs ${game.home}`,
-                    gameKey: getGameKey(game),
-                    movement: lineMovement,
-                    amount: movementAmount,
-                    pressureCount: sameDirectionMoves + 1,
-                    timestamp: Date.now()
-                });
+                                                   sport:
+                                                             document.getElementById('sport-select')?.value ||
+                                                            'baseball_mlb',
+                                                  team: o.name,
+                                                  price: o.price,
+                                                  previousPrice: previousLine.price,
+                                                  book: book.title,
+                                                  game: `${game.away} vs ${game.home}`,
+                                                  gameKey: getGameKey(game),
+                                                  movement: lineMovement,
+                                                  amount: movementAmount,
+                                                  pressureCount: sameDirectionMoves + 1,
+                                                  timestamp: Date.now()
+                                      });
             }
         }
 
@@ -3623,9 +3626,14 @@ function buildBasketballLinescore(espn) {
     <div class="basketball-linescore" style="grid-template-columns:${gridColumns};">
       <span></span>
       ${periods.map(period => {
+        const isHalftime =
+                                espn.statusDescription === 'Halftime' ||
+                                espn.statusDetail === 'Halftime';
+
         const current =
-             espn.statusType === 'in_progress' &&
-             Number(espn.period) === period;
+                                espn.statusState === 'in' &&
+                                 !isHalftime &&
+                                Number(espn.period) === period;
 
         return `
           <span class="basketball-period ${current ? 'current-period' : ''}">
@@ -3637,9 +3645,14 @@ function buildBasketballLinescore(espn) {
 
       <span class="basketball-team">${espn.awayShort || 'AWY'}</span>
       ${periods.map(period => {
+          const isHalftime =
+                                     espn.statusDescription === 'Halftime' ||
+                                     espn.statusDetail === 'Halftime';
+
           const current =
-               espn.statusType === 'in_progress' &&
-               Number(espn.period) === period;
+                                     espn.statusState === 'in' &&
+                                      !isHalftime &&
+                                     Number(espn.period) === period;
 
          return `
              <span class="basketball-score ${current ? 'current-period' : ''}">
@@ -3651,9 +3664,14 @@ function buildBasketballLinescore(espn) {
 
       <span class="basketball-team">${espn.homeShort || 'HME'}</span>
              ${periods.map(period => {
+                 const isHalftime =
+                                                        espn.statusDescription === 'Halftime' ||
+                                                        espn.statusDetail === 'Halftime';
+
                  const current =
-                      espn.statusType === 'in_progress' &&
-                     Number(espn.period) === period;
+                                                        espn.statusState === 'in' &&
+                                                         !isHalftime &&
+                                                        Number(espn.period) === period;
 
                  return `
                      <span class="basketball-score ${current ? 'current-period' : ''}">
@@ -4040,11 +4058,18 @@ navButton.textContent = 'Home';
 
     const payload = await res.json();
 
+    const currentlySelectedSport =
+                     document.getElementById('sport-select')?.value || '';
+
+    if (sport !== currentlySelectedSport) {
+                   return;
+           }
+
     const games = Array.isArray(payload.games) ? payload.games : [];
 
     const completedGames = Array.isArray(payload.completedGames)
-                 ? payload.completedGames
-                  : [];
+                                       ? payload.completedGames
+                                         : [];
 
 completedGames.forEach(espnGame => {
   upsertCompletedGameFromApi(espnGame, sport);
@@ -4836,9 +4861,15 @@ try {
       const biggestMoversEl = document.getElementById('biggest-movers');
       const biggestMoversDetails = document.getElementById('biggest-movers-details');
 
+      const selectedSport =
+                          document.getElementById('sport-select')?.value ||
+                         'baseball_mlb';
+
       const recentMoversRaw = window.biggestMovers.filter(mover =>
-                   mover.timestamp && Date.now() - mover.timestamp <= 5 * 60 * 1000
-              );
+                          mover.sport === selectedSport &&
+                         mover.timestamp &&
+                         Date.now() - mover.timestamp <= 5 * 60 * 1000
+                );
 
       const seenMovers = new Set();
 
@@ -5577,7 +5608,9 @@ try {
 }
 
 const trustedSharedCompletedGames = sharedCompletedGames.filter(
-    game => game.completedObservedAt
+    game =>
+      game.completedObservedAt ||
+      game.serverCompletedAt
 );
 
 console.log(

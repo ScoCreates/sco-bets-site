@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name='impact-site-verification' value='c2fce2f7-d481-4fd1-a50b-8b57a592cd60'>
   <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PJP8J92TTC"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-QQMRYEWVN8"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
 
-    gtag('config', 'G-PJP8J92TTC');
+    gtag('config', 'G-QQMRYEWVN8');
   </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -39,7 +40,7 @@
 
     .section-header {
       max-width: 800px;
-      margin: 0 auto 40px auto;
+      margin: 0 auto 24px auto;
       text-align: center;
     }
 
@@ -50,15 +51,27 @@
       font-size: 0.78rem;
       color: #60a5fa;
       font-weight: 700;
-      margin-bottom: 10px;
+      margin-bottom: 4px;
     }
 
     .section-header h2,
     .hero h1,
     .final-cta-card h2 {
-      font-size: clamp(2rem, 4vw, 3.5rem);
-      line-height: 1.1;
+      font-size: clamp(1.9rem, 3vw, 2.75rem);
+      line-height: 1.15;
+    }
       margin-bottom: 16px;
+    }
+
+    .final-cta-card h2 {
+      font-size: clamp(2rem, 3.2vw, 2.9rem);
+      line-height: 1.15;
+    }
+
+    .final-cta .start-premium-btn {
+      margin-top: 36px;
+      width: 90%;
+      max-width: 900px;
     }
 
     .section-header p,
@@ -69,51 +82,69 @@
       line-height: 1.7;
     }
 
-    .hero {
-      position: relative;
-      min-height: 82vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 100px 20px 80px;
-      overflow: hidden;
-    }
-
     .hero-overlay {
       position: absolute;
       inset: 0;
       background:
-        linear-gradient(rgba(7, 10, 20, 0.55), rgba(7, 10, 20, 0.8)),
-        url('https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
-      opacity: 0.32;
+        linear-gradient(rgba(7, 10, 20, 0.35), rgba(7, 10, 20, 0.6)),
+        url('images/background.png') center/cover no-repeat;
+      opacity: 0.36;
     }
+
+    .hero h1 {
+      margin: 0 0 6px;
+    }
+
+    .hero-subtitle {
+      margin-bottom: 16px;
+    }
+
 
     .hero-content {
       position: relative;
       z-index: 2;
-      max-width: 900px;
+      max-width: 1000px;
+      width: 100%;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;  /* ← THIS controls spacing cleanly */
     }
 
     .hero-subtext {
-      max-width: 720px;
-      margin: 0 auto 28px auto;
-      font-size: 1.15rem;
+      max-width: 900px;   /* was 720px */
+      margin: 0 0 8px;
+      font-size: 1.05rem; /* was 1.15rem */
+      line-height: 1.35;
     }
 
     .hero-buttons {
       display: flex;
       flex-wrap: wrap;
-      gap: 14px;
+      gap: 12px;
       justify-content: center;
-      margin-bottom: 28px;
+      margin-bottom: 6px;
     }
 
     .hero-trust {
       display: flex;
+      font-size: 0.95rem;
+      letter-spacing: -0.2px;
       flex-wrap: wrap;
       justify-content: center;
       gap: 12px;
+      margin: 6px 0 8px;
+    }
+
+    .hero-trust {
+      font-size: 0.95rem;
+      letter-spacing: -0.2px;
+      color: rgba(226, 232, 240, 0.85);
+    }
+
+    .hero-trust strong {
+      color: #22c55e;
     }
 
     .hero-trust span {
@@ -156,15 +187,6 @@
       font-size: 0.92rem;
     }
 
-    .trust-strip {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding-top: 0 !important;
-    }
-
     .trust-item {
       background: rgba(17, 24, 39, 0.92);
       border: 1px solid rgba(255,255,255,0.06);
@@ -192,13 +214,21 @@
       background: rgba(17, 24, 39, 0.95);
       border: 1px solid rgba(255,255,255,0.06);
       box-shadow: 0 14px 40px rgba(0,0,0,0.28);
+
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+   .preview-card p {
+     min-height: 96px;
     }
 
     .preview-placeholder {
       height: 100%;
       padding: 22px;
-      filter: blur(4px);
-      opacity: 0.75;
+      filter: blur(2px);
+      opacity: 0.8;
     }
 
     .locked-overlay {
@@ -260,6 +290,7 @@
 
     .features-grid {
       grid-template-columns: repeat(4, 1fr);
+      margin-top: 34px;
     }
 
     .steps-grid {
@@ -309,45 +340,90 @@
       max-width: 520px;
       margin: 0 auto;
       text-align: center;
+      padding: 20px;
     }
 
     .price-row {
-      margin: 20px 0;
+      margin: 14px 0;
     }
 
     .price {
-      font-size: 3rem;
+      font-size: 2.6rem;
       font-weight: 800;
     }
 
     .price-sub {
       color: #9ca3af;
-      font-size: 1rem;
+      font-size: 0.95rem;
       margin-left: 6px;
     }
 
     .pricing-list {
-      list-style: none;
+      margin: 14px auto 24px;
       padding: 0;
-      margin: 24px 0;
+      list-style: none;
+      display: inline-block;
+      text-align: left;
     }
 
     .pricing-list li {
-      padding: 10px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      margin: 8px 0;
       color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pricing-list li::before {
+      content: "✓";
+      color: #00ff88;
+      font-weight: 800;
+      font-size: 16px;
+      width: 18px;
+      text-align: center;
+      flex-shrink: 0;
     }
 
     .pricing-btn {
       width: 100%;
-      margin-top: 10px;
+      margin-top: 8px;
       border: none;
     }
 
     .pricing-note {
-      margin-top: 14px;
+      margin-top: 10px;
       color: #9ca3af;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
+    }
+
+    .pricing-subtext-strong {
+      margin-top: 4px;
+      font-weight: 600;
+      color: #22c55e; /* same green accent */
+      text-align: center;
+    }
+
+    .subscriber-link {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #9ca3af;
+      text-align: center;
+    }
+
+    .subscriber-link a {
+      color: #22c55e;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .trust-points {
+      margin-top: 8px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #e5e7eb;
+      line-height: 1.5;
+      text-align: center;
     }
 
     .faq-list {
@@ -382,7 +458,7 @@
 
       .hero {
         min-height: auto;
-        padding: 90px 20px 70px;
+        padding: 60px 20px 110px;
       }
 
       .section-header h2,
@@ -394,10 +470,6 @@
       .btn {
         width: 100%;
         text-align: center;
-      }
-
-      .hero-buttons {
-        flex-direction: column;
       }
     }
 .hero-trust span,
@@ -422,25 +494,9 @@
   font-size: 0.95rem;
   opacity: 0.9;
 }
-@media (max-width: 640px) {
-  .trust-strip,
-  .preview-grid,
-  .features-grid,
-  .steps-grid {
-    grid-template-columns: 1fr;
-  }
-}
 
-.hero-tagline {
-  margin-top: 10px;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #00ff88;
-  letter-spacing: 0.5px;
-}
-  
 .existing-user-link {
-  margin-top: 12px;
+  margin: 4px 0 10px;   /* was margin-top: 12px */
   font-size: 0.95rem;
   color: #9ca3af;
 }
@@ -543,71 +599,720 @@
   color: #fff;
 }
 
+.value-stack {
+  margin-top: 4px;
+  margin-bottom: 10px;
+  text-align: center;
+  font-size: 15px;
+  color: #d1d5db;
+}
+
+.value-stack p {
+  margin: 6px 0;
+}
+.cta-note {
+  margin: 8px 0 4px;   /* top 8px, bottom 4px */
+  font-size: 0.9rem;
+  color: #9ca3af;
+  text-align: center;
+}
+.cta-trust {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: #6b7280;
+  text-align: center;
+}
+.cta-proof {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: #6b7280;
+  text-align: center;
+  opacity: 0.9;
+}
+.checkout-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.78);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 10000;
+}
+
+.checkout-modal-content {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 22px;
+  padding: 28px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  position: relative;
+  text-align: center;
+}
+
+.checkout-modal-content h2 {
+  margin: 0 0 10px;
+  font-size: 1.5rem;
+  color: #fff;
+}
+
+.checkout-price {
+  margin: 0 0 16px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #00ff88;
+}
+
+.checkout-benefits {
+  margin-bottom: 18px;
+}
+
+.checkout-benefits p {
+  margin: 6px 0;
+  color: #cbd5e1;
+}
+
+.confirm-btn {
+  width: 100%;
+  border: none;
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #fff;
+  box-shadow: 0 10px 25px rgba(37,99,235,0.28);
+}
+
+.confirm-btn:hover {
+  transform: translateY(-1px);
+}
+
+.checkout-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 1.6rem;
+  cursor: pointer;
+}
+
+.checkout-close:hover {
+  color: #fff;
+}
+
+.homepage section.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;  /* ← KEY CHANGE */
+
+  text-align: center;
+
+  padding: 12px 20px 80px;
+
+  height: auto;
+  min-height: auto;
+
+  overflow: hidden;
+}
+
+.hero-tagline {
+  margin: 10px 0 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #00ff88;
+  letter-spacing: 0.5px;
+}
+
+.why-it-matters {
+  text-align: center;
+  max-width: 720px;
+  margin: 10px auto 18px;
+  padding: 0 20px;
+}
+
+.why-it-matters h2 {
+  font-size: 1.55rem;
+  margin-bottom: 8px;
+}
+
+.why-it-matters p {
+  color: rgba(226, 232, 240, 0.85);
+  margin-bottom: 0;
+  line-height: 1.35;
+}
+
+.homepage-trust-strip {
+  margin-top: 28px;
+  opacity: 0.95;
+}
+
+.trust-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(260px, 1fr));
+  gap: 10px;                  /* slightly tighter */
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0;                 /* REMOVE bottom padding */
+}
+
+.trust-item {
+  position: relative;
+  padding: 10px 14px 10px 28px;
+  font-size: 0.92rem;
+  border: 1px solid rgba(34,197,94,0.15);
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.trust-item::before {
+  content: "✔";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #22c55e;
+  font-size: 0.85rem;
+}
+
+.trust-link-section {
+  padding: 40px 20px;
+}
+
+.trust-link-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  background: rgba(17, 24, 39, 0.92);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 18px;
+  padding: 28px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+}
+
+.trust-link-wrap h3 {
+  margin-bottom: 10px;
+  color: #ffffff;
+}
+
+.trust-link-wrap p {
+  margin-bottom: 18px;
+  color: #cbd5e1;
+  line-height: 1.6;
+}
+
+.trust-link-btn {
+  display: inline-block;
+  background: #22c55e;
+  color: #0f172a;
+  text-decoration: none;
+  font-weight: 700;
+  padding: 12px 20px;
+  border-radius: 12px;
+  transition: 0.2s ease;
+}
+
+.trust-link-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(34,197,94,0.25);
+}
+
+.pricing {
+  padding-top: 50px !important;
+  padding-bottom: 50px !important;
+}
+
+.pricing .section-header h2 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.pricing .section-kicker {
+  margin-top: 0;
+  margin-bottom: 4px;
+}
+
+.platform-line {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #22c55e;
+  text-align: center;
+}
+
+.section-header p {
+  max-width: 720px;
+  margin: 0 auto;
+}
+/* Subscriber Login Modal */
+.email-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.email-modal.hidden {
+  display: none;
+}
+
+.email-modal-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(17, 24, 39, 0.96);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+}
+
+.email-modal-text {
+  margin: 10px 0 14px;
+  color: #cbd5e1;
+  font-size: 0.95rem;
+}
+
+.email-modal-input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: #0f172a;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.email-modal-btn {
+  width: 100%;
+}
+
+.email-modal-close {
+  position: absolute;
+  right: 16px;
+  top: 12px;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.email-modal-message {
+  margin: 8px 0;
+  font-size: 0.9rem;
+  color: #f87171;
+}
+
+.email-modal-subtext {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.odds-teaser {
+  max-width: 720px;
+  margin: 0 auto 40px auto;
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(17, 24, 39, 0.85);
+  border: 1px solid rgba(255,255,255,0.06);
+  text-align: center;
+}
+
+.teaser-title {
+  font-weight: 600;
+  margin-bottom: 12px;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.odds-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 6px 0;
+  font-size: 14px;
+  opacity: 0.85;
+  gap: 12px;
+}
+
+.odds-row .teams {
+  text-align: left;
+}
+
+.odds-row .book {
+  opacity: 0.7;
+}
+
+.blurred {
+  filter: blur(2px);
+  opacity: 0.88;
+  user-select: none;
+}
+
+.teaser-note {
+  margin-top: 12px;
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.hidden-teaser {
+  display: none;
+}
+
+.show-teaser {
+  display: block;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.start-premium-btn {
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.start-premium-btn {
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.trial-link {
+  display: inline-block;
+  font-size: 14px;
+  color: #d1d5db;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255,255,255,0.18);
+  padding-bottom: 2px;
+  transition: opacity 0.2s ease, border-color 0.2s ease;
+}
+
+.trial-link:hover {
+  opacity: 0.85;
+  border-color: rgba(255,255,255,0.4);
+}
+
+.teaser-trigger-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.odds-teaser-modal-card {
+  position: relative;
+  max-width: 560px;
+  text-align: center;
+  background: linear-gradient(145deg, #1e293b, #0f172a);
+  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+}
+
+.odds-teaser-modal-card .odds-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.odds-teaser-modal-card .teams {
+  text-align: left;
+  flex: 1;
+}
+
+.odds-teaser-modal-card .book {
+  opacity: 0.75;
+  min-width: 90px;
+  text-align: center;
+}
+
+.odds-teaser-modal-card .odds {
+  min-width: 70px;
+  text-align: right;
+}
+
+.odds-teaser-modal-card .teaser-title {
+  font-weight: 700;
+  margin-bottom: 14px;
+  font-size: 18px;
+}
+
+.odds-teaser-modal-card .teaser-note {
+  margin-top: 14px;
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.teaser-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: rgba(255,255,255,0.05);
+  border: none;
+  color: #e5e7eb;
+  font-size: 22px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.teaser-close-btn:hover {
+  background: rgba(255,255,255,0.15);
+  color: #ffffff;
+}
+
+#teaser-modal .email-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 10;
+}
+
+#teaser-modal .email-modal-close:hover {
+  color: #ffffff;
+}
+
+#teaser-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none; /* hidden by default */
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.65);
+  z-index: 9999;
+}
+
+/* when active */
+#teaser-modal.show-modal {
+  display: flex;
+}
+
+.subscriber-link,
+.already-subscriber {
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.highlight {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.cta-sub {
+  font-size: 0.85rem;
+  color: rgba(226, 232, 240, 0.7);
+  margin: 2px 0 4px;
+  text-align: center;
+}
+
+.secondary-cta {
+  margin-top: 8px;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.anti-hype {
+  font-size: 0.9rem;
+  color: rgba(226, 232, 240, 0.9);   /* brighter than before */
+  margin: 6px 0 10px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.anti-highlight {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.final-cta-secondary {
+  margin-top: 38px;
+  color: rgba(255,255,255,0.72);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.final-cta-link {
+  display: inline-block;
+  margin-top: 8px;
+  color: #00ff88;
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.final-cta-link:hover {
+  opacity: 0.85;
+}
+
+
 </style>
 </head>
 
 <body>
 
   <div id="success-banner" style="display:none; background:#0f2a1d; color:#d8ffe8; padding:14px 20px; text-align:center; font-weight:600;">
-    🔥 Premium Unlocked — You now have full access!
+    Membership active — Your SCO Bets AI dashboard is ready.
   </div>
 
   <main class="homepage">
 
-    <section class="hero">
-      <div class="hero-overlay"></div>
-      <div class="hero-content">
-        <p class="eyebrow">SCO Bets AI</p>
+      <section class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+        <p class="eyebrow">Sports betting intelligence for smarter decisions</p>
 
-        <h1>Find the Best Betting Lines. Instantly.</h1>
+      <h1>Bet Smarter. Win Smarter.</h1>
 
-        <p class="hero-subtext">
-          Compare odds across sportsbooks, identify value, and get real-time bet guidance — all in one place.
-        </p>
+      <p class="hero-subtext">
+        Helping bettors compare live sportsbook odds, find better pricing,
+and avoid bad bets when the numbers don’t support it.
+      </p> 
+        
+        <div class="value-stack">
+          <p>✔ Compare live odds across major sportsbooks</p>
+          <p>✔ Spot value opportunities before placing a bet</p>
+          <p>✔ Make smarter, more disciplined betting decisions</p>
+        </div>
 
         <div class="hero-buttons">
-          <a href="#" class="btn btn-primary start-premium-btn">Unlock Premium</a>
-          <a href="#premium-preview" class="btn btn-secondary">See Premium Features</a>
+          <a href="#" class="btn btn-primary start-premium-btn">
+            Get Access — Lock in $9.99/month
+          </a>
+          <a href="#premium-preview" class="btn btn-secondary">
+            Explore the Dashboard
+          </a>
         </div>
 
-        <div class="existing-user-link">
-          Already a subscriber?
-          <a href="/premium.html">Access Premium Dashboard</a>
+        <div style="margin-top:12px;">
+          <a href="#" class="trial-link direct-checkout-btn">
+            Try it risk-free with a 7-day free trial
+          </a>
         </div>
 
-        <div style="margin-top: 12px; font-size: 0.85rem; color: #9ca3af;">
-          Live odds • AI picks • Arbitrage detection • Real-time edge tracking
+       <div class="existing-user-link">
+         Returning member?
+         <a href="#" id="access-premium-link">Open the Sports Betting Intelligence Dashboard</a>
+       </div>
+        
+       <p style="font-size:12px; color:#94a3b8; margin-top:6px;">
+         Secure checkout powered by Stripe • Cancel anytime
+       </p>
+
+        <p class="hero-trust">
+         ✔ <strong>No hype picks</strong> &nbsp;&nbsp;
+         ✔ <strong>No guarantees</strong> &nbsp;&nbsp;
+         ✔ <strong>No forced bets</strong>
+        </p>
+
+        <p style="font-size:13px; color:#94a3b8; margin-top:8px;">
+          SCO Bets AI complements licensed sportsbooks — users place bets directly with their preferred sportsbook.
+        </p>
+        
+        <div class="trust-strip homepage-trust-strip">
+          <div class="trust-item">Compare sportsbook pricing</div>
+          <div class="trust-item">Spot real value faster</div>
+          <div class="trust-item">Understand when to wait</div>
         </div>
 
-        <div class="hero-tagline">
-          Bet Smarter. Win Smarter.
         </div>
-      </div>
     </section>
 
-    <section class="trust-strip">
-      <div class="trust-item">Real-time betting tools</div>
-      <div class="trust-item">Premium subscriber access</div>
-      <div class="trust-item">Secure Stripe checkout</div>
-      <div class="trust-item">Built for serious bettors</div>
-    </section>
-
-    <section id="premium-preview" class="premium-preview">
+     <section id="premium-preview" class="premium-preview">
       <div class="section-header">
-        <p class="section-kicker">Premium Access</p>
-        <h2>See what Premium unlocks</h2>
+        <h2>See value before<br>you place a bet</h2>
         <p>
-          Access live betting tools, premium picks, arbitrage opportunities, and sharper bet guidance in one dashboard.
+          Compare live sportsbook odds, spot better pricing,<br>
+          and understand when the smartest move is to wait.
         </p>
       </div>
 
-      <div class="preview-grid">
+        <p style="text-align:center; color:#cbd5e1; margin:0 auto 24px auto; max-width:720px;">
+          Live sportsbook pricing, value opportunities, and market analysis update throughout the day.
+        </p>
+
+          <div class="odds-teaser" id="odds-teaser" style="display:none !important;">
+            <p class="teaser-title">Preview Live Odds</p>
+
+         <div class="odds-row">
+          <span class="teams">Lakers vs Warriors</span>
+          <span class="book">DraftKings</span>
+          <span class="odds blurred">+120</span>
+         </div>
+
+         <div class="odds-row">
+           <span class="teams">Yankees vs Red Sox</span>
+           <span class="book">FanDuel</span>
+           <span class="odds blurred">-135</span>
+         </div>
+
+         <div class="odds-row">
+           <span class="teams">Celtics vs Heat</span>
+           <span class="book">BetMGM</span>
+           <span class="odds blurred">+145</span>
+         </div>
+
+         <p class="teaser-note">
+           Live odds, best lines, and value opportunities update throughout the day.
+         </p>
+
+         <a href="#" class="btn btn-primary start-premium-btn">
+           Unlock Full Odds Access
+         </a>
+       </div>
+
+       <div class="preview-grid">
         <div class="preview-card locked-card">
           <div class="locked-overlay">
-            <span class="lock-badge">Premium Members Only</span>
-            <h3>AI Picks Dashboard</h3>
-            <p>See live premium picks and value opportunities updated throughout the day.</p>
-            <a href="#" class="btn btn-primary small-btn start-premium-btn">Unlock Premium</a>
+            <span class="lock-badge">Member Access</span>
+            <h3>Live Value Dashboard</h3>
+            <p>Compare live sportsbook pricing, spot value opportunities, and identify when the numbers support a bet.</p>
+            <a href="#" class="btn btn-primary small-btn teaser-trigger-btn" onclick="openTeaserModal(event)">
+              Preview Live Dashboard
+            </a>
           </div>
           <div class="preview-placeholder">
             <div class="fake-line wide"></div>
@@ -618,10 +1323,10 @@
 
         <div class="preview-card locked-card">
           <div class="locked-overlay">
-            <span class="lock-badge">Premium Members Only</span>
-            <h3>Arbitrage Opportunities</h3>
-            <p>Spot price gaps across books and calculate stake splits instantly.</p>
-            <a href="#" class="btn btn-primary small-btn start-premium-btn">Unlock Premium</a>
+            <span class="lock-badge">Member Access</span>
+            <h3>Market Opportunities</h3>
+            <p>Identify pricing gaps, arbitrage situations, and real-time sportsbook pricing differences.</p>
+            <a href="#" class="btn btn-primary small-btn start-premium-btn">Unlock Full Access</a>
           </div>
           <div class="preview-placeholder">
             <div class="fake-line wide"></div>
@@ -632,10 +1337,10 @@
 
         <div class="preview-card locked-card">
           <div class="locked-overlay">
-            <span class="lock-badge">Premium Members Only</span>
-            <h3>Bet Slip Tools</h3>
-            <p>Build, copy, and print your bets with cleaner workflow and better guidance.</p>
-            <a href="#" class="btn btn-primary small-btn start-premium-btn">Unlock Premium</a>
+            <span class="lock-badge">Member Access</span>
+            <h3>Bet Workflow Tools</h3>
+            <p>Organize bets faster with copy, print, and sportsbook workflow tools built for disciplined betting.</p>
+            <a href="#" class="btn btn-primary small-btn start-premium-btn">Get Member Access</a>
           </div>
           <div class="preview-placeholder">
             <div class="fake-line wide"></div>
@@ -648,7 +1353,6 @@
 
     <section class="features">
       <div class="section-header">
-        <p class="section-kicker">Why SCO Bets AI</p>
         <h2>Built to help you find betting value faster</h2>
       </div>
 
@@ -659,13 +1363,13 @@
         </div>
 
         <div class="feature-card">
-          <h3>AI Picks</h3>
-          <p>Get premium pick insights designed to highlight value and market inefficiencies.</p>
+          <h3>Value Analysis</h3>
+          <p>Identify pricing differences, value opportunities, and real-time sportsbook market movement.</p>
         </div>
 
         <div class="feature-card">
           <h3>Arbitrage Tools</h3>
-          <p>Calculate stake splits and uncover no-sweat arbitrage opportunities when books disagree.</p>
+          <p>Calculate stake splits and uncover arbitrage opportunities when books disagree.</p>
         </div>
 
         <div class="feature-card">
@@ -678,20 +1382,20 @@
     <section class="how-it-works">
       <div class="section-header">
         <p class="section-kicker">How It Works</p>
-        <h2>Simple, fast, premium access</h2>
+        <h2>Simple, fast member access</h2>
       </div>
 
       <div class="steps-grid">
         <div class="step-card">
           <div class="step-number">1</div>
           <h3>Subscribe</h3>
-          <p>Start your premium membership with secure Stripe checkout.</p>
+          <p>Join us with secure Stripe checkout and instant dashboard access.</p>
         </div>
 
         <div class="step-card">
           <div class="step-number">2</div>
           <h3>Unlock Access</h3>
-          <p>Your subscription activates premium access tied directly to your account status.</p>
+          <p>Your membership unlocks instant access to live sportsbook pricing, value analysis, and betting tools.</p>
         </div>
 
         <div class="step-card">
@@ -705,27 +1409,45 @@
     <section class="pricing">
       <div class="section-header">
         <p class="section-kicker">Pricing</p>
-        <h2>One plan. Full premium access.</h2>
-        <p>Unlock the full SCO Bets AI experience with live tools and smarter betting workflow.</p>
+        <h2>
+          <span style="font-size:0.68em;">One Membership.</span><br>
+          <span style="color:#00ff88;">Full Dashboard Access.</span>
+        </h2>
+
+        <p class="pricing-subtext">
+          Compare sportsbook pricing, identify value opportunities, and make smarter betting decisions in real-time.
+        </p>
+        
       </div>
 
       <div class="pricing-card">
-        <h3>SCO Bets AI Premium</h3>
+        <h3>Full Membership Access</h3>
+
         <div class="price-row">
-          <span class="price">$19.99</span>
+          <span class="price">$9.99</span>
           <span class="price-sub">/month</span>
         </div>
 
         <ul class="pricing-list">
-          <li>Live Odds Board</li>
-          <li>AI Picks</li>
-          <li>Arbitrage Tools</li>
-          <li>Bet Slip Tools</li>
+          <li>Compare live sportsbook pricing</li>
+          <li>Spot value opportunities</li>
+          <li>Identify arbitrage opportunities</li>
+          <li>Organize bets in one place</li>
         </ul>
 
-        <a href="#" class="btn btn-primary start-premium-btn">Start Premium</a>
-        <p class="pricing-note">Secure checkout powered by Stripe.</p>
-      </div>
+        <p class="platform-line">
+          Everything you need to compare odds, find value, and bet smarter.
+        </p>
+
+        <a href="#" class="btn btn-primary start-premium-btn">
+          Start Free Trial
+        </a>
+
+        <p class="trust-points">
+          🔒 Secure checkout • Cancel anytime<br>
+          Lock in $9.99/month for life
+        </p>
+
     </section>
 
     <section class="faq">
@@ -736,8 +1458,8 @@
 
       <div class="faq-list">
         <div class="faq-item">
-          <h3>What does Premium include?</h3>
-          <p>Premium includes access to live odds, AI picks, arbitrage tools, and bet slip utilities.</p>
+          <h3>What does membership include?</h3>
+          <p>Membership includes live sportsbook pricing, value analysis, arbitrage tools, and betting workflow utilities.</p>
         </div>
 
         <div class="faq-item">
@@ -747,21 +1469,37 @@
 
         <div class="faq-item">
           <h3>Can I cancel anytime?</h3>
-          <p>Yes. You can manage your subscription based on the billing terms you set through Stripe.</p>
+          <p>Yes. Members can manage or cancel their subscription anytime through Stripe using the “Manage Subscription” button on the dashboard.</p>
         </div>
 
         <div class="faq-item">
-          <h3>What sports will be supported?</h3>
-          <p>SCO Bets AI is being built as a multi-sport betting intelligence platform, with NBA and MLB as strong current rollout opportunities.</p>
+          <h3>Which sports are supported?</h3>
+          <p>We currently support NBA, WNBA, MLB, and Men's NCAA Basketball, with more sports and advanced features coming soon.</p>
         </div>
       </div>
     </section>
-
+    
     <section class="final-cta">
       <div class="final-cta-card">
-        <h2>Start finding better betting opportunities today.</h2>
-        <p>Join SCO Bets AI Premium for smarter betting tools and insights.</p>
-        <a href="#" class="btn btn-primary start-premium-btn">Start Premium</a>
+
+        <h2>Make smarter betting decisions.</h2>
+
+        <p>
+          Compare live sportsbook pricing, identify value opportunities, and bet with more confidence.
+        </p>
+
+        <div class="final-cta-secondary">
+          Want to know exactly how the platform works before joining?
+        </div>
+
+        <a href="trust.html" class="final-cta-link">
+          Learn More About Our Platform →
+        </a>
+
+        <a href="#" class="btn btn-primary start-premium-btn">
+          Start Free Trial
+        </a>
+
       </div>
     </section>
 
@@ -770,9 +1508,10 @@
  <div id="email-modal" class="email-modal hidden">
   <div class="email-modal-card">
     <button id="close-email-modal" class="email-modal-close" aria-label="Close">×</button>
-    <h3>Continue to Premium</h3>
+    <h3>Member Access</h3>
+
     <p class="email-modal-text">
-      Enter your email to check whether you already have Premium access.
+      Enter your email to check your SCO Bets AI membership access.
     </p>
 
     <input
@@ -790,159 +1529,583 @@
     </button>
 
     <div class="email-modal-subtext">
-      Already subscribed? We’ll send you straight to your Premium Dashboard.
+      Already a member? We’ll take you straight to your SCO Bets AI dashboard.
     </div>
   </div>
 </div>
 
+        <div id="subscriber-login-modal" class="email-modal hidden">
+          <div class="email-modal-card">
+            <button class="email-modal-close" id="subscriber-login-close" aria-label="Close">&times;</button>
+            <h3>Member Login</h3>
+            <p class="email-modal-text">
+              Enter your membership email to access your SCO Bets AI dashboard.
+            </p>
+            <input
+              type="email"
+              id="subscriber-login-email"
+              class="email-modal-input"
+              placeholder="you@example.com"
+            />
+            <div id="subscriber-login-message" class="email-modal-message"></div>
+            <button id="subscriber-login-btn" class="btn btn-primary email-modal-btn">
+              Open Dashboard
+            </button>
+            <div class="email-modal-subtext">
+              We’ll verify your membership and open your dashboard.
+            </div>
+          </div>
+        </div>
 
- <script>
+<div id="checkout-modal" class="checkout-modal">
+  <div class="checkout-modal-content">
+    <button class="checkout-close">&times;</button>
+
+    <h2>Join SCO Bets AI</h2>
+
+    <p class="checkout-price">$9.99/month</p>
+
+    <div class="checkout-benefits">
+      <p>✔ Instant access</p>
+      <p>✔ Live sportsbook pricing & value analysis</p>
+      <p>✔ Cancel anytime</p>
+    </div>
+
+    <button id="confirm-checkout" class="confirm-btn">
+      Join SCO Bets AI — $9.99/month →
+    </button>
+
+    <p class="subscriber-link">
+      Already a subscriber? <a href="#" id="checkout-subscriber-link">Sign in here</a>
+    </p>
+  </div>
+</div>
+
+<div style="font-size:12px; opacity:0.6; margin-top:30px; text-align:center; padding:20px; border-top:1px solid rgba(255,255,255,0.08);">
+
+  <p>
+    SCO Bets AI provides real-time odds, analytics, and best-line guidance across licensed sportsbooks. We may earn commissions from affiliate links.
+  </p>
+
+  <p>
+    This platform does not accept wagers and is intended for informational purposes only. Sports betting involves risk. Please bet responsibly.
+  </p>
+
+  <p>
+    Sportsbook access depends on your location and is handled entirely by the operator. Must be 21+ and located in a legal betting jurisdiction to participate.
+  </p> 
+
+  <p style="margin-top:10px;">
+    <a href="trust.html" style="color:#22c55e; text-decoration:none; font-weight:600;">
+      Trust & Transparency
+    </a>
+  </p>
+</div>
+
+
+
+<div id="teaser-modal">
+  <div class="email-modal-card odds-teaser-modal-card">
+    <button class="teaser-close-btn" onclick="closeTeaserModal()" aria-label="Close">&times;</button>
+
+    <p class="teaser-title">Preview Live Odds</p>
+
+    <div class="odds-row">
+      <span class="teams">Lakers vs Warriors</span>
+      <span class="book">DraftKings</span>
+      <span class="odds blurred">+120</span>
+    </div>
+
+    <div class="odds-row">
+      <span class="teams">Yankees vs Red Sox</span>
+      <span class="book">FanDuel</span>
+      <span class="odds blurred">-135</span>
+    </div>
+
+    <div class="odds-row">
+      <span class="teams">Celtics vs Heat</span>
+      <span class="book">BetMGM</span>
+      <span class="odds blurred">+145</span>
+    </div>
+
+    <p class="teaser-note">
+      Live odds, best lines, and value opportunities update throughout the day.
+    </p>
+
+    <a href="#" id="teaser-unlock-btn" class="btn btn-primary start-premium-btn">
+      Unlock Full Odds Access
+    </a>
+  </div>
+</div>
+
+<script>
+(function () {
+  const picks = [
+    "AI Pick: Lakers +140 — Confidence: High",
+    "AI Pick: Celtics -4.5 — Confidence: Medium",
+    "AI Pick: Chiefs ML — Confidence: High",
+    "AI Pick: Warriors +6 — Confidence: Medium"
+  ];
+
+  let pickIndex = 0;
+  let rotatingPickInterval = null;
+
+  function trackEvent(name, params = {}) {
+    if (typeof window.gtag === "function") {
+      window.gtag("event", name, params);
+    }
+  }
+
+  function showElement(el, displayValue = "flex") {
+    if (el) el.style.display = displayValue;
+  }
+
+  function hideElement(el) {
+    if (el) el.style.display = "none";
+  }
+
+  function showHiddenModal(el) {
+    if (el) el.classList.remove("hidden");
+  }
+
+  function hideHiddenModal(el) {
+    if (el) el.classList.add("hidden");
+  }
+
+  function resetHomepageUi() {
+    if (checkoutModal) {
+      checkoutModal.style.display = "none";
+    }
+
+    if (teaserModal) {
+      teaserModal.style.display = "none";
+    }
+
+    if (emailModal) {
+      emailModal.classList.add("hidden");
+    }
+
+    if (subscriberLoginModal) {
+      subscriberLoginModal.classList.add("hidden");
+    }
+
+    if (confirmCheckout) {
+      confirmCheckout.disabled = false;
+      confirmCheckout.innerText = "Join SCO Bets AI — $9.99/month →";
+      confirmCheckout.style.opacity = "1";
+    }
+
+    document.body.style.overflow = "";
+  }
+
+    window.openTeaserModal = function (e) {
+    if (e) e.preventDefault();
+
+    trackEvent("teaser_open", {
+       page_location: window.location.href
+    });
+
+    const teaserModal = document.getElementById("teaser-modal");
+    showElement(teaserModal, "flex");
+    };
+
+    window.closeTeaserModal = function () {
+      const teaserModal = document.getElementById("teaser-modal");
+      hideElement(teaserModal);
+    };
+
+  window.addEventListener("load", function () {
     const params = new URLSearchParams(window.location.search);
 
-    if (params.get('success') === 'true') {
-      const banner = document.getElementById('success-banner');
-      if (banner) banner.style.display = 'block';
+    const successBanner = document.getElementById("success-banner");
+    const premiumContent = document.getElementById("premium-content");
+    const rotatingPickEl = document.getElementById("rotating-pick");
 
-      const content = document.getElementById('premium-content');
-      if (content) content.style.filter = 'none';
-    }
+    const startPremiumButtons = document.querySelectorAll(".start-premium-btn");
+    const checkoutMessage = document.getElementById("checkoutMessage");
 
-    const picks = [
-      "AI Pick: Lakers +140 — Confidence: High",
-      "AI Pick: Celtics -4.5 — Confidence: Medium",
-      "AI Pick: Chiefs ML — Confidence: High",
-      "AI Pick: Warriors +6 — Confidence: Medium"
-    ];
+    const emailModal = document.getElementById("email-modal");
+    const closeEmailModal = document.getElementById("close-email-modal");
+    const continueEmailModal = document.getElementById("continue-email-modal");
+    const subscriberEmailInput = document.getElementById("subscriber-email-input");
+    const emailModalMessage = document.getElementById("email-modal-message");
 
-    let i = 0;
-    setInterval(() => {
-      const el = document.getElementById("rotating-pick");
-      if (el) {
-        el.textContent = picks[i];
-        i = (i + 1) % picks.length;
+    const checkoutSubscriberLink = document.getElementById("checkout-subscriber-link");
+
+    const checkoutModal = document.getElementById("checkout-modal");
+    const checkoutClose = document.querySelector(".checkout-close");
+    const confirmCheckout = document.getElementById("confirm-checkout");
+
+    const accessPremiumLink = document.getElementById("access-premium-link");
+    const subscriberLoginModal = document.getElementById("subscriber-login-modal");
+    const subscriberLoginClose = document.getElementById("subscriber-login-close");
+    const subscriberLoginBtn = document.getElementById("subscriber-login-btn");
+    const subscriberLoginEmail = document.getElementById("subscriber-login-email");
+    const subscriberLoginMessage = document.getElementById("subscriber-login-message");
+
+    const teaserModal = document.getElementById("teaser-modal");
+    const teaserUnlockBtn = document.getElementById("teaser-unlock-btn");
+
+      window.addEventListener("pageshow", function () {
+        if (sessionStorage.getItem("stripe_checkout_started") === "1") {
+          sessionStorage.removeItem("stripe_checkout_started");
+          window.location.href = window.location.pathname + "?refresh=" + Date.now();
+        }
+      });
+
+    function resetHomepageUi() {
+        if (checkoutModal) checkoutModal.style.display = "none";
+        if (teaserModal) teaserModal.style.display = "none";
+        if (emailModal) emailModal.classList.add("hidden");
+        if (subscriberLoginModal) subscriberLoginModal.classList.add("hidden");
+
+        if (confirmCheckout) {
+          confirmCheckout.disabled = false;
+          confirmCheckout.innerText = "Join SCO Bets AI — $9.99/month →";
+          confirmCheckout.style.opacity = "1";
+        }
+
+        document.body.style.overflow = "";
       }
-    }, 3000);
-  </script>
 
- <script>
-  const startPremiumButtons = document.querySelectorAll(".start-premium-btn");
-  const checkoutMessage = document.getElementById("checkoutMessage");
+      resetHomepageUi();
 
-  const emailModal = document.getElementById("email-modal");
-  const closeEmailModal = document.getElementById("close-email-modal");
-  const continueEmailModal = document.getElementById("continue-email-modal");
-  const subscriberEmailInput = document.getElementById("subscriber-email-input");
-  const emailModalMessage = document.getElementById("email-modal-message");
+      window.addEventListener("focus", function () {
+        resetHomepageUi();
+      });
 
-  let pendingCheckout = false;
+      document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) {
+          resetHomepageUi();
+        }
+      });
+   
+    if (params.get("success") === "true") {
+      if (successBanner) successBanner.style.display = "block";
+      if (premiumContent) premiumContent.style.filter = "none";
+    }
 
-  function openEmailModal() {
-    emailModal.classList.remove("hidden");
-    emailModalMessage.textContent = "";
-    subscriberEmailInput.value = "";
-    setTimeout(() => subscriberEmailInput.focus(), 50);
-  }
+    if (rotatingPickEl && !rotatingPickInterval) {
+      rotatingPickInterval = setInterval(() => {
+        rotatingPickEl.textContent = picks[pickIndex];
+        pickIndex = (pickIndex + 1) % picks.length;
+      }, 3000);
+    }
 
-  function closeModal() {
-    emailModal.classList.add("hidden");
-    emailModalMessage.textContent = "";
-    pendingCheckout = false;
-  }
+    function openCheckoutModal() {
+      if (confirmCheckout) {
+        confirmCheckout.disabled = false;
+        confirmCheckout.innerText = "Join SCO Bets AI — $9.99/month →";
+        confirmCheckout.style.opacity = "1";
+      }
 
-  startPremiumButtons.forEach((button) => {
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      pendingCheckout = true;
-      openEmailModal();
+      trackEvent("checkout_modal_open", {
+        page_location: window.location.href
+      });
+
+      showElement(checkoutModal, "flex");
+    }
+
+    function closeCheckoutModal() {
+      hideElement(checkoutModal);
+      if (checkoutMessage) checkoutMessage.textContent = "";
+    }
+
+    function openEmailModal() {
+      if (!emailModal) return;
+      showHiddenModal(emailModal);
+      if (emailModalMessage) {
+        emailModalMessage.textContent = "";
+        emailModalMessage.style.color = "#cbd5e1";
+      }
+      if (subscriberEmailInput) {
+        subscriberEmailInput.value = "";
+        setTimeout(() => subscriberEmailInput.focus(), 50);
+      }
+    }
+
+    function closeEmailModalFn() {
+      if (!emailModal) return;
+      hideHiddenModal(emailModal);
+      if (emailModalMessage) emailModalMessage.textContent = "";
+    }
+
+    function openSubscriberLoginModal() {
+      if (!subscriberLoginModal) return;
+      showHiddenModal(subscriberLoginModal);
+      if (subscriberLoginMessage) {
+        subscriberLoginMessage.textContent = "";
+        subscriberLoginMessage.style.color = "";
+      }
+      if (subscriberLoginEmail) {
+        subscriberLoginEmail.value = "";
+      }
+    }
+
+    function closeSubscriberLoginModal() {
+      if (!subscriberLoginModal) return;
+      hideHiddenModal(subscriberLoginModal);
+    }
+
+    startPremiumButtons.forEach((button) => {
+     button.addEventListener("click", function (event) {
+    event.preventDefault();
+
+    trackEvent("subscribe_click", {
+      button_text: button.innerText,
+      page_location: window.location.href
     });
+
+    openCheckoutModal();
   });
+});
 
-  closeEmailModal.addEventListener("click", closeModal);
+const directCheckoutButtons = document.querySelectorAll(".direct-checkout-btn");
 
-  emailModal.addEventListener("click", (event) => {
-    if (event.target === emailModal) {
-      closeModal();
-    }
-  });
+directCheckoutButtons.forEach((button) => {
+  button.addEventListener("click", async function (event) {
+    event.preventDefault();
 
-  continueEmailModal.addEventListener("click", async () => {
-    const email = subscriberEmailInput.value.trim().toLowerCase();
-
-    if (!email) {
-      emailModalMessage.textContent = "Please enter your email address.";
-      return;
-    }
-
-    if (checkoutMessage) {
-      checkoutMessage.textContent = "Opening secure checkout...";
-    }
-
-    emailModalMessage.textContent = "Checking subscription status...";
+    trackEvent("subscribe_click", {
+      button_text: button.innerText,
+      page_location: window.location.href
+    });
 
     try {
-      const accessRes = await fetch(`/api/check-access?email=${encodeURIComponent(email)}`);
-      const accessData = await accessRes.json();
-
-      if (accessData.access) {
-        localStorage.setItem("sco_bets_email", email);
-        emailModalMessage.style.color = "#86efac";
-        emailModalMessage.textContent = "Subscription found. Taking you to Premium...";
-        setTimeout(() => {
-          window.location.href = "/premium.html";
-        }, 500);
-        return;
-      }
-
-      emailModalMessage.style.color = "#cbd5e1";
-      emailModalMessage.textContent = "No active subscription found. Redirecting to secure checkout...";
-
-      const response = await fetch(window.location.origin + "/api/create-checkout-session", {
+      const response = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({})
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
-        emailModalMessage.style.color = "#fca5a5";
-        emailModalMessage.textContent = data.error || "Something went wrong.";
-        if (checkoutMessage) {
-          checkoutMessage.textContent = data.error || "Something went wrong.";
-        }
-        return;
-      }
-
       if (data.url) {
-        gtag('event', 'start_checkout', {
-          event_category: 'engagement',
-          event_label: 'Start Premium Click',
-          transport_type: 'beacon'
-        });
-
-        setTimeout(() => {
-          window.location.href = data.url;
-        }, 300);
+        window.location.href = data.url;
       } else {
-        emailModalMessage.style.color = "#fca5a5";
-        emailModalMessage.textContent = "Checkout link was not returned.";
-        if (checkoutMessage) {
-          checkoutMessage.textContent = "Checkout link was not returned.";
-        }
+        alert("Unable to start checkout.");
       }
-
     } catch (error) {
       console.error(error);
-      emailModalMessage.style.color = "#fca5a5";
-      emailModalMessage.textContent = "Unable to start checkout.";
-      if (checkoutMessage) {
-        checkoutMessage.textContent = "Unable to start checkout.";
-      }
+      alert("Unable to start checkout.");
     }
   });
-</script> 
+});
+
+    if (checkoutClose) {
+      checkoutClose.addEventListener("click", closeCheckoutModal);
+    }
+
+    if (checkoutModal) {
+      checkoutModal.addEventListener("click", function (event) {
+        if (event.target === checkoutModal) {
+          closeCheckoutModal();
+        }
+      });
+    }
+
+    if (confirmCheckout) {
+      confirmCheckout.addEventListener("click", async function () {
+        confirmCheckout.disabled = true;
+        confirmCheckout.innerText = "Redirecting to secure checkout...";
+        confirmCheckout.style.opacity = "0.7";
+
+        try {
+          const response = await fetch("/api/create-checkout-session", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({})
+          });
+
+          const rawText = await response.text();
+          let data = {};
+
+          try {
+            data = rawText ? JSON.parse(rawText) : {};
+          } catch (parseError) {
+            console.error("Checkout response was not valid JSON:", rawText);
+            throw new Error("Server returned an unexpected response.");
+          }
+
+          if (!response.ok) {
+            console.error("Checkout API error:", {
+              status: response.status,
+              body: data
+            });
+
+            confirmCheckout.disabled = false;
+            confirmCheckout.innerText = "Join SCO Bets AI — $9.99/month →";
+            confirmCheckout.style.opacity = "1";
+
+            alert(data.error || `Checkout failed (${response.status}).`);
+            return;
+          }
+
+          if (data.url) {
+            trackEvent("start_checkout", {
+              event_category: "engagement",
+              event_label: "Start Premium Click",
+              transport_type: "beacon"
+            });
+
+            sessionStorage.setItem("stripe_checkout_started", "1");
+            window.location.href = data.url;
+          }
+          else {
+            console.error("Checkout link missing from API response:", data);
+
+            confirmCheckout.disabled = false;
+            confirmCheckout.innerText = "Join SCO Bets AI — $9.99/month →";
+            confirmCheckout.style.opacity = "1";
+
+            alert("Checkout link was not returned.");
+          }
+        } catch (error) {
+          console.error(error);
+
+          confirmCheckout.disabled = false;
+          confirmCheckout.innerText = "Join SCO Bets AI — $9.99/month →";
+          confirmCheckout.style.opacity = "1";
+
+          alert("Unable to start checkout.");
+        }
+      });
+    }
+
+    if (checkoutSubscriberLink) {
+      checkoutSubscriberLink.addEventListener("click", function (e) {
+        e.preventDefault();
+        closeCheckoutModal();
+        openSubscriberLoginModal();
+      });
+    }
+
+    if (closeEmailModal) {
+      closeEmailModal.addEventListener("click", closeEmailModalFn);
+    }
+
+    if (emailModal) {
+      emailModal.addEventListener("click", function (event) {
+        if (event.target === emailModal) {
+          closeEmailModalFn();
+        }
+      });
+    }
+
+ 
+    if (accessPremiumLink) {
+      accessPremiumLink.addEventListener("click", function (e) {
+        e.preventDefault();
+
+        trackEvent("access_premium_click", {
+          page_location: window.location.href
+        });
+
+        const savedEmail = localStorage.getItem("sco_bets_email");
+        if (savedEmail) {
+          window.location.href = "/premium.html";
+          return;
+        }
+
+        openSubscriberLoginModal();
+      });
+    }
+
+    if (subscriberLoginClose) {
+      subscriberLoginClose.addEventListener("click", closeSubscriberLoginModal);
+    }
+
+    if (subscriberLoginModal) {
+      subscriberLoginModal.addEventListener("click", function (e) {
+        if (e.target === subscriberLoginModal) {
+          closeSubscriberLoginModal();
+        }
+      });
+    }
+
+    if (subscriberLoginBtn) {
+      subscriberLoginBtn.addEventListener("click", async function () {
+        const email = subscriberLoginEmail ? subscriberLoginEmail.value.trim().toLowerCase() : "";
+
+        if (!email) {
+          if (subscriberLoginMessage) {
+            subscriberLoginMessage.style.color = "#f87171";
+            subscriberLoginMessage.textContent = "Please enter your subscriber email.";
+          }
+          return;
+        }
+
+        subscriberLoginBtn.disabled = true;
+        subscriberLoginBtn.textContent = "Checking access...";
+
+        if (subscriberLoginMessage) {
+          subscriberLoginMessage.textContent = "";
+        }
+
+        try {
+          const res = await fetch(`/api/check-access?email=${encodeURIComponent(email)}`);
+          const data = await res.json();
+
+          if (data.access) {
+            localStorage.setItem("sco_bets_email", email);
+
+            if (subscriberLoginMessage) {
+              subscriberLoginMessage.style.color = "#22c55e";
+              subscriberLoginMessage.textContent = "Access confirmed. Redirecting...";
+            }
+
+            setTimeout(() => {
+              window.location.href = "/premium.html";
+            }, 500);
+          } else {
+            if (subscriberLoginMessage) {
+              subscriberLoginMessage.style.color = "#f87171";
+              subscriberLoginMessage.textContent = "We could not confirm active access for that email.";
+            }
+          }
+        } catch (err) {
+          console.error(err);
+
+          if (subscriberLoginMessage) {
+            subscriberLoginMessage.style.color = "#f87171";
+            subscriberLoginMessage.textContent = "Something went wrong. Please try again.";
+          }
+        } finally {
+          subscriberLoginBtn.disabled = false;
+          subscriberLoginBtn.textContent = "Open Dashboard";
+        }
+      });
+    }
+
+    if (teaserModal) {
+      hideElement(teaserModal);
+
+      teaserModal.addEventListener("click", function (e) {
+        if (e.target === teaserModal) {
+          window.closeTeaserModal();
+        }
+      });
+    }
+
+    if (teaserUnlockBtn) {
+      teaserUnlockBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+
+        trackEvent("teaser_unlock_click", {
+          page_location: window.location.href
+        });
+
+        window.closeTeaserModal();
+        openCheckoutModal();
+      });
+    }
+  });
+})();
+</script>
 
 </body>
 </html>

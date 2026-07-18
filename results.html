@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recent Results | SCO Bets AI</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #020617;
+      color: white;
+      padding: 24px;
+    }
+
+    .page-shell {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .return-link {
+      color: #60a5fa;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    h1 {
+      margin-top: 28px;
+      margin-bottom: 8px;
+      font-size: 32px;
+    }
+
+    .muted {
+      color: #94a3b8;
+    }
+
+    .results-card {
+      margin-top: 24px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid #00e5ff;
+      border-radius: 18px;
+      padding: 22px;
+    }
+
+    .results-controls {
+      margin-top: 22px;
+      display: flex;
+      justify-content: flex-start;
+      gap: 18px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-pill {
+      border: 1px solid rgba(0,255,136,0.35);
+      background: rgba(15,23,42,0.9);
+      color: #cbd5e1;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .filter-pill.active {
+      background: #00ff88;
+      color: #04110a;
+    }
+
+    .team-search {
+      min-width: 240px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(0,229,255,0.5);
+      background: #0f172a;
+      color: white;
+    }
+
+    .search-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .clear-search-btn {
+      position: absolute;
+      right: 10px;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .clear-search-btn:hover {
+      color: #ffffff;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="page-shell">
+    <a href="premium.html" class="return-link" id="return-dashboard-link">← Return to Dashboard</a>
+
+    <h1>Recent Results</h1>
+    <div class="muted">Final scores from recently completed games.</div>
+
+  <div class="results-controls">
+    <div class="filter-pills">
+      <button class="filter-pill active" data-sport="all">All</button>
+      <button class="filter-pill" data-sport="baseball_mlb">MLB</button>
+      <button class="filter-pill" data-sport="basketball_wnba">WNBA</button>
+      <button class="filter-pill" data-sport="soccer_usa_mls">MLS</button>
+      <button class="filter-pill" data-sport="americanfootball_nfl">NFL</button>
+    </div>
+
+    <div class="search-wrap">
+      <input
+        id="team-search"
+        class="team-search"
+        type="text"
+        placeholder="Search team..."
+      />
+
+      <button id="clear-search" class="clear-search-btn" type="button" style="display:none;">
+        ✕
+      </button>
+    </div>
+  </div>
+
+    <div class="results-card" id="results-list">
+      Loading recent results...
+    </div>
+  </div>
+
+<script>
+const resultsList = document.getElementById('results-list');
+
+const sports = [
+  'baseball_mlb',
+  'basketball_wnba',
+  'soccer_usa_mls',
+  'americanfootball_nfl',
+  'basketball_nba',
+  'basketball_ncaab',
+  'basketball_wncaab'
+];
+
+let allResults = [];
+
+function formatResultTime(cachedAt) {
+  if (!cachedAt) return '';
+
+  const date = new Date(cachedAt);
+
+  if (isNaN(date.getTime())) return '';
+
+  const now = new Date();
+
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const gameDay = new Date(date);
+  gameDay.setHours(0, 0, 0, 0);
+
+  const time = date.toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit'
+  });
+
+  if (gameDay.getTime() === today.getTime()) {
+    return `Today • ${time}`;
+  }
+
+  if (gameDay.getTime() === yesterday.getTime()) {
+    return `Yesterday • ${time}`;
+  }
+
+  const daysOld = Math.floor(
+    (today - gameDay) / (1000 * 60 * 60 * 24)
+  );
+
+  if (daysOld < 7) {
+    return `${date.toLocaleDateString([], {
+      weekday: 'short'
+    })} • ${time}`;
+  }
+
+  return `${date.toLocaleDateString([], {
+    month: 'short',
+    day: 'numeric'
+  })} • ${time}`;
+}
+
+async function loadSharedResults() {
+  try {
+    const responses = await Promise.all(
+      sports.map(async sport => {
+        const response = await fetch(
+          `/api/completed-games?sport=${encodeURIComponent(sport)}&hours=48`
+        );
+
+        if (!response.ok) {
+          return [];
+        }
+
+        const payload = await response.json();
+
+        return Array.isArray(payload.completedGames)
+          ? payload.completedGames
+          : [];
+      })
+    );
+
+    const combinedResults = responses.flat();
+
+    const uniqueResults = new Map();
+
+    combinedResults.forEach(game => {
+      const gameKey = game.gameKey;
+
+      if (
+        !gameKey ||
+        (!game.completedObservedAt && !game.serverCompletedAt)
+      ) {
+        return;
+      }
+
+      const existing = uniqueResults.get(gameKey);
+
+      if (
+        !existing ||
+        new Date(
+          game.completedObservedAt || game.serverCompletedAt
+        ).getTime() >
+        new Date(
+          existing.completedObservedAt || existing.serverCompletedAt
+        ).getTime()
+      ) {
+        uniqueResults.set(gameKey, game);
+      }
+    });
+
+    allResults = Array.from(uniqueResults.values())
+      .sort((a, b) => {
+
+        const aTime = new Date(
+          a.completedObservedAt || a.serverCompletedAt
+        ).getTime();
+
+        const bTime = new Date(
+          b.completedObservedAt || b.serverCompletedAt
+        ).getTime();
+
+        return bTime - aTime;
+      });
+
+    renderResults();
+  } catch (err) {
+    console.error('Failed to load shared completed games:', err);
+
+    allResults = [];
+    renderResults();
+  }
+}
+
+  let activeSportFilter = 'all';
+  let activeSearchTerm = '';
+
+function renderResults() {
+  const filteredResults = allResults.filter(game => {
+    const matchesSport =
+      activeSportFilter === 'all' || game.sport === activeSportFilter;
+
+    const searchText = `${game.away || ''} ${game.home || ''}`.toLowerCase();
+    const matchesSearch = searchText.includes(activeSearchTerm);
+
+    return matchesSport && matchesSearch;
+  });
+
+  if (!filteredResults.length) {
+
+    resultsList.innerHTML = `
+    <div style="color:#00ff88;font-size:24px;font-weight:700;">
+      No recent results found
+    </div>
+
+    <div style="margin-top:16px;color:#cbd5e1;">
+      Completed games will automatically appear here as events finish.
+    </div>
+  `;
+
+} else {
+
+    resultsList.innerHTML = filteredResults.map(game => {
+
+    const away = game.away || 'Away';
+    const home = game.home || 'Home';
+
+    const sportLabels = {
+      baseball_mlb: 'MLB',
+      basketball_wnba: 'WNBA',
+      soccer_usa_mls: 'MLS',
+      americanfootball_nfl: 'NFL',
+      basketball_nba: 'NBA',
+      basketball_ncaab: 'NCAA M',
+      basketball_wncaab: 'NCAA W'
+    };
+
+    const sportLabel = sportLabels[game.sport] || 'SPORT';
+    const resultTimestamp =
+      game.completedObservedAt ||
+      game.serverCompletedAt;
+
+    const resultTime = resultTimestamp
+      ? formatResultTime(resultTimestamp)
+      : '';
+
+    const awayScore = game.espnStatus?.awayScore ?? '-';
+    const homeScore = game.espnStatus?.homeScore ?? '-';
+
+    const awayWon = Number(awayScore) > Number(homeScore);
+    const homeWon = Number(homeScore) > Number(awayScore);
+
+    return `
+      <div style="
+        padding:18px 0;
+        border-bottom:1px solid rgba(255,255,255,.12);
+      ">
+        <div style="max-width:320px;">
+
+          <div style="
+            display:flex;
+            justify-content:flex-start;
+            align-items:center;
+            gap:8px;
+            margin-bottom:10px;
+          ">
+            <span style="
+              color:#94a3b8;
+              font-size:12px;
+              font-weight:700;
+              text-transform:none;
+            ">
+              FINAL${resultTime ? ` • ${resultTime}` : ''}
+            </span>
+
+            <span style="
+              color:#00ff88;
+              font-size:12px;
+              font-weight:800;
+              border:1px solid rgba(0,255,136,0.35);
+              border-radius:999px;
+              padding:3px 8px;
+            ">
+              ${sportLabel}
+            </span>
+          </div>
+
+          <div style="
+            display:grid;
+            grid-template-columns:minmax(0, 1fr) 36px;
+            gap:14px;
+            align-items:center;
+          ">
+            <span style="${awayWon ? 'color:#00ff88;font-weight:700;' : ''}">
+              ${away}
+            </span>
+
+            <strong style="text-align:right; ${awayWon ? 'color:#00ff88;font-weight:700;' : ''}">
+              ${awayScore}
+            </strong>
+          </div>
+
+          <div style="
+            display:grid;
+            grid-template-columns:minmax(0, 1fr) 36px;
+            gap:14px;
+            align-items:center;
+            margin-top:6px;
+          ">
+            <span style="${homeWon ? 'color:#00ff88;font-weight:700;' : ''}">
+              ${home}
+            </span>
+
+            <strong style="text-align:right; ${homeWon ? 'color:#00ff88;font-weight:700;' : ''}">
+              ${homeScore}
+            </strong>
+          </div>
+
+        </div>
+      </div>
+    `;
+
+    }).join('');
+
+  }
+}
+
+document.querySelectorAll('.filter-pill').forEach(button => {
+  button.addEventListener('click', () => {
+    activeSportFilter = button.dataset.sport;
+
+    document.querySelectorAll('.filter-pill').forEach(btn => {
+      btn.classList.remove('active');
+    });
+
+    button.classList.add('active');
+
+    renderResults();
+  });
+});
+
+const teamSearch = document.getElementById('team-search');
+const clearSearch = document.getElementById('clear-search');
+
+if (teamSearch) {
+  teamSearch.addEventListener('input', () => {
+    activeSearchTerm = teamSearch.value.trim().toLowerCase();
+
+    if (clearSearch) {
+      clearSearch.style.display = teamSearch.value ? 'block' : 'none';
+    }
+
+    renderResults();
+  });
+}
+
+if (clearSearch) {
+  clearSearch.addEventListener('click', () => {
+    teamSearch.value = '';
+    activeSearchTerm = '';
+    clearSearch.style.display = 'none';
+    renderResults();
+    teamSearch.focus();
+  });
+}
+
+const returnDashboardLink = document.getElementById('return-dashboard-link');
+
+if (returnDashboardLink) {
+  returnDashboardLink.addEventListener('click', () => {
+    sessionStorage.setItem('scoShouldRestoreDashboardPosition', 'true');
+  });
+}
+
+loadSharedResults();
+</script>
+
+</body>
+</html>

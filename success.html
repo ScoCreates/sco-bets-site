@@ -5,29 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Payment Successful | SCO Bets AI</title>
 
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PJP8J92TTC"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-PJP8J92TTC');
-  </script>
-
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PJP8J92TTC"></script>
 <script>
-  const purchaseParams = new URLSearchParams(window.location.search);
-  const purchasePaid = purchaseParams.get("paid");
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
 
-  if (purchasePaid === "true") {
-    gtag('event', 'purchase', {
-      transaction_id: 'txn_' + Date.now(),
-      value: 9.99,
-      currency: 'USD'
-    });
-  }
+  gtag('js', new Date());
+
+  // 🔥 FORCE page_view FIRST
+  gtag('config', 'G-PJP8J92TTC', {
+    page_path: window.location.pathname,
+    send_page_view: true
+  });
+
+  window.addEventListener('load', function () {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
+
+    function firePurchase() {
+      if (typeof gtag !== 'function') {
+        setTimeout(firePurchase, 500);
+        return;
+      }
+
+      // 🔥 FORCE a page_view again (guarantee session)
+      gtag('event', 'page_view');
+
+      // 🔥 THEN send purchase
+      gtag('event', 'purchase', {
+        transaction_id: sessionId || 'test_' + Date.now(),
+        value: 9.99,
+        currency: 'USD',
+        items: [{
+          item_id: 'sco-bets-premium',
+          item_name: 'SCO Bets AI Premium',
+          price: 9.99,
+          quantity: 1
+        }]
+      });
+
+      console.log('PURCHASE SENT TO GA:', sessionId);
+    }
+
+    firePurchase();
+  });
 </script>
-
   <style>
     * {
       box-sizing: border-box;
@@ -168,6 +191,7 @@
     <button id="enter-premium-btn" class="btn btn-primary">Enter Premium Dashboard</button>
 
     <div id="success-message" class="message"></div>
+    <p id="redirect-status" class="sub-note"></p>
 
     <div class="sub-note">
       This helps us securely connect your active subscription to your Premium access.
@@ -175,17 +199,17 @@
   </div>
 
   <script>
-    const enterBtn = document.getElementById('enter-premium-btn');
-    const emailInput = document.getElementById('success-email');
-    const messageEl = document.getElementById('success-message');
+  const enterBtn = document.getElementById('enter-premium-btn');
+  const emailInput = document.getElementById('success-email');
+  const messageEl = document.getElementById('success-message');
 
-    const params = new URLSearchParams(window.location.search);
-    const paid = params.get('paid');
-    const emailFromUrl = params.get('email');
+  const pageParams = new URLSearchParams(window.location.search);
+  const paid = pageParams.get('paid');
+  const emailFromUrl = pageParams.get('email');
 
-    if (paid === 'true' && emailFromUrl) {
-      emailInput.value = emailFromUrl;
-    }
+  if (paid === 'true' && emailFromUrl) {
+    emailInput.value = emailFromUrl;
+  }
     enterBtn.addEventListener('click', async () => {
       const email = emailInput.value.trim().toLowerCase();
 
@@ -214,5 +238,61 @@
       }
     });
   </script>
+
+<script>
+window.addEventListener('load', async function () {
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get('session_id');
+  const statusEl = document.getElementById('redirect-status');
+
+  console.log('SUCCESS PAGE LOADED');
+
+  if (typeof gtag === 'function') {
+    console.log('GTAG FOUND');
+
+    gtag('event', 'purchase', {
+      transaction_id: sessionId || ('txn_' + Date.now()),
+      value: 9.99,
+      currency: 'USD'
+    });
+
+    console.log('PURCHASE TRACKED');
+  } else {
+    console.log('GTAG NOT FOUND');
+  }
+
+  if (!sessionId) return;
+
+  if (statusEl) {
+  statusEl.textContent = 'Finalizing your Premium access...';
+  }
+
+  try {
+    const res = await fetch(`/api/get-session?session_id=${encodeURIComponent(sessionId)}`);
+    const data = await res.json();
+
+    if (data.email) {
+  localStorage.setItem('sco_bets_email', data.email);
+  console.log('EMAIL STORED:', data.email);
+
+  if (statusEl) {
+    statusEl.textContent = 'Access confirmed. Redirecting to Premium...';
+  }
+
+  setTimeout(() => {
+    window.location.href = '/premium.html';
+  }, 1200);
+} else {
+  console.log('NO EMAIL RETURNED');
+
+  if (statusEl) {
+    statusEl.textContent = 'We couldn’t verify your access automatically. Please use the button below to continue.';
+  }
+} catch (err) {
+    console.error('Session fetch failed:', err);
+  }
+});
+</script>
+
 </body>
 </html>
