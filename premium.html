@@ -1045,6 +1045,18 @@ button:active {
   text-align: left !important;
 }
 
+.basketball-team-abbr {
+  color: #00ff88;
+  font-weight: 900;
+}
+
+.scoreboard-team-record {
+  color: #9ca3af;
+  font-weight: 500;
+  margin-left: 6px;
+  font-size: 12px;
+}
+
 .basketball-score {
   color: #f8fafc;
   font-weight: 800;
@@ -1177,24 +1189,27 @@ button:active {
 }
 
 .game-summary-scoreboard {
-  display: grid;
-  grid-template-columns: auto;
+  display: inline-grid;
+  grid-template-columns: max-content;
   grid-template-rows: auto auto;
   align-items: start;
-  justify-items: start;
+  justify-items: stretch;
   gap: 4px;
-  min-width: 360px;
+  min-width: 0;
 }
 
 .game-summary-status {
+  width: 100%;
   color: #00ff88;
-  text-align: left;
+  text-align: center;
 }
 
+
 .game-summary-status-main {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
+  width: 100%;
   gap: 7px;
   font-size: 13px;
   font-weight: 900;
@@ -1213,7 +1228,7 @@ button:active {
 
 .game-summary-status-context {
   margin-top: 0;
-  margin-left: 4px;
+  margin-left: 0px;
   font-size: 12px;
   font-weight: 800;
   color: #9ca3af;
@@ -3319,6 +3334,7 @@ const liveText = espn && espn.statusState === 'in'
 
  function buildMiniScoreboard(game) {
   const espn = game?.espnStatus;
+console.log('SCOREBOARD ESPN OBJECT:', espn);
 
 console.log({
   game: `${espn?.awayShort} @ ${espn?.homeShort}`,
@@ -3389,6 +3405,28 @@ console.log({
 
   const awayAbbr = espn.awayShort || 'AWY';
   const homeAbbr = espn.homeShort || 'HME';
+
+  const awayRecord = espn.awayRecord || '';
+  const homeRecord = espn.homeRecord || '';
+
+  const awayLabel = awayRecord
+           ? `${awayAbbr} (${awayRecord})`
+           : awayAbbr;
+
+  const homeLabel = homeRecord
+           ? `${homeAbbr} (${homeRecord})`
+           : homeAbbr;
+
+console.log('SCOREBOARD RECORDS:', {
+  awayAbbr,
+  awayRecord,
+  awayLabel,
+  homeAbbr,
+  homeRecord,
+  homeLabel,
+  espn
+});
+
 
   const awayScore = espn.awayScore ?? 0;
   const homeScore = espn.homeScore ?? 0;
@@ -3500,7 +3538,11 @@ context = `• ${timeText}`;
 }
 
   return `
-         <div class="game-summary-scoreboard">
+         <div class="game-summary-scoreboard ${
+                              selectedSport.startsWith('basketball')
+                                   ? 'basketball-scoreboard'
+                                   : ''
+                         }">
               <div class="game-summary-status">
                    <div class="game-summary-status-main">
                         <span class="game-status-dot"></span>
@@ -3524,15 +3566,15 @@ context = `• ${timeText}`;
                                   ? buildHockeyLinescore(espn)
                                   : `
                   <div class="game-summary-score">
-                       <div class="game-summary-score-row">
-                            <span>${awayAbbr}</span>
-                           <strong>${awayScore}</strong>
-                     </div>
+                                                     <div class="game-summary-score-row">
+                                                          <span>${awayLabel}</span>
+                                                         <strong>${awayScore}</strong>
+                                                    </div>
 
-                   <div class="game-summary-score-row">
-                        <span>${homeAbbr}</span>
-                        <strong>${homeScore}</strong>
-                  </div>
+                                               <div class="game-summary-score-row">
+                                                    <span>${homeLabel}</span>
+                                                    <strong>${homeScore}</strong>
+                                               </div>
             </div>
        `
 }
@@ -3672,7 +3714,7 @@ function buildBasketballLinescore(espn) {
   return '';
 };
 
-  const gridColumns = `42px repeat(${periods.length}, 34px) 40px`;
+  const gridColumns = `82px repeat(${periods.length}, 34px) 40px`;
 
   return `
     <div class="basketball-linescore" style="grid-template-columns:${gridColumns};">
@@ -3695,7 +3737,12 @@ function buildBasketballLinescore(espn) {
       }).join('')}
       <strong class="basketball-total-label">T</strong>
 
-      <span class="basketball-team">${espn.awayShort || 'AWY'}</span>
+      <span class="basketball-team">
+                    <span class="basketball-team-abbr">${espn.awayShort || 'AWY'}</span>
+                     ${espn.awayRecord
+                          ? `<span class="scoreboard-team-record">(${espn.awayRecord})</span>`
+                          : ''}
+               </span>
       ${periods.map(period => {
           const isHalftime =
                                      espn.statusDescription === 'Halftime' ||
@@ -3714,7 +3761,12 @@ function buildBasketballLinescore(espn) {
      }).join('')}
       <strong class="basketball-total">${espn.awayScore ?? '-'}</strong>
 
-      <span class="basketball-team">${espn.homeShort || 'HME'}</span>
+      <span class="basketball-team">
+                     <span class="basketball-team-abbr">${espn.homeShort || 'HME'}</span>
+                     ${espn.homeRecord
+                          ? `<span class="scoreboard-team-record">(${espn.homeRecord})</span>`
+                          : ''}
+                 </span>
              ${periods.map(period => {
                  const isHalftime =
                                                         espn.statusDescription === 'Halftime' ||
@@ -4294,11 +4346,14 @@ try {
       }
 
       if (topPickCard) {
-        topPickCard.classList.remove('top-pick-hot', 'top-pick-medium');
-      }
+                    topPickCard.classList.remove('top-pick-hot', 'top-pick-medium');
+              }
 
-      return;
-    }
+     window.biggestMovers = [];
+     renderBiggestMoversCard();
+
+     return;
+            }
 
     let bestValuePick = null;
     let biggestEdge = 0;

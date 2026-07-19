@@ -115,7 +115,18 @@ async function fetchEspnScores(sport, espnDate) {
         awayTeam: away?.team?.displayName || null,
         homeShort: home?.team?.abbreviation || null,
         awayShort: away?.team?.abbreviation || null,
-                homeScore: home?.score || '0',
+
+        homeRecord:
+          home?.records?.find(record => record.type === 'total')?.summary ||
+          home?.records?.[0]?.summary ||
+          null,
+
+        awayRecord:
+          away?.records?.find(record => record.type === 'total')?.summary ||
+          away?.records?.[0]?.summary ||
+          null,
+
+        homeScore: home?.score || '0',
         awayScore: away?.score || '0',
 
         homeLinescores: Array.isArray(home?.linescores)

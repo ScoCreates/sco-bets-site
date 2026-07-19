@@ -63,7 +63,15 @@ export default async function handler(req, res) {
         awayTeam: away?.team?.displayName || null,
         homeShort: home?.team?.abbreviation || null,
         awayShort: away?.team?.abbreviation || null,
-                homeScore: home?.score ?? null,
+        homeRecord:
+          home?.records?.find(record => record.type === 'total')?.summary ||
+          home?.records?.[0]?.summary ||
+          null,
+        awayRecord:
+          away?.records?.find(record => record.type === 'total')?.summary ||
+          away?.records?.[0]?.summary ||
+          null,
+        homeScore: home?.score ?? null,
         awayScore: away?.score ?? null,
 
         homeLinescores: Array.isArray(home?.linescores)
