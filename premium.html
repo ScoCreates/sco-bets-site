@@ -3431,20 +3431,72 @@ console.log({
     }
   } else if (!isNaN(gameDate.getTime())) {
   const now = new Date();
-  const isToday = gameDate.toDateString() === now.toDateString();
 
-  context = isToday
-    ? gameDate.toLocaleTimeString([], {
-        hour: 'numeric',
-        minute: '2-digit',
-        timeZoneName: 'short'
-      })
-    : gameDate.toLocaleString([], {
-        weekday: 'short',
-        hour: 'numeric',
-        minute: '2-digit',
-        timeZoneName: 'short'
-      });
+  const minutesUntilStart =
+    (gameDate.getTime() - now.getTime()) /
+    (60 * 1000);
+
+  const statusText = String(
+    espn.statusDetail ||
+    espn.statusDescription ||
+    espn.statusName ||
+    ''
+  ).toLowerCase();
+
+  const isOfficialWarmup =
+    statusText.includes('warmup') ||
+    statusText.includes('warm-up');
+
+  const timeText = gameDate.toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short'
+  });
+
+  const isToday =
+    gameDate.toDateString() ===
+    now.toDateString();
+
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
+
+  const isTomorrow =
+    gameDate.toDateString() ===
+    tomorrow.toDateString();
+
+  let dateText = '';
+
+  if (isTomorrow) {
+    dateText = 'Tomorrow';
+  } else if (!isToday) {
+    dateText = gameDate.toLocaleDateString([], {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
+  }
+
+  if (isOfficialWarmup) {
+    statusLabel = 'WARMUP';
+    context = '';
+  } else if (
+    Number.isFinite(minutesUntilStart) &&
+    minutesUntilStart <= 15
+  ) {
+    statusLabel = 'PREGAME';
+    context = '';
+  } else if (
+    Number.isFinite(minutesUntilStart) &&
+    minutesUntilStart <= 30
+  ) {
+    statusLabel = 'STARTING SOON';
+context = `• ${timeText}`;
+  } else {
+    statusLabel = 'STARTS';
+ context = dateText
+        ? `• ${dateText} • ${timeText}`
+        : `• ${timeText}`;
+  }
 }
 
   return `
