@@ -1053,7 +1053,7 @@ button:active {
 .scoreboard-team-record {
   color: #9ca3af;
   font-weight: 500;
-  margin-left: 6px;
+  margin-left: 8px;
   font-size: 12px;
 }
 
@@ -1100,6 +1100,11 @@ button:active {
   color: #00ff88;
   font-weight: 900;
   text-align: left !important;
+}
+
+.football-team-abbr {
+  color: #00ff88;
+  font-weight: 900;
 }
 
 .football-score {
@@ -3630,7 +3635,7 @@ const hasActualPlayStarted =
     return '';
   };
 
-  const gridColumns = `42px repeat(${periods.length}, 24px) 34px`;
+  const gridColumns = `82px repeat(${periods.length}, 24px) 34px`;
 
   return `
     <div class="mlb-linescore" style="grid-template-columns:${gridColumns};">
@@ -3650,7 +3655,12 @@ const hasActualPlayStarted =
 
       <strong class="mlb-total-label">R</strong>
 
-      <span class="mlb-team">${espn.awayShort || 'AWY'}</span>
+      <span class="mlb-team">
+                    <span class="mlb-team-abbr">${espn.awayShort || 'AWY'}</span>
+                    ${espn.awayRecord
+                         ? `<span class="scoreboard-team-record">(${espn.awayRecord})</span>`
+                         : ''}
+                </span>
 
       ${periods.map(period => {
         const value = getValue(awayLinescores, period);
@@ -3669,7 +3679,12 @@ const hasActualPlayStarted =
 
       <strong class="mlb-total">${espn.awayScore ?? '-'}</strong>
 
-      <span class="mlb-team">${espn.homeShort || 'HME'}</span>
+      <span class="mlb-team">
+                     <span class="mlb-team-abbr">${espn.homeShort || 'HME'}</span>
+                     ${espn.homeRecord
+                          ? `<span class="scoreboard-team-record">(${espn.homeRecord})</span>`
+                          : ''}
+                </span>
 
       ${periods.map(period => {
         const value = getValue(homeLinescores, period);
@@ -3806,13 +3821,22 @@ function buildFootballLinescore(espn) {
     return found ? found.displayValue : '-';
   };
 
-  const gridColumns = `42px repeat(${periods.length}, 34px) 40px`;
+  const gridColumns = `82px repeat(${periods.length}, 34px) 40px`;
 
   return `
     <div class="football-linescore" style="grid-template-columns:${gridColumns};">
       <span></span>
       ${periods.map(period => {
-        const current = Number(espn.period) === period;
+        const hasActualPlayStarted =
+                           espn.statusState === 'in' &&
+                          (
+                                (espn.awayLinescores || []).length > 0 ||
+                                (espn.homeLinescores || []).length > 0
+                             );
+
+       const current =
+                        hasActualPlayStarted &&
+                        Number(espn.period) === period;
 
         return `
           <span class="football-period ${current ? 'current-period' : ''}">
@@ -3822,11 +3846,21 @@ function buildFootballLinescore(espn) {
       }).join('')}
       <strong class="football-total-label">T</strong>
 
-      <span class="football-team">${espn.awayShort || 'AWY'}</span>
+      <span class="football-team">
+                     <span class="football-team-abbr">${espn.awayShort || 'AWY'}</span>
+                      ${espn.awayRecord
+                           ? `<span class="scoreboard-team-record">(${espn.awayRecord})</span>`
+                           : ''}
+               </span>
       ${periods.map(period => `<span class="football-score">${getValue(espn.awayLinescores, period)}</span>`).join('')}
       <strong class="football-total">${espn.awayScore ?? '-'}</strong>
 
-      <span class="football-team">${espn.homeShort || 'HME'}</span>
+      <span class="football-team">
+                     <span class="football-team-abbr">${espn.homeShort || 'HME'}</span>
+                     ${espn.homeRecord
+                          ? `<span class="scoreboard-team-record">(${espn.homeRecord})</span>`
+                          : ''}
+                </span>
       ${periods.map(period => `<span class="football-score">${getValue(espn.homeLinescores, period)}</span>`).join('')}
       <strong class="football-total">${espn.homeScore ?? '-'}</strong>
     </div>
@@ -5725,28 +5759,7 @@ console.log(
   trustedSharedCompletedGames.length
 );
 
-  const localCompletedGames = Object.values(
-  JSON.parse(
-    localStorage.getItem(`scoCompletedGamesCache_${sport}`) || '{}'
-  )
-).filter(game => {
-  const recentTime =
-    game.completedObservedAt ||
-    game.cachedAt ||
-    0;
-
-  const recentTimeMs = new Date(recentTime).getTime();
-
-  const isRecentEnough =
-    recentTimeMs &&
-    Date.now() - recentTimeMs <= COMPLETED_GAME_DASHBOARD_MS;
-
-  const matchesCurrentSport =
-    !game.sport || game.sport === sport;
-
-  return isRecentEnough && matchesCurrentSport;
-});
-
+  
 const mergedCompletedGames = [
   ...trustedSharedCompletedGames
 ];
@@ -5766,12 +5779,16 @@ mergedCompletedGames.forEach(game => {
 const completedGames = Object.values(completedGamesByKey)
   .sort((a, b) => {
     const aTime = new Date(
-      a.completedObservedAt || a.cachedAt || 0
-    ).getTime();
+                a.completedObservedAt ||
+                a.serverCompletedAt ||
+                0
+             ).getTime();
 
     const bTime = new Date(
-      b.completedObservedAt || b.cachedAt || 0
-    ).getTime();
+                 b.completedObservedAt ||
+                 b.serverCompletedAt ||
+                 0
+              ).getTime();
 
     return bTime - aTime;
   })
@@ -5805,8 +5822,12 @@ const completedGames = Object.values(completedGamesByKey)
           const awayWon = Number(awayScore) > Number(homeScore);
           const homeWon = Number(homeScore) > Number(awayScore);
 
-          const recentLabel = game.completedObservedAt
-                                ? formatResultTime(game.completedObservedAt)
+          const completedTime =
+                                game.completedObservedAt ||
+                                game.serverCompletedAt;
+
+          const recentLabel = completedTime
+                                ? formatResultTime(completedTime)
                                 : '';
 
          return `
