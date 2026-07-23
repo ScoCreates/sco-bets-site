@@ -48,6 +48,10 @@ function getRequestedSports(req) {
 }
 
 function isCompletedGame(game) {
+  const state = String(
+    game.statusState || ''
+  ).toLowerCase();
+
   const name = String(
     game.statusName || ''
   ).toUpperCase();
@@ -67,11 +71,14 @@ function isCompletedGame(game) {
     description.includes('cancelled');
 
   const isFinal =
-    game.completed === true &&
-    (
-      name.includes('FINAL') ||
-      description.includes('final')
-    );
+  game.completed === true &&
+  (
+    state === 'post' ||
+    name.includes('FINAL') ||
+    name.includes('FULL_TIME') ||
+    description.includes('final') ||
+    description.includes('full time')
+  );
 
   return isFinal && !isPostponed && !isCanceled;
 }
@@ -406,7 +413,7 @@ if (possibleFinalGames.length > 0) {
   }
 
 await upsertCompletedGames(
-  gamesNeedingCompletion,
+  completedGames,
   requestedSport
 );
 

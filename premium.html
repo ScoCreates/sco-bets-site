@@ -1122,22 +1122,32 @@ button:active {
 .soccer-scoreboard {
   display: grid;
   gap: 5px;
-  min-width: 110px;
+  min-width: 150px;
+  margin-left: -32px;
 }
 
 .soccer-score-row {
   display: grid;
-  grid-template-columns: 54px 36px;
+  grid-template-columns: 98px 36px;
   align-items: center;
   gap: 16px;
   line-height: 1.1;
 }
 
 .soccer-team {
+  display: flex;
+  align-items: center;
+  min-width: 0;
   color: #00ff88;
   font-size: 15px;
   font-weight: 900;
   text-align: left;
+  white-space: nowrap;
+}
+
+.soccer-team-abbr {
+  color: #00ff88;
+  font-weight: 900;
 }
 
 .soccer-total {
@@ -1207,6 +1217,7 @@ button:active {
   width: 100%;
   color: #00ff88;
   text-align: center;
+  margin-bottom: 10px;
 }
 
 
@@ -3871,12 +3882,28 @@ function buildSoccerScoreboard(espn) {
   return `
     <div class="soccer-scoreboard">
       <div class="soccer-score-row">
-        <span class="soccer-team">${espn.awayShort || 'AWY'}</span>
+        <span class="soccer-team">
+          <span class="soccer-team-abbr">${espn.awayShort || 'AWY'}</span>
+          ${
+            espn.awayRecord
+              ? `<span class="scoreboard-team-record">(${espn.awayRecord})</span>`
+              : ''
+          }
+        </span>
+
         <strong class="soccer-total">${espn.awayScore ?? '-'}</strong>
       </div>
 
       <div class="soccer-score-row">
-        <span class="soccer-team">${espn.homeShort || 'HME'}</span>
+        <span class="soccer-team">
+          <span class="soccer-team-abbr">${espn.homeShort || 'HME'}</span>
+          ${
+            espn.homeRecord
+              ? `<span class="scoreboard-team-record">(${espn.homeRecord})</span>`
+              : ''
+          }
+        </span>
+
         <strong class="soccer-total">${espn.homeScore ?? '-'}</strong>
       </div>
     </div>

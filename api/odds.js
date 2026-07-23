@@ -32,9 +32,17 @@ function normalizeTeamName(name) {
     .replace(/[^a-z0-9]/g, '');
 
   const aliases = {
-    americanleague: 'americanallstars',
-    nationalleague: 'nationalallstars'
-  };
+  americanleague: 'americanallstars',
+  nationalleague: 'nationalallstars',
+
+  // MLS provider-name differences
+  chicagofire: 'chicagofirefc',
+  columbuscrewsc: 'columbuscrew',
+  newyorkredbulls: 'redbullnewyork',
+  vancouverwhitecapsfc: 'vancouverwhitecaps',
+  cfmontreal: 'cfmontral',
+  losangelesfc: 'lafc'
+};
 
   return aliases[normalized] || normalized;
 }
