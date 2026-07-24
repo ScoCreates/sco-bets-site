@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
     const retentionHours =
       Number.isFinite(requestedHours) &&
       requestedHours > 0 &&
-      requestedHours <= 48
+      requestedHours <= 120
         ? requestedHours
         : 24;
 

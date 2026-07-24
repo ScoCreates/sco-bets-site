@@ -209,7 +209,7 @@ async function loadSharedResults() {
     const responses = await Promise.all(
       sports.map(async sport => {
         const response = await fetch(
-          `/api/completed-games?sport=${encodeURIComponent(sport)}&hours=48`
+          `/api/completed-games?sport=${encodeURIComponent(sport)}&hours=120`
         );
 
         if (!response.ok) {

@@ -1119,6 +1119,17 @@ button:active {
   text-shadow: 0 0 10px rgba(0, 255, 136, 0.35);
 }
 
+@media (max-width: 700px) {
+  .football-linescore {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 3px;
+    scrollbar-width: thin;
+  }
+}
+
+
 .soccer-scoreboard {
   display: grid;
   gap: 5px;
@@ -1215,7 +1226,7 @@ button:active {
 
 .game-summary-status {
   width: 100%;
-  color: #00ff88;
+  color: #d1d5db;
   text-align: center;
   margin-bottom: 10px;
 }
@@ -1224,9 +1235,12 @@ button:active {
 .game-summary-status-main {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: 100%;
   gap: 7px;
+  padding-left: 0;
+  position: relative;
+  left: -28px;
   font-size: 13px;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -1237,9 +1251,34 @@ button:active {
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: #00ff88;
-  box-shadow: 0 0 10px rgba(0, 255, 136, 0.75);
+  background: currentColor;
+  box-shadow: none;
+  opacity: 0.9;
   flex: 0 0 auto;
+}
+
+.game-summary-status.status-live {
+  color: #00ff88;
+}
+
+.game-summary-status.status-warning {
+  color: #fbbf24;
+}
+
+.game-summary-status.status-danger {
+  color: #f87171;
+}
+
+.game-summary-status.status-info {
+  color: #93c5fd;
+}
+
+.game-summary-status.status-final {
+  color: #9ca3af;
+}
+
+.game-summary-status.status-neutral {
+  color: #d1d5db;
 }
 
 .game-summary-status-context {
@@ -1288,7 +1327,7 @@ button:active {
   align-items: start;
   gap: 28px;
   padding-bottom: 8px;
-  margin-bottom: 12px;
+  margin-bottom: -12px;
 }
 
 .game-summary-title {
@@ -1296,6 +1335,7 @@ button:active {
   font-weight: 900;
   color: #ffffff;
   line-height: 1.2;
+  margin-bottom: 20px;
 }
 
 .game-summary-right {
@@ -1304,11 +1344,17 @@ button:active {
   padding-right: 260px;
 }
 
+.game-summary-left {
+  position: relative;
+  top: 10px;
+}
+
 .game-market-signal {
+  margin-top: 0;
   margin-bottom: 12px;
-  font-size: 13px;
-  color: #9ca3af;
-  font-weight: 600;
+  font-size: 14px;
+  color: #b8c4d6;
+  font-weight: 700;
 }
 
 .limited-market-warning {
@@ -3405,19 +3451,53 @@ console.log({
   `;
 }
 
-  const isDelayed =
-          espn.statusName === 'STATUS_RAIN_DELAY' ||
-          espn.statusName === 'STATUS_DELAYED' ||
-          espn.statusDescription === 'Rain Delay' ||
-          espn.statusDescription === 'Delayed';
+  const statusName = String(espn.statusName || '').toUpperCase();
+const statusDescription = String(espn.statusDescription || '').trim();
+const statusDetail = String(espn.statusDetail || '').trim();
 
-  const isLive =
-          espn.statusState === 'in' &&
-          !isDelayed;
-  const isFinal =
-    espn.statusState === 'post' ||
-    espn.statusName === 'STATUS_FINAL' ||
-    espn.statusDescription === 'Final';
+const combinedStatusText =
+  `${statusName} ${statusDescription} ${statusDetail}`.toLowerCase();
+
+const isPostponed =
+  statusName === 'STATUS_POSTPONED' ||
+  combinedStatusText.includes('postponed');
+
+const isCanceled =
+  statusName === 'STATUS_CANCELED' ||
+  statusName === 'STATUS_CANCELLED' ||
+  combinedStatusText.includes('canceled') ||
+  combinedStatusText.includes('cancelled');
+
+const isSuspended =
+  statusName === 'STATUS_SUSPENDED' ||
+  combinedStatusText.includes('suspended');
+
+const isRescheduled =
+  statusName === 'STATUS_RESCHEDULED' ||
+  combinedStatusText.includes('rescheduled');
+
+const isDelayed =
+  statusName === 'STATUS_RAIN_DELAY' ||
+  statusName === 'STATUS_DELAYED' ||
+  combinedStatusText.includes('rain delay') ||
+  combinedStatusText.includes('weather delay') ||
+  statusDescription.toLowerCase() === 'delayed';
+
+const isFinal =
+  !isPostponed &&
+  !isCanceled &&
+  !isSuspended &&
+  !isRescheduled &&
+  (
+    statusName === 'STATUS_FINAL' ||
+    statusDescription.toLowerCase() === 'final' ||
+    espn.statusState === 'post'
+  );
+
+const isLive =
+  espn.statusState === 'in' &&
+  !isDelayed &&
+  !isSuspended;
 
   const awayAbbr = espn.awayShort || 'AWY';
   const homeAbbr = espn.homeShort || 'HME';
@@ -3450,40 +3530,95 @@ console.log('SCOREBOARD RECORDS:', {
   let statusLabel = 'STARTS';
   let context = '';
 
-  if (isFinal) {
-          statusLabel = 'FINAL';
-     } else if (isDelayed) {
+  if (isPostponed) {
+  statusLabel = 'POSTPONED';
+  context = '';
+} else if (isCanceled) {
+  statusLabel = 'CANCELED';
+  context = '';
+} else if (isSuspended) {
+  statusLabel = 'SUSPENDED';
+  context = '';
+} else if (isRescheduled) {
+  statusLabel = 'RESCHEDULED';
+  context = '';
+} else if (isFinal) {
+  statusLabel = 'FINAL';
+} else if (isDelayed) {
+  const delayText = (
+  espn.statusDetail ||
+  espn.statusDescription ||
+  ''
+).toLowerCase();
+
+if (delayText.includes('rain')) {
+  statusLabel = 'RAIN DELAY';
+} else if (delayText.includes('weather')) {
+  statusLabel = 'WEATHER DELAY';
+} else if (delayText.includes('lightning')) {
+  statusLabel = 'LIGHTNING DELAY';
+} else {
   statusLabel = 'DELAYED';
+}
 
-  const delayContext = String(
-    espn.statusDescription ||
-    espn.statusDetail ||
-    ''
-  ).trim();
-
-  const normalizedDelayContext = delayContext.toLowerCase();
-
-  context =
-    normalizedDelayContext === 'delayed' ||
-    normalizedDelayContext.startsWith('delayed,')
-      ? ''
-      : delayContext;
+context = '';
       } else if (isLive) {
     statusLabel = 'LIVE';
     context = espn.statusDetail || espn.statusDescription || '';
 
-    if (selectedSport.includes('basketball') && espn.clock && espn.period) {
-      context = `${espn.clock} Q${espn.period}`;
-    }
+    const liveStatusText = String(
+  `${espn.statusName || ''} ${espn.statusDescription || ''} ${espn.statusDetail || ''}`
+).toLowerCase();
 
-    if (espn.statusDescription === 'Halftime' || espn.statusDetail === 'Halftime') {
-      context = 'HALFTIME';
-    }
+const basketballPeriod = Number(espn.period);
 
-    if (espn.statusDescription === 'End of Period') {
-      context = `End Q${espn.period}`;
-    }
-  } else if (!isNaN(gameDate.getTime())) {
+const basketballPeriodLabel =
+  basketballPeriod > 4
+    ? `OT${basketballPeriod - 4}`
+    : `Q${basketballPeriod}`;
+
+const footballPeriod = Number(espn.period);
+
+const footballPeriodLabel =
+  footballPeriod > 4
+    ? `OT${footballPeriod - 4}`
+    : `Q${footballPeriod}`;
+
+if (liveStatusText.includes('halftime')) {
+  context = 'HALFTIME';
+} else if (liveStatusText.includes('intermission')) {
+  context = 'INTERMISSION';
+} else if (
+  selectedSport.includes('basketball') &&
+  basketballPeriod &&
+  (
+    liveStatusText.includes('end of period') ||
+    liveStatusText.includes('end of quarter')
+  )
+) {
+  context = `End ${basketballPeriodLabel}`;
+} else if (
+  selectedSport.includes('basketball') &&
+  espn.clock &&
+  basketballPeriod
+) {
+  context = `${espn.clock} ${basketballPeriodLabel}`;
+} else if (
+  selectedSport.startsWith('americanfootball') &&
+  footballPeriod &&
+  (
+    liveStatusText.includes('end of quarter') ||
+    liveStatusText.includes('end of period')
+  )
+) {
+  context = `End ${footballPeriodLabel}`;
+} else if (
+  selectedSport.startsWith('americanfootball') &&
+  espn.clock &&
+  footballPeriod
+) {
+  context = `${espn.clock} ${footballPeriodLabel}`;
+}  } else if (!isNaN(gameDate.getTime())) {
   const now = new Date();
 
   const minutesUntilStart =
@@ -3498,8 +3633,17 @@ console.log('SCOREBOARD RECORDS:', {
   ).toLowerCase();
 
   const isOfficialWarmup =
-    statusText.includes('warmup') ||
-    statusText.includes('warm-up');
+  statusText.includes('warmup') ||
+  statusText.includes('warm-up');
+
+const isOfficialPregame =
+  statusText.includes('pregame') ||
+  statusText.includes('pre-game');
+
+const isStartingSoon =
+  Number.isFinite(minutesUntilStart) &&
+  minutesUntilStart > 0 &&
+  minutesUntilStart <= 30;
 
   const timeText = gameDate.toLocaleTimeString([], {
     hour: 'numeric',
@@ -3531,44 +3675,52 @@ console.log('SCOREBOARD RECORDS:', {
   }
 
   if (isOfficialWarmup) {
-    statusLabel = 'WARMUP';
-    context = '';
-  } else if (
-    Number.isFinite(minutesUntilStart) &&
-    minutesUntilStart <= 15
-  ) {
-    statusLabel = 'PREGAME';
-    context = '';
-  } else if (
-    Number.isFinite(minutesUntilStart) &&
-    minutesUntilStart <= 30
-  ) {
-    statusLabel = 'STARTING SOON';
-context = `• ${timeText}`;
-  } else {
-    statusLabel = 'STARTS';
- context = dateText
-        ? `• ${dateText} • ${timeText}`
-        : `• ${timeText}`;
-  }
+  statusLabel = 'WARMUP';
+  context = '';
+} else if (isOfficialPregame) {
+  statusLabel = 'PREGAME';
+  context = '';
+} else if (isStartingSoon) {
+  statusLabel = 'STARTING SOON';
+  context = `• ${timeText}`;
+} else {
+  statusLabel = 'STARTS';
+  context = dateText
+    ? `• ${dateText} • ${timeText}`
+    : `• ${timeText}`;
+}
 }
 
-  return `
-         <div class="game-summary-scoreboard ${
-                              selectedSport.startsWith('basketball')
-                                   ? 'basketball-scoreboard'
-                                   : ''
-                         }">
-              <div class="game-summary-status">
-                   <div class="game-summary-status-main">
-                        <span class="game-status-dot"></span>
-                       <span>${statusLabel}</span>
+let statusClass = 'status-neutral';
 
-                       ${context ? `
-                          <span class="game-summary-status-context">${context}</span>
-                       ` : ''}
-               </div>
-         </div>
+if (isLive) {
+  statusClass = 'status-live';
+} else if (isDelayed || isSuspended) {
+  statusClass = 'status-warning';
+} else if (isPostponed || isCanceled) {
+  statusClass = 'status-danger';
+} else if (isRescheduled) {
+  statusClass = 'status-info';
+} else if (isFinal) {
+  statusClass = 'status-final';
+}
+
+return `         
+  <div class="game-summary-scoreboard ${
+            selectedSport.startsWith('basketball')
+                  ? 'basketball-scoreboard'
+                  : ''
+        }">
+    <div class="game-summary-status ${statusClass}">
+      <div class="game-summary-status-main">
+        <span class="game-status-dot"></span>
+        <span>${statusLabel}</span>
+
+        ${context ? `
+        <span class="game-summary-status-context">${context}</span>
+        ` : ''}
+        </div>
+      </div>
 
       ${selectedSport.startsWith('baseball')
                           ? buildMlbLinescore(espn)
@@ -3815,46 +3967,74 @@ function buildBasketballLinescore(espn) {
 }
 
 function buildFootballLinescore(espn) {
-  const maxPeriod = Math.max(
-    4,
-    ...(espn.awayLinescores || []).map(ls => Number(ls.period) || 0),
-    ...(espn.homeLinescores || []).map(ls => Number(ls.period) || 0)
-  );
+  const highestPeriod = Math.max(
+          4,
+          ...(espn.awayLinescores || []).map(ls => Number(ls.period) || 0),
+          ...(espn.homeLinescores || []).map(ls => Number(ls.period) || 0)
+     );
 
-  const periods = Array.from({ length: maxPeriod }, (_, i) => i + 1);
+const periods = [];
+
+for (let period = 1; period <= highestPeriod; period++) {
+  periods.push(period);
+}
 
   const getLabel = (period) => {
     return period <= 4 ? period : `OT${period - 4}`;
   };
 
-  const getValue = (linescores, period) => {
-    const found = (linescores || []).find(ls => Number(ls.period) === period);
-    return found ? found.displayValue : '-';
-  };
+  const currentPeriod = Number(espn.period) || 0;
 
-  const gridColumns = `82px repeat(${periods.length}, 34px) 40px`;
+const hasGameStarted =
+  espn.statusState === 'in' ||
+  espn.statusState === 'post' ||
+  (espn.awayLinescores || []).length > 0 ||
+  (espn.homeLinescores || []).length > 0;
+
+const getValue = (linescores, period) => {
+  const found = (linescores || []).find(
+    ls => Number(ls.period) === period
+  );
+
+  if (found) {
+    const value = found.displayValue;
+
+    return value === '' || value == null
+      ? '0'
+      : value;
+  }
+
+  if (hasGameStarted && period < currentPeriod) {
+    return '0';
+  }
+
+  return '';
+};
+
+  const hasActualPlayStarted =
+           espn.statusState === 'in' &&
+          (
+                (espn.awayLinescores || []).length > 0 ||
+               (espn.homeLinescores || []).length > 0
+          );
+
+ const isCurrentPeriod = (period) =>
+        hasActualPlayStarted &&
+        currentPeriod === period;
+
+ const gridColumns = `82px repeat(${periods.length}, 34px) 40px`;
 
   return `
     <div class="football-linescore" style="grid-template-columns:${gridColumns};">
       <span></span>
-      ${periods.map(period => {
-        const hasActualPlayStarted =
-                           espn.statusState === 'in' &&
-                          (
-                                (espn.awayLinescores || []).length > 0 ||
-                                (espn.homeLinescores || []).length > 0
-                             );
+      ${periods.map(period => `
+                       <span class="football-period ${
+                             isCurrentPeriod(period) ? 'current-period' : ''
+                     }">
+                          ${getLabel(period)}
+                   </span>
+      `).join('')}
 
-       const current =
-                        hasActualPlayStarted &&
-                        Number(espn.period) === period;
-
-        return `
-          <span class="football-period ${current ? 'current-period' : ''}">
-            ${getLabel(period)}
-          </span>
-        `;
-      }).join('')}
       <strong class="football-total-label">T</strong>
 
       <span class="football-team">
@@ -3863,7 +4043,12 @@ function buildFootballLinescore(espn) {
                            ? `<span class="scoreboard-team-record">(${espn.awayRecord})</span>`
                            : ''}
                </span>
-      ${periods.map(period => `<span class="football-score">${getValue(espn.awayLinescores, period)}</span>`).join('')}
+      ${periods.map(period => `
+                    <span class="football-score">
+                          ${getValue(espn.awayLinescores, period)}
+                  </span>
+      `).join('')}
+
       <strong class="football-total">${espn.awayScore ?? '-'}</strong>
 
       <span class="football-team">
@@ -3872,7 +4057,12 @@ function buildFootballLinescore(espn) {
                           ? `<span class="scoreboard-team-record">(${espn.homeRecord})</span>`
                           : ''}
                 </span>
-      ${periods.map(period => `<span class="football-score">${getValue(espn.homeLinescores, period)}</span>`).join('')}
+      ${periods.map(period => `
+                   <span class="football-score">
+                         ${getValue(espn.homeLinescores, period)}
+                  </span>
+      `).join('')}
+
       <strong class="football-total">${espn.homeScore ?? '-'}</strong>
     </div>
   `;
@@ -5595,23 +5785,23 @@ if (aIsFinal && bIsFinal) {
                 : 'none'};
           ">
     
-            <div class="game-summary-header">
-  <div class="game-summary-left">
-    <div class="game-summary-title">${title}</div>
-  </div>
+          <div class="game-summary-header">
+                                <div class="game-summary-left">
+                                     <div class="game-summary-title">${title}</div>
 
-  <div class="game-summary-right">
-    ${buildMiniScoreboard(game)}
-  </div>
-</div>
+                                    ${!hasArbitrage ? `
+                                      <div class="game-market-signal">
+                                            ${bestGameEdge > 0
+                                                 ? `⭐ Best value: ${bestGameEdgeObj.team} +${bestGameEdge.toFixed(1)}%`
+                                                 : 'No pricing advantage detected'}
+                                      </div>
+             ` : ''}
+                                </div>
 
-<div class="game-market-signal">
-  ${hasArbitrage
-    ? 'Arbitrage opportunity active'
-    : bestGameEdge > 0
-      ? `Best edge: ${bestGameEdgeObj.team} +${bestGameEdge.toFixed(1)}%`
-      : 'No positive edge detected'}
-</div>
+                               <div class="game-summary-right">
+                                     ${buildMiniScoreboard(game)}
+                              </div>
+                        </div>
 
 ${hasLimitedMarketCoverage && !isFinalStatus ? `
   <div class="limited-market-warning">
