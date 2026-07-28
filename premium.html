@@ -3309,11 +3309,7 @@ function formatGameStatus(commenceTime, game = null) {
   const now = new Date();
   const apiStatus = normalizeStatusText(game?.status);
   const apiCompleted = game?.completed === true;
-  const hasScores = Array.isArray(game?.scores) && game.scores.length > 0;
 
-  const gameKey = getGameKey(game);
-
-  
   const apiPeriod = game?.period || game?.quarter || game?.inning || '';
   const apiClock = game?.clock || game?.game_clock || '';
 
