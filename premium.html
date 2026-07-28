@@ -4542,20 +4542,25 @@ navButton.textContent = 'Home';
   if (arbDetails) arbDetails.textContent = 'Scanning sportsbook price differences.';
 
     try {
-    const sportSelect = document.getElementById('sport-select');
-    const sport = sportSelect ? sportSelect.value : 'basketball_nba';
+      const sportSelect = document.getElementById('sport-select');
+      const sport = sportSelect ? sportSelect.value : 'basketball_nba';
 
-    const res = await fetch(`/api/odds?sport=${sport}`);
-    if (!res.ok) throw new Error('Failed to load odds');
+      const oddsEndpoint =
+        sport === 'baseball_mlb'
+          ? `/api/odds-snapshot?sport=${sport}`
+          : `/api/odds?sport=${sport}`;
 
-    const payload = await res.json();
+      const res = await fetch(oddsEndpoint);
+      if (!res.ok) throw new Error('Failed to load odds');
 
-    const currentlySelectedSport =
-                     document.getElementById('sport-select')?.value || '';
+      const payload = await res.json();
 
-    if (sport !== currentlySelectedSport) {
-                   return;
-           }
+      const currentlySelectedSport =
+        document.getElementById('sport-select')?.value || '';
+
+      if (sport !== currentlySelectedSport) {
+        return;
+      }
 
     const games = Array.isArray(payload.games) ? payload.games : [];
 
