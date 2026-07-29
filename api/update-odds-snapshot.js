@@ -25,8 +25,27 @@ export default async function handler(req, res) {
     'baseball_mlb';
 
   try {
+   let previousGames = [];
+
+   const { data: previousSnapshot } =
+     await supabase
+      .from('odds_snapshots')
+      .select('payload')
+      .eq('sport', requestedSport)
+      .maybeSingle();
+
+   if (
+     previousSnapshot?.payload?.games &&
+     Array.isArray(previousSnapshot.payload.games)
+   ) {
+     previousGames =
+       previousSnapshot.payload.games;
+   }
     const payload =
-      await buildOddsPayload(requestedSport);
+      await buildOddsPayload(
+        requestedSport,
+        previousGames
+      );
 
     const snapshotTime =
       new Date().toISOString();
