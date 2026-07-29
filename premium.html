@@ -6557,6 +6557,27 @@ setInterval(() => {
   }
 }, 120000);
 
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    return;
+  }
+
+  const lastUpdateTime =
+    window.scoLastOddsUpdate instanceof Date
+      ? window.scoLastOddsUpdate.getTime()
+      : 0;
+
+  const millisecondsSinceLastUpdate =
+    Date.now() - lastUpdateTime;
+
+  if (
+    !lastUpdateTime ||
+    millisecondsSinceLastUpdate >= 30000
+  ) {
+    loadOdds();
+  }
+});
+
 // Update freshness text every second
 setInterval(() => {
   const lastUpdated = document.getElementById('last-updated');
