@@ -1298,6 +1298,10 @@ button:active {
   text-transform: uppercase;
 }
 
+.basketball-scoreboard .game-summary-status-main {
+  left: 0px;
+}
+
 .game-status-dot {
   width: 8px;
   height: 8px;
@@ -2273,9 +2277,9 @@ pricesByTeam[outcome.name].push(outcome.price);
             font-weight:600;
             cursor:help;
           "
-          title="This sportsbook price is behind the broader market. Verify before betting — odds can update quickly."
+          title="This sportsbook's price hasn't yet matched recent market movement. It may update soon, or it may intentionally keep a different price. Comparing sportsbooks before placing a bet is often worthwhile."
         >
-          Line Lagging ⓘ
+          Price Updating ⓘ
         </span>`
         : '';
 
@@ -2525,7 +2529,18 @@ pricesByTeam[outcome.name].push(outcome.price);
               return `<span style="color:#fbbf24; font-weight:600;"> • Updated ${ageText}</span>`;
             }
 
-    return `<span style="color:#f87171; font-weight:600;"> • Potentially stale • ${ageText}</span>`;
+    return `
+  <span style="color:#f87171; font-weight:600;">
+    •
+    <span class="hold-tooltip">
+      Verify current price ⓘ
+      <span class="hold-tooltip-text">
+        These odds have not been updated recently. They may still be accurate, but it might be a good idea to click Open and verify the current sportsbook price before placing a live bet.
+      </span>
+    </span>
+    • ${ageText}
+  </span>
+`;
           })() : ''}
         </div>
         ${badge}
@@ -3128,19 +3143,28 @@ function normalizeStatusText(value) {
 }
 
 function getGameKey(game) {
-    const normalize = value =>
-      String(value || '')
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, '');
+  const espnGameId =
+    game?.espnStatus?.id ||
+    game?.espnStatus?.gameId ||
+    '';
 
-  const dateKey = String(
-      game?.commence_time ||
-      game?.espnStatus?.date ||
-      ''
-    ).slice(0, 10);
-
-        return `${normalize(game?.away)}_${normalize(game?.home)}_${dateKey}`;
+  if (espnGameId) {
+    return `espn_${espnGameId}`;
   }
+
+  const normalize = value =>
+    String(value || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
+
+  const fullTimeKey = String(
+    game?.commence_time ||
+    game?.espnStatus?.date ||
+    ''
+  );
+
+  return `${normalize(game?.away)}_${normalize(game?.home)}_${fullTimeKey}`;
+}
 
 /* ==========================================================
    COMPLETED-GAMES CACHE HELPERS
@@ -3169,12 +3193,31 @@ function upsertCompletedGameFromApi(espnGame, sport) {
     savedCache = {};
   }
 
-  const existing =
+      const existing =
     cache[espnGame.gameKey] ||
     savedCache[espnGame.gameKey] ||
     null;
 
+  const previousFullGame = Array.isArray(window.currentOddsSnapshot)
+    ? window.currentOddsSnapshot.find(game => {
+        const snapshotEspnId = String(
+          game?.espnStatus?.id || ''
+        );
+
+        const completedEspnId = String(
+          espnGame?.id || ''
+        );
+
+        if (snapshotEspnId && completedEspnId) {
+          return snapshotEspnId === completedEspnId;
+        }
+
+        return getGameKey(game) === espnGame.gameKey;
+      })
+    : null;
+
   cache[espnGame.gameKey] = {
+    ...(previousFullGame || {}),
     ...(existing || {}),
     home: espnGame.homeTeam,
     away: espnGame.awayTeam,
@@ -3563,7 +3606,7 @@ function buildMiniScoreboard(game) {
   `;
 }
 
-  const statusName = String(espn.statusName || '').toUpperCase();
+const statusName = String(espn.statusName || '').toUpperCase();
 const statusDescription = String(espn.statusDescription || '').trim();
 const statusDetail = String(espn.statusDetail || '').trim();
 
@@ -3655,7 +3698,14 @@ console.log('SCOREBOARD RECORDS:', {
   statusLabel = 'RESCHEDULED';
   context = '';
 } else if (isFinal) {
-  statusLabel = 'FINAL';
+  statusLabel = `
+    <strong style="font-weight:700;">FINAL</strong>
+    <span style="
+      font-weight:400;
+      text-transform:none;
+      letter-spacing:normal;
+    "> • Market closed</span>
+  `;
 } else if (isDelayed) {
   const delayText = (
   espn.statusDetail ||
@@ -3697,9 +3747,11 @@ const footballPeriodLabel =
     : `Q${footballPeriod}`;
 
 if (liveStatusText.includes('halftime')) {
-  context = 'HALFTIME';
+  statusLabel = 'HALFTIME';
+  context = '';
 } else if (liveStatusText.includes('intermission')) {
-  context = 'INTERMISSION';
+  statusLabel = 'INTERMISSION';
+  context = '';
 } else if (
   selectedSport.includes('basketball') &&
   basketballPeriod &&
@@ -3708,13 +3760,13 @@ if (liveStatusText.includes('halftime')) {
     liveStatusText.includes('end of quarter')
   )
 ) {
-  context = `End ${basketballPeriodLabel}`;
+  context = `• End ${basketballPeriodLabel}`;
 } else if (
   selectedSport.includes('basketball') &&
   espn.clock &&
   basketballPeriod
 ) {
-  context = `${espn.clock} ${basketballPeriodLabel}`;
+  context = `• ${basketballPeriodLabel} ${espn.clock}`;
 } else if (
   selectedSport.startsWith('americanfootball') &&
   footballPeriod &&
@@ -3723,14 +3775,15 @@ if (liveStatusText.includes('halftime')) {
     liveStatusText.includes('end of period')
   )
 ) {
-  context = `End ${footballPeriodLabel}`;
+  context = `• End ${footballPeriodLabel}`;
 } else if (
   selectedSport.startsWith('americanfootball') &&
   espn.clock &&
   footballPeriod
 ) {
-  context = `${espn.clock} ${footballPeriodLabel}`;
-}  } else if (!isNaN(gameDate.getTime())) {
+  context = `• ${footballPeriodLabel} ${espn.clock}`;
+}
+  } else if (!isNaN(gameDate.getTime())) {
   const now = new Date();
 
   const minutesUntilStart =
@@ -3896,11 +3949,31 @@ function buildMlbLinescore(espn) {
    * pregame rain delay. Do not highlight an inning until there
    * is evidence that actual play has begun.
    */
-  const isDelayed =
-  espn.statusName === 'STATUS_RAIN_DELAY' ||
-  espn.statusName === 'STATUS_DELAYED' ||
-  espn.statusDescription === 'Rain Delay' ||
-  espn.statusDescription === 'Delayed';
+   
+  const statusName = String(espn.statusName || '').toUpperCase();
+  const statusDescription = String(espn.statusDescription || '').trim();
+  const statusDetail = String(espn.statusDetail || '').trim();
+  const statusState = String(espn.statusState || '').toLowerCase();
+
+  const normalizedDescription = statusDescription.toLowerCase();
+  const normalizedDetail = statusDetail.toLowerCase();
+  
+  const isFinal =
+  statusState === 'post' ||
+  statusName === 'STATUS_FINAL' ||
+  normalizedDescription === 'final' ||
+  normalizedDetail === 'final';
+  
+  const isRainDelay =
+          statusName === 'STATUS_RAIN_DELAY' ||
+          normalizedDescription === 'rain delay' ||
+          normalizedDetail === 'rain delay';
+
+    const isDelayed =
+          isRainDelay ||
+          statusName === 'STATUS_DELAYED' ||
+          normalizedDescription === 'delayed' ||
+          normalizedDetail === 'delayed';
 
 const hasRecordedInningActivity =
   awayLinescores.length > 0 ||
@@ -3931,6 +4004,7 @@ const hasActualPlayStarted =
       ${periods.map(period => {
         const current =
           hasActualPlayStarted &&
+          !isFinal &&
           currentPeriod === period;
 
         return `
@@ -3954,6 +4028,7 @@ const hasActualPlayStarted =
 
         const isActive =
           hasActualPlayStarted &&
+          !isFinal &&
           isTop &&
           currentPeriod === period;
 
@@ -3978,6 +4053,7 @@ const hasActualPlayStarted =
 
         const isActive =
           hasActualPlayStarted &&
+          !isFinal &&
           isBottom &&
           currentPeriod === period;
 
@@ -4104,7 +4180,9 @@ for (let period = 1; period <= highestPeriod; period++) {
 }
 
   const getLabel = (period) => {
-    return period <= 4 ? period : `OT${period - 4}`;
+    return period <= 4
+      ? `Q${period}`
+      : `OT${period - 4}`;
   };
 
   const currentPeriod = Number(espn.period) || 0;
@@ -4135,18 +4213,31 @@ const getValue = (linescores, period) => {
   return '';
 };
 
+  const footballStatusText = String(
+    `${espn.statusName || ''} ${espn.statusDescription || ''} ${espn.statusDetail || ''}`
+  ).toLowerCase();
+
+  const isHalftime =
+    footballStatusText.includes('halftime');
+
+  const isEndOfPeriod =
+    footballStatusText.includes('end of quarter') ||
+    footballStatusText.includes('end of period');
+
   const hasActualPlayStarted =
-           espn.statusState === 'in' &&
-          (
-                (espn.awayLinescores || []).length > 0 ||
-               (espn.homeLinescores || []).length > 0
-          );
+    espn.statusState === 'in' &&
+    !isHalftime &&
+    !isEndOfPeriod &&
+    (
+      (espn.awayLinescores || []).length > 0 ||
+      (espn.homeLinescores || []).length > 0
+    );
 
- const isCurrentPeriod = (period) =>
-        hasActualPlayStarted &&
-        currentPeriod === period;
+  const isCurrentPeriod = (period) =>
+    hasActualPlayStarted &&
+    currentPeriod === period;
 
- const gridColumns = `82px repeat(${periods.length}, 34px) 40px`;
+  const gridColumns = `82px repeat(${periods.length}, 34px) 40px`;
 
   return `
     <div class="football-linescore" style="grid-template-columns:${gridColumns};">
@@ -4168,9 +4259,11 @@ const getValue = (linescores, period) => {
                            : ''}
                </span>
       ${periods.map(period => `
-                    <span class="football-score">
-                          ${getValue(espn.awayLinescores, period)}
-                  </span>
+        <span class="football-score ${
+          isCurrentPeriod(period) ? 'current-period' : ''
+        }">
+          ${getValue(espn.awayLinescores, period)}
+        </span>
       `).join('')}
 
       <strong class="football-total">${espn.awayScore ?? '-'}</strong>
@@ -4182,9 +4275,11 @@ const getValue = (linescores, period) => {
                           : ''}
                 </span>
       ${periods.map(period => `
-                   <span class="football-score">
-                         ${getValue(espn.homeLinescores, period)}
-                  </span>
+        <span class="football-score ${
+          isCurrentPeriod(period) ? 'current-period' : ''
+        }">
+          ${getValue(espn.homeLinescores, period)}
+        </span>
       `).join('')}
 
       <strong class="football-total">${espn.homeScore ?? '-'}</strong>
@@ -4450,7 +4545,7 @@ navButton.textContent = 'Home';
          };
    };
 
-  let currentOddsSnapshot;
+  window.currentOddsSnapshot = window.currentOddsSnapshot || [];
 
   const status = document.getElementById('odds-status');
   const list = document.getElementById('odds-list');
@@ -4581,7 +4676,131 @@ try {
   // Ignore storage errors.
 }
 
-    currentOddsSnapshot = JSON.parse(JSON.stringify(games));
+const FINAL_CARD_RETENTION_MS = 5 * 60 * 1000;
+const finalTransitionStorageKey =
+  `scoFinalTransitionCache_${sport}`;
+
+window.scoFinalTransitionCache =
+  window.scoFinalTransitionCache || {};
+
+if (!window.scoFinalTransitionCache[sport]) {
+  try {
+    window.scoFinalTransitionCache[sport] = JSON.parse(
+      localStorage.getItem(finalTransitionStorageKey) || '{}'
+    );
+  } catch (err) {
+    window.scoFinalTransitionCache[sport] = {};
+  }
+}
+
+const sportFinalTransitionCache =
+  window.scoFinalTransitionCache[sport];
+
+games.forEach(game => {
+  const isFinalGame =
+    game.status === 'final' ||
+    game.espnStatus?.statusState === 'post' ||
+    game.espnStatus?.statusName === 'STATUS_FINAL' ||
+    String(
+      game.espnStatus?.statusDescription || ''
+    ).toLowerCase() === 'final';
+
+  if (!isFinalGame) {
+    return;
+  }
+
+  const gameKey = getGameKey(game);
+
+  if (!gameKey) {
+    return;
+  }
+
+  const existingFinal =
+    sportFinalTransitionCache[gameKey];
+
+  sportFinalTransitionCache[gameKey] = {
+    ...game,
+    finalObservedAt:
+      existingFinal?.finalObservedAt ||
+      Date.now()
+  };
+});
+
+completedGames.forEach(espnGame => {
+  const completedEspnId = String(
+    espnGame?.id || ''
+  );
+
+  if (!completedEspnId) {
+    return;
+  }
+
+  const previousFullGame =
+    Array.isArray(window.currentOddsSnapshot)
+      ? window.currentOddsSnapshot.find(game =>
+          String(game?.espnStatus?.id || '') ===
+          completedEspnId
+        )
+      : null;
+
+  // Only create a transition card for a game that was
+  // actually present on the dashboard before this refresh.
+  if (!previousFullGame) {
+    return;
+  }
+
+  const gameKey = getGameKey(previousFullGame);
+
+  if (!gameKey) {
+    return;
+  }
+
+  const existingFinal =
+    sportFinalTransitionCache[gameKey];
+
+  sportFinalTransitionCache[gameKey] = {
+    ...previousFullGame,
+    home:
+      espnGame.homeTeam ||
+      previousFullGame.home,
+    away:
+      espnGame.awayTeam ||
+      previousFullGame.away,
+    sport,
+    status: 'final',
+    cachedFinal: true,
+    espnStatus: espnGame,
+    finalObservedAt:
+      existingFinal?.finalObservedAt ||
+      Date.now()
+  };
+});
+
+Object.keys(sportFinalTransitionCache).forEach(gameKey => {
+  const finalObservedAt =
+    Number(
+      sportFinalTransitionCache[gameKey]?.finalObservedAt
+    ) || 0;
+
+  if (
+    !finalObservedAt ||
+    Date.now() - finalObservedAt >
+      FINAL_CARD_RETENTION_MS
+  ) {
+    delete sportFinalTransitionCache[gameKey];
+  }
+});
+
+try {
+  localStorage.setItem(
+    finalTransitionStorageKey,
+    JSON.stringify(sportFinalTransitionCache)
+  );
+} catch (err) {
+  // If storage fails, retention still works for this session.
+}
+
+    window.currentOddsSnapshot = JSON.parse(JSON.stringify(games));
 
 
     if (statGames) {
@@ -5446,10 +5665,10 @@ try {
                   color:#94a3b8;
                 ">
                   ${mover.book} • ${mover.game}
-                  <span style="color:#64748b;"> • Moved ${movedAgo}</span>
+                  <span style="color:#64748b;"> • Detected ${movedAgo}</span>
                   ${
                     mover.pressureCount >= 2
-                                                           ? '<span title="Multiple sportsbooks have moved this team in the same direction. This can indicate increased betting activity, new information, or sportsbooks adjusting their pricing.  Market pressure is a signal worth investigating, but does not automatically mean a bet should be placed." style="color:#00ff88; font-weight:700; cursor:help;"> • Market pressure ⓘ</span>'
+                                                           ? '<span title="We detected this team moving in the same direction across multiple sportsbooks. This may reflect increased betting activity, new information, or sportsbooks adjusting their pricing. Market pressure is a signal worth reviewing, but it does not automatically mean a bet should be placed." style="color:#00ff88; font-weight:700; cursor:help;"> • Market pressure ⓘ</span>'
                                                  : ''
                   }
                </div>
@@ -5464,7 +5683,7 @@ try {
 
         if (biggestMoversDetails) {
           biggestMoversDetails.textContent =
-            `Top ${sortedMovers.length} recent movement signal${sortedMovers.length > 1 ? 's' : ''} from the last 5 minutes.`;
+            `Top ${sortedMovers.length} movement signal${sortedMovers.length > 1 ? 's' : ''} detected in the last 5 minutes.`;
        }
       } else {
         if (biggestMoversEl) {
@@ -5508,14 +5727,19 @@ try {
                                          padding:10px 0;
                             ">
                            <div style="margin-top:6px;">
-                                 <div style="
-                                             color:#00ff88;
-                                             font-size:28px;
-                                            font-weight:800;
-                                            line-height:1.2;
-         ">
-                                         ${arb.game}
-                              </div>
+                                 <div
+  onclick="scrollToGame('${arb.gameCardId}', null, ['${arb.book1}', '${arb.book2}'])"
+  title="View game"
+  style="
+            color:#00ff88;
+            font-size:28px;
+            font-weight:800;
+            line-height:1.2;
+            cursor:pointer;
+  "
+>
+  ${arb.game}
+</div>
 
                              <div style="
                                          color:#00ff88;
@@ -5633,39 +5857,178 @@ try {
 }
 
     if (list) {
-      const COMPLETED_GAME_CACHE_MS = 6 * 60 * 60 * 1000;
+      const COMPLETED_GAME_CACHE_MS = 5 * 60 * 1000;
 
-      const mergedGames = [
-        ...games,
-        ...Object.values(completedGamesCache).filter(cachedGame => {
-                       if (cachedGame.sport && cachedGame.sport !== sport) {
-                            return false;
-                       }
-          const stillFresh =
-            cachedGame.cachedAt &&
-            Date.now() - cachedGame.cachedAt <= COMPLETED_GAME_CACHE_MS;
+      const savedOrderForRetention = (() => {
+  try {
+    return JSON.parse(
+      localStorage.getItem(
+        `scoPreviousGameOrder_${sport}`
+      ) || '[]'
+    );
+  } catch (err) {
+    return [];
+  }
+})();
 
-          const stillInApi = games.some(activeGame =>
-            getGameKey(activeGame) === getGameKey(cachedGame)
+const retainedFinalGames = Object.values(
+  sportFinalTransitionCache || {}
+)
+  .filter(finalGame => {
+    const finalGameKey = getGameKey(finalGame);
+
+    return !games.some(game =>
+      getGameKey(game) === finalGameKey
+    );
+  })
+  .map(finalGame => ({
+    ...finalGame,
+    isRetainedFinalCard: true,
+    previousDisplayIndex:
+      savedOrderForRetention.indexOf(
+        getGameKey(finalGame)
+      )
+  }));
+
+const mergedGames = [
+  ...games,
+  ...retainedFinalGames
+];
+
+mergedGames.forEach(game => {
+  const gameKey = getGameKey(game);
+  const cachedFinal =
+    sportFinalTransitionCache?.[gameKey];
+
+  if (!cachedFinal?.finalObservedAt) {
+    return;
+  }
+
+  const previousIndex =
+    savedOrderForRetention.indexOf(gameKey);
+
+  game.isFinalTransitionCard = true;
+  game.finalObservedAt =
+    cachedFinal.finalObservedAt;
+  game.previousDisplayIndex =
+    previousIndex;
+});
+
+const FINAL_CARD_RETENTION_MS =
+  5 * 60 * 1000;
+
+const visibleGames = mergedGames.filter(game => {
+  const espn = game?.espnStatus || {};
+
+  const statusName =
+    String(espn.statusName || '').toUpperCase();
+
+  const statusDescription =
+    String(espn.statusDescription || '').toLowerCase();
+
+  const statusDetail =
+    String(espn.statusDetail || '').toLowerCase();
+
+  const statusState =
+    String(espn.statusState || '').toLowerCase();
+
+  const isFinalGame =
+    game.status === 'final' ||
+    statusName === 'STATUS_FINAL' ||
+    statusDescription === 'final' ||
+    statusDetail === 'final' ||
+    statusState === 'post';
+
+  if (!isFinalGame) {
+    return true;
+  }
+
+  const gameKey = getGameKey(game);
+
+  const finalObservedAt =
+    Number(
+      game.finalObservedAt ||
+      sportFinalTransitionCache?.[gameKey]
+        ?.finalObservedAt
+    );
+
+  /*
+   * A Final game without a recent transition timestamp
+   * belongs in Recent Results, not on the live odds page.
+   */
+  if (!Number.isFinite(finalObservedAt)) {
+    return false;
+  }
+
+  return (
+    Date.now() - finalObservedAt <=
+    FINAL_CARD_RETENTION_MS
+  );
+});
+	  	  
+    const sortedGames = [...visibleGames].sort((a, b) => {
+  const aIsFinalTransition =
+    a.isFinalTransitionCard === true ||
+    a.isRetainedFinalCard === true;
+
+  const bIsFinalTransition =
+    b.isFinalTransitionCard === true ||
+    b.isRetainedFinalCard === true;
+
+  if (aIsFinalTransition || bIsFinalTransition) {
+    const aPreviousIndex =
+      Number.isInteger(a.previousDisplayIndex)
+        ? a.previousDisplayIndex
+        : savedOrderForRetention.indexOf(
+            getGameKey(a)
           );
 
-          return stillFresh && !stillInApi;
-        })
-      ];
+    const bPreviousIndex =
+      Number.isInteger(b.previousDisplayIndex)
+        ? b.previousDisplayIndex
+        : savedOrderForRetention.indexOf(
+            getGameKey(b)
+          );
 
-      const sortedGames = [...mergedGames].sort((a, b) => {
-        const statusA = formatGameStatus(getGameCommenceTime(a), a);
+    if (
+      aPreviousIndex !== -1 &&
+      bPreviousIndex !== -1 &&
+      aPreviousIndex !== bPreviousIndex
+    ) {
+      return aPreviousIndex - bPreviousIndex;
+    }
+
+    if (aIsFinalTransition !== bIsFinalTransition) {
+      return aIsFinalTransition ? -1 : 1;
+    }
+  }
+      
+	    const statusA = formatGameStatus(getGameCommenceTime(a), a);
         const statusB = formatGameStatus(getGameCommenceTime(b), b);
 
         const getStatusRank = (game, statusInfo) => {
-                          const isFinalGame =
-                               game.status === 'final' ||
-                               game.cachedFinal ||
-                               game.espnStatus?.statusState === 'post' ||
-                               statusInfo.status === 'final' ||
-                               statusInfo.status === 'closed';
+        const isFinalGame =
+             game.status === 'final' ||
+             game.cachedFinal ||
+             game.espnStatus?.statusState === 'post' ||
+             statusInfo.status === 'final' ||
+             statusInfo.status === 'closed';
 
-                    if (isFinalGame) return 6;
+    if (isFinalGame) {
+        const completedTime = new Date(
+          game.cachedAt ||
+          game.completedAt ||
+          game.espnStatus?.completedAt ||
+        0
+    ).getTime();
+
+        const isFreshFinal =
+          Number.isFinite(completedTime) &&
+          completedTime > 0 &&
+          Date.now() - completedTime <= 5 * 60 * 1000;
+
+       return 6;
+    }
 
                     if (
                         game.status === 'live' ||
@@ -5692,18 +6055,20 @@ const bIsFinal = rankB === 6;
 
 if (aIsFinal && bIsFinal) {
   const aCompletedTime = new Date(
+    a.cachedAt ||
+    a.completedObservedAt ||
+    a.serverCompletedAt ||
     a.completedAt ||
     a.espnStatus?.completedAt ||
-    a.espnStatus?.date ||
-    a.cachedAt ||
     0
   ).getTime();
 
   const bCompletedTime = new Date(
+    b.cachedAt ||
+    b.completedObservedAt ||
+    b.serverCompletedAt ||
     b.completedAt ||
     b.espnStatus?.completedAt ||
-    b.espnStatus?.date ||
-    b.cachedAt ||
     0
   ).getTime();
 
@@ -5740,6 +6105,39 @@ if (aIsFinal && bIsFinal) {
         // Final fallback: sort alphabetically when start times are identical
         return getGameTitle(a).localeCompare(getGameTitle(b));
       });
+	  
+	        window.scoPreviousGameOrder =
+        window.scoPreviousGameOrder || {};
+
+      let previousStoredOrder =
+        window.scoPreviousGameOrder[sport] ||
+        [];
+
+      if (!previousStoredOrder.length) {
+        try {
+          previousStoredOrder = JSON.parse(
+            localStorage.getItem(`scoPreviousGameOrder_${sport}`) || '[]'
+          );
+        } catch (err) {
+          previousStoredOrder = [];
+        }
+      }
+
+      const currentDisplayedOrder = sortedGames.map(game =>
+        getGameKey(game)
+      );
+
+      window.scoPreviousGameOrder[sport] =
+        currentDisplayedOrder;
+
+      try {
+        localStorage.setItem(
+          `scoPreviousGameOrder_${sport}`,
+          JSON.stringify(currentDisplayedOrder)
+        );
+      } catch (err) {
+        // If storage fails, card-order memory still works this session.
+      }
 
         const teamSelect = document.getElementById('team-select');
         if (teamSelect) {
@@ -5913,27 +6311,33 @@ if (aIsFinal && bIsFinal) {
                                                           }
                                                           }
 
-        if (isFinalStatus) {
-          return `
-            <div id="${gameCardId}" class="odds-item game-card" data-away-team="${awayTeam}" data-home-team="${homeTeam}" style="
-              padding:16px;
-              border-radius:14px;
-              background:rgba(17,24,39,0.85);
-              border:1px solid rgba(148,163,184,0.12);
-             box-shadow:0 0 10px rgba(148,163,184,0.05);
-            ">
-              <div style="
-                display:flex;
-                align-items:center;
-                gap:8px;
-                flex-wrap:wrap;
-              ">
-                <strong style="font-size:22px; color:white;">${title}</strong>
-                <span style="color:#94a3b8; font-weight:700;">• ${displayText}</span>
-              </div>
-            </div>
-          `;
-        }
+if (isFinalStatus) {
+  return `
+    <div
+      id="${gameCardId}"
+      class="odds-item game-card final-game-card"
+      data-away-team="${awayTeam}"
+      data-home-team="${homeTeam}"
+      style="
+        padding:16px;
+        border-radius:14px;
+        background:rgba(17,24,39,0.85);
+        border:1px solid rgba(148,163,184,0.16);
+        box-shadow:0 0 10px rgba(148,163,184,0.05);
+      "
+    >
+      <div class="game-summary-header">
+        <div class="game-summary-left">
+          <div class="game-summary-title">${title}</div>
+        </div>
+
+        <div class="game-summary-right">
+          ${buildMiniScoreboard(game)}
+        </div>
+      </div>
+    </div>
+  `;
+}
 
         return `
           <div id="${gameCardId}" class="odds-item game-card" data-away-team="${awayTeam}" data-home-team="${homeTeam}" style="
@@ -6319,22 +6723,22 @@ const completedGames = Object.values(completedGamesByKey)
     refreshBtn.textContent = 'Refresh Odds';
   }
 
-  if (typeof currentOddsSnapshot !== 'undefined') {
+  if (Array.isArray(window.currentOddsSnapshot)) {
 
     if (!openingOddsSnapshot) {
-      openingOddsSnapshot = currentOddsSnapshot;
+      openingOddsSnapshot = window.currentOddsSnapshot;
 
       try {
-        localStorage.setItem(`scoOpeningOddsSnapshot_${sport}`, JSON.stringify(currentOddsSnapshot));
+        localStorage.setItem(`scoOpeningOddsSnapshot_${sport}`, JSON.stringify(window.currentOddsSnapshot));
       } catch (err) {
         // If browser storage fails, opening line tracking will reset next visit.
       }
     }
 
-  previousOddsSnapshot = currentOddsSnapshot;
+  previousOddsSnapshot = window.currentOddsSnapshot;
 
   try {
-    localStorage.setItem(`scoPreviousOddsSnapshot_${sport}`, JSON.stringify(currentOddsSnapshot));
+    localStorage.setItem(`scoPreviousOddsSnapshot_${sport}`, JSON.stringify(window.currentOddsSnapshot));
     localStorage.setItem(`scoLineMovementTimestamps_${sport}`, JSON.stringify(lineMovementTimestamps));
     localStorage.setItem(`scoBiggestMovers_${sport}`, JSON.stringify(window.biggestMovers || []));
   } catch (err) {

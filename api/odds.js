@@ -231,6 +231,8 @@ console.log(
 
     if (sport === 'soccer_usa_mls') {
       windowEnd.setDate(windowEnd.getDate() + 30);
+    } else if (sport === 'americanfootball_nfl') {
+      windowEnd.setDate(windowEnd.getDate() + 14);
     } else {
       windowEnd.setDate(windowEnd.getDate() + 2);
     }
