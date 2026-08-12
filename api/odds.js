@@ -38,6 +38,7 @@ function normalizeTeamName(name) {
   nationalleague: 'nationalallstars',
 
   // MLS provider-name differences
+  houstondynamo: 'houstondynamofc',
   chicagofire: 'chicagofirefc',
   columbuscrewsc: 'columbuscrew',
   newyorkredbulls: 'redbullnewyork',
@@ -65,12 +66,17 @@ function getPersistentGameKey(game) {
 
 function mapSportToEspn(sport) {
   const map = {
-    basketball_nba: { group: 'basketball', league: 'nba', dateParam: null },
-    basketball_wnba: { group: 'basketball', league: 'wnba', dateParam: null },
-    baseball_mlb: { group: 'baseball', league: 'mlb', dateParam: null },
-    soccer_usa_mls: { group: 'soccer', league: 'usa.1', dateParam: null },
-    americanfootball_nfl: { group: 'football', league: 'nfl', dateParam: null }
-  };
+  basketball_nba: { group: 'basketball', league: 'nba', dateParam: null },
+  basketball_wnba: { group: 'basketball', league: 'wnba', dateParam: null },
+  baseball_mlb: { group: 'baseball', league: 'mlb', dateParam: null },
+  soccer_usa_mls: { group: 'soccer', league: 'usa.1', dateParam: null },
+  americanfootball_nfl: { group: 'football', league: 'nfl', dateParam: null },
+  americanfootball_ncaaf: {
+    group: 'football',
+    league: 'college-football',
+    dateParam: null
+  }
+};
 
   return map[sport] || null;
 }
@@ -182,6 +188,7 @@ export default async function handler(req, res) {
       'basketball_wnba',
       'soccer_usa_mls',
       'americanfootball_nfl',
+	  'americanfootball_ncaaf',
 
       'basketball_ncaab',
       'basketball_wncaab',
@@ -192,7 +199,12 @@ export default async function handler(req, res) {
       ? requestedSport
       : 'basketball_nba';
 
-    const url = `https://api.the-odds-api.com/v4/sports/${sport}/odds?regions=us&markets=h2h&oddsFormat=american&bookmakers=draftkings,fanduel,betmgm,fanatics,williamhill_us&apiKey=${apiKey}`;
+    const oddsApiSport =
+  sport === 'americanfootball_nfl'
+    ? 'americanfootball_nfl_preseason'
+    : sport;
+
+const url = `https://api.the-odds-api.com/v4/sports/${oddsApiSport}/odds?regions=us&markets=h2h&oddsFormat=american&bookmakers=draftkings,fanduel,betmgm,fanatics,williamhill_us&apiKey=${apiKey}`;
 
     const response = await fetch(url);
 
@@ -458,11 +470,11 @@ console.log(
     // await upsertCompletedGames(completedGames, sport);
     
     res.status(200).json({
-      sport,
-      games: simplified,
-      completedGames,
-      totalGames
-    });
+  sport,
+  games: simplified,
+  completedGames,
+  totalGames
+});
 
   } catch (err) {
     res.status(500).json({

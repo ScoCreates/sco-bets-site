@@ -452,13 +452,15 @@ button:active {
    ========================================================== */
 
 @media (max-width: 700px) {
+	
+	
 
   .mobile-movement-row {
     display: block;
-    grid-column: 2 / 4;
+    grid-column: 2 / 5;
     text-align: right;
-    padding-right: 52px;
-    margin-top: -6px;
+    padding-right: 20px;
+    margin-top: -55px;
   }
 
   .mobile-movement-row .mobile-movement-marker {
@@ -473,6 +475,24 @@ button:active {
   .mobile-movement-marker {
     display: none !important;
   }
+  
+  .soccer-scoreboard {
+    margin-left: 0 !important;
+    width: 100%;
+    max-width: 100%;
+	margin-bottom: 8px;
+  }
+  
+.odds-action-row {
+  min-width: 72px !important;
+  margin-left: 6px !important;
+}
+
+.odds-action-row button,
+.odds-action-row a {
+  min-width: 56px;
+  white-space: nowrap;
+}  
 
   .dashboard-header {
     flex-direction: column;
@@ -1141,6 +1161,12 @@ button:active {
   font-size: 12px;
 }
 
+.football-period.current-period {
+  color: #00ff88;
+  font-weight: 900;
+  text-shadow: 0 0 8px rgba(0,255,136,.55);
+}
+
 .football-total-label {
   color: #00ff88;
   font-weight: 900;
@@ -1180,6 +1206,37 @@ button:active {
   }
 }
 
+/* MLB — MOBILE */
+@media (max-width: 700px) {
+
+.soccer-scoreboard .game-summary-status-main {
+  margin-left: 32px !important;
+}	
+	
+.mlb-linescore {
+  margin-left: -22px !important;
+  margin-bottom: 8px;
+  max-width: calc(100% + 18px);
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 3px;
+  scrollbar-width: none;
+  column-gap: 4px;
+  font-size: 12px;
+}
+
+.mlb-linescore::-webkit-scrollbar {
+  display: none;
+}
+
+.mlb-inning {
+  font-size: 11px;
+}
+
+.baseball-scoreboard .game-summary-status-main {
+  left: 0 !important;
+}
+}
 
 .soccer-scoreboard {
   display: grid;
@@ -1298,8 +1355,20 @@ button:active {
   text-transform: uppercase;
 }
 
+.baseball-scoreboard .game-summary-status-main {
+  left: -30px;
+}
+
+.soccer-scoreboard .game-summary-status-main {
+  left: -32px;
+}
+
 .basketball-scoreboard .game-summary-status-main {
   left: 0px;
+}
+
+.football-scoreboard .game-summary-status-main {
+  left: 1px;
 }
 
 .game-status-dot {
@@ -1452,6 +1521,10 @@ button:active {
     justify-content: flex-start;
     min-width: 0;
   }
+  
+  .basketball-linescore {
+    margin-bottom: 10px;
+  }  
 }
 
 /* ==========================================================
@@ -1481,33 +1554,105 @@ button:active {
   .market-gap-badge {
     display: none !important;
   }
+  
+  .sportsbook-row {
+    margin-top: 0 !important;
+    padding-top: 3px !important;
+  }
+
+  .sportsbook-row:first-child {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  } 
 
   .odds-action-row {
     flex-direction: row !important;
     align-items: flex-start !important;
     justify-content: flex-end !important;
     gap: 4px !important;
+	min-width: 0 !important;
+  }
+  
+  .odds-action-row > span {
+    min-width: 0 !important;
   }
 
   .odds-action-row > span:first-child {
     display: none !important;
   }
 
-  .odds-grid-row {
-    grid-template-columns: 20px minmax(140px,1fr) 58px 16px 64px !important;
-    gap: 6px !important;
-    align-items: start !important;
-  }
+.odds-grid-row {
+  grid-template-columns: 20px minmax(0, 1fr) 50px 64px !important;
+  grid-template-areas:
+    "check team odds action" !important; 
+  column-gap: 8px !important;
+  row-gap: 4px !important;
+  align-items: start !important;
+  position: relative !important;
+  margin-bottom: -6px !important;
+}
 
-  .odds-list label.odds-grid-row {
-    padding-left: 2px !important;
-    padding-right: 2px !important;
-  }
+.odds-grid-row:has(.odds-badge-row) {
+  padding-bottom: 24px !important;
+}
 
+.odds-grid-row > .bet-checkbox {
+  grid-area: check !important;
+}
+
+.odds-grid-row > .odds-team-info {
+  grid-area: team !important;
+  min-width: 0 !important;
+}
+
+.odds-grid-row > .mobile-odds-price {
+  grid-area: odds !important;
+  justify-self: end !important;
+  white-space: nowrap !important;
+}
+
+.odds-grid-row > .odds-action-row {
+  grid-area: action !important;
+  justify-self: end !important;
+  margin-left: 0 !important;
+}
+
+.odds-badge-row {
+  position: absolute !important;
+  top: 48px !important;
+  right: 14px !important;
+  min-width: 0 !important;
+  padding-top: 0 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 4px !important;
+  white-space: nowrap !important;
+}
+
+.movement-marker-wrap {
+  display: none !important;
+}
+
+.odds-list label.odds-grid-row {
+  padding-left: 2px !important;
+  padding-right: 2px !important;
+}
   
-  .desktop-movement-marker {
-    display: none !important;
-  }
+ .mobile-movement-row {
+  position: absolute !important;
+  top: 30px !important;
+  right: 14px !important;
+  grid-column: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: right !important;
+  white-space: nowrap !important;
+  z-index: 1;
+} 
+  
+.desktop-movement-marker {
+  display: none !important;
+}
 
 }
 
@@ -1571,6 +1716,7 @@ window.addEventListener("DOMContentLoaded", checkAccess);
           <option value="basketball_wnba">🏀 WNBA</option>
           <option value="soccer_usa_mls">⚽ MLS</option>
           <option value="americanfootball_nfl">🏈 NFL</option>
+		  <option value="americanfootball_ncaaf">🏈 NCAA Football</option>
 
           <option disabled>────────────</option>
           <option disabled>Off Season</option>
@@ -1631,11 +1777,11 @@ window.addEventListener("DOMContentLoaded", checkAccess);
 
   <div class="premium-banner mobile-hide">
   <span class="banner-left">
-    Live sportsbook pricing, value analysis, and market opportunities are now active.
+    Live sportsbook odds & market intelligence
   </span>
 
   <span class="banner-right">
-    Live odds — refresh to stay ahead of line movement.
+    Live odds — refresh for the latest market updates.
   </span>
 </div>
 
@@ -2371,22 +2517,23 @@ pricesByTeam[outcome.name].push(outcome.price);
           : '10px';
 
       const desktopMovementMarker = lineMovement && previousLine
-                     ? `<span class="desktop-movement-marker" style="
-                                 display:inline-flex;
-                                 align-items:center;
-                                 justify-content:center;
-                                gap:1px;
-                                min-width:42px;
-                               font-size:${movementSize};
-                               font-weight:800;
-                               color:${movementColor};
-                               text-shadow:${movementGlow};
-                         ">
-                                ${previousLine.price > 0 ? '+' : ''}${previousLine.price}
-                                →
-                               ${o.price > 0 ? '+' : ''}${o.price}
-                       </span>`
-                    : '<span class="desktop-movement-marker" style="display:inline-block; min-width:42px;"></span>';
+        ? `<span class="desktop-movement-marker" style="
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:1px;
+            min-width:88px;
+            white-space:nowrap;
+            font-size:${movementSize};
+            font-weight:800;
+            color:${movementColor};
+            text-shadow:${movementGlow};
+          ">
+            ${previousLine.price > 0 ? '+' : ''}${previousLine.price}
+            →
+            ${o.price > 0 ? '+' : ''}${o.price}
+          </span>`
+        : '<span class="desktop-movement-marker" style="display:inline-block; min-width:88px;"></span>';
 
      const mobileMovementMarker = lineMovement && previousLine
                    ? `<span class="mobile-movement-marker" style="
@@ -2413,7 +2560,7 @@ pricesByTeam[outcome.name].push(outcome.price);
         rowStyle += ' padding:6px 8px; border-radius:10px; background:rgba(0,255,136,0.07); border:1px solid rgba(0,255,136,0.18);';
       }
  return `
-  <label class="odds-grid-row" style="${rowStyle}; display:grid; grid-template-columns:24px 250px 64px 70px 90px; align-items:start; gap:8px;">
+  <div class="odds-grid-row" style="${rowStyle}; display:grid; grid-template-columns:24px 250px 64px 70px 90px; align-items:start; gap:8px; cursor:default;">
     <input
       type="checkbox"
       class="bet-checkbox"
@@ -2422,11 +2569,20 @@ pricesByTeam[outcome.name].push(outcome.price);
       data-book="${book.title}"
       data-team="${o.name}"
       data-odds="${o.price}"
-      style="margin:5px 0 0 0; transform:scale(0.9); opacity:0.8;"
+      style="margin:5px 0 0 0; transform:scale(0.9); opacity:0.8; cursor:pointer;"
     >
 
     <span class="odds-team-info" style="${textStyle}; min-width:0;">
-      <span>${o.name}:</span>
+      <span
+        style="cursor:pointer;"
+        onclick="
+          const checkbox = this.closest('.odds-grid-row')?.querySelector('.bet-checkbox');
+          if (checkbox) {
+            checkbox.checked = !checkbox.checked;
+            updateSelectedBetCount();
+          }
+        "
+      >${o.name}:</span>
 
       <span style="display:block; font-size:11px; color:#9ca3af; margin-top:2px;">
         ${o.edgePercent !== null
@@ -2449,11 +2605,28 @@ pricesByTeam[outcome.name].push(outcome.price);
 
     <span class="mobile-odds-price" style="text-align:right; font-weight:700;">${sign}${o.price}</span>
 
-    <span class="movement-marker-wrap" style="text-align:center;">${desktopMovementMarker}</span>
+    <span class="movement-marker-wrap" style="text-align:center;">
+	  ${desktopMovementMarker}
+	</span>
 
-    <span class="odds-action-row" style="display:flex; align-items:flex-start; gap:8px; min-width:0;">
+    <span class="odds-action-row" style="
+      display:flex; 
+      align-items:flex-start; 
+      gap:8px; 
+      min-width:0;
+      margin-left:12px;
+    ">
+	
+	${bestLineButton}
 
-    <span style="padding-top:8px; display:flex; align-items:center;">
+    <span class="odds-badge-row" style="
+      padding-top:8px;
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      min-width:118px;
+      white-space:nowrap;
+    ">
       ${outlierBadge}
       ${marketGapBadge}
       ${laggingMarketBadge}
@@ -2461,15 +2634,15 @@ pricesByTeam[outcome.name].push(outcome.price);
       ${bestOpportunityBadge}
     </span>
     
-    ${bestLineButton}
-                    </span>
+    
+  </span>
 
                     ${mobileMovementMarker ? `
                        <span class="mobile-movement-row">
                              ${mobileMovementMarker}
                        </span>
                     ` : ''}
-            </label>
+            </div>
    `;
     }).join('');
 
@@ -2578,6 +2751,7 @@ function calculateArb() {
   const stake2 = bankroll * ((1 / dec2) / implied);
   const payout = stake1 * dec1;
   const profit = payout - bankroll;
+  const roi = (profit / bankroll) * 100;
 
   if (currentBestArb) {
     result.innerHTML = `
@@ -2585,7 +2759,8 @@ function calculateArb() {
       Bet <strong>$${stake1.toFixed(2)}</strong> on <strong>${currentBestArb.team1}</strong> at <strong>${currentBestArb.book1}</strong> (${currentBestArb.price1})<br><br>
       Bet <strong>$${stake2.toFixed(2)}</strong> on <strong>${currentBestArb.team2}</strong> at <strong>${currentBestArb.book2}</strong> (${currentBestArb.price2})<br><br>
       Guaranteed Payout: <strong>$${payout.toFixed(2)}</strong><br>
-      Guaranteed Profit: <strong>$${profit.toFixed(2)}</strong>
+      Guaranteed Profit: <strong>$${profit.toFixed(2)}</strong><br>
+      ROI: <strong>${roi.toFixed(2)}%</strong>
     `;
   } else {
     result.innerHTML = `
@@ -2593,7 +2768,8 @@ function calculateArb() {
       Bet Team 1: <strong>$${stake1.toFixed(2)}</strong><br>
       Bet Team 2: <strong>$${stake2.toFixed(2)}</strong><br>
       Guaranteed Payout: <strong>$${payout.toFixed(2)}</strong><br>
-      Guaranteed Profit: <strong>$${profit.toFixed(2)}</strong>
+      Guaranteed Profit: <strong>$${profit.toFixed(2)}</strong><br>
+      ROI: <strong>${roi.toFixed(2)}%</strong>
     `;
   }
 }
@@ -3738,6 +3914,52 @@ const basketballPeriodLabel =
   basketballPeriod > 4
     ? `OT${basketballPeriod - 4}`
     : `Q${basketballPeriod}`;
+	const basketballDisplayClock = (() => {
+  const rawClock = String(espn.clock || '').trim();
+
+  if (!rawClock) {
+    return '';
+  }
+
+  /*
+   * ESPN may show tenths under one minute, such as "13.9".
+   * Display those as a conventional whole-second clock: "00:13".
+   */
+  if (!rawClock.includes(':')) {
+    const wholeSeconds = Math.max(
+      0,
+      Math.floor(Number(rawClock))
+    );
+
+    if (!Number.isFinite(wholeSeconds)) {
+      return rawClock;
+    }
+
+    return `00:${String(wholeSeconds).padStart(2, '0')}`;
+  }
+
+  const [minutesPart, secondsPart = '0'] =
+    rawClock.split(':');
+
+  const minutes = Math.max(
+    0,
+    Math.floor(Number(minutesPart))
+  );
+
+  const seconds = Math.max(
+    0,
+    Math.floor(Number(secondsPart))
+  );
+
+  if (
+    !Number.isFinite(minutes) ||
+    !Number.isFinite(seconds)
+  ) {
+    return rawClock;
+  }
+
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
+})();
 
 const footballPeriod = Number(espn.period);
 
@@ -3766,7 +3988,7 @@ if (liveStatusText.includes('halftime')) {
   espn.clock &&
   basketballPeriod
 ) {
-  context = `• ${basketballPeriodLabel} ${espn.clock}`;
+  context = `• ${basketballPeriodLabel}\u00A0\u00A0\u00A0${basketballDisplayClock}`;
 } else if (
   selectedSport.startsWith('americanfootball') &&
   footballPeriod &&
@@ -3781,7 +4003,7 @@ if (liveStatusText.includes('halftime')) {
   espn.clock &&
   footballPeriod
 ) {
-  context = `• ${footballPeriodLabel} ${espn.clock}`;
+context = `• ${footballPeriodLabel}<span style="display:inline-block; margin-left:8px;">${espn.clock}</span>`;
 }
   } else if (!isNaN(gameDate.getTime())) {
   const now = new Date();
@@ -3807,7 +4029,6 @@ const isOfficialPregame =
 
 const isPregameFallback =
   Number.isFinite(minutesUntilStart) &&
-  minutesUntilStart > 0 &&
   minutesUntilStart <= 5;
 
 const isStartingSoon =
@@ -3880,10 +4101,16 @@ if (isLive) {
 
 return `         
   <div class="game-summary-scoreboard ${
-            selectedSport.startsWith('basketball')
-                  ? 'basketball-scoreboard'
-                  : ''
-        }">
+  selectedSport.startsWith('baseball')
+    ? 'baseball-scoreboard'
+    : selectedSport.startsWith('basketball')
+      ? 'basketball-scoreboard'
+      : selectedSport.startsWith('soccer')
+        ? 'soccer-scoreboard'
+        : selectedSport.startsWith('americanfootball')
+          ? 'football-scoreboard'
+          : ''
+}">
     <div class="game-summary-status ${statusClass}">
       <div class="game-summary-status-main">
         <span class="game-status-dot"></span>
@@ -4179,11 +4406,11 @@ for (let period = 1; period <= highestPeriod; period++) {
   periods.push(period);
 }
 
-  const getLabel = (period) => {
-    return period <= 4
-      ? `Q${period}`
-      : `OT${period - 4}`;
-  };
+const getLabel = (period) => {
+  return period <= 4
+    ? String(period)
+    : `OT${period - 4}`;
+};
 
   const currentPeriod = Number(espn.period) || 0;
 
@@ -4499,6 +4726,95 @@ function toggleWhy(contentId, el) {
 /* ==========================================================
    MAIN ODDS LOADING AND DASHBOARD UPDATE WORKFLOW
    ========================================================== */
+   
+const ODDS_POLL_LIVE_MS = 60000;          // 1 minute
+const ODDS_POLL_STARTING_SOON_MS = 60000; // 1 minute
+const ODDS_POLL_UPCOMING_MS = 120000;     // 2 minutes
+const ODDS_POLL_IDLE_MS = 300000;         // 5 minutes
+
+let oddsPollTimer = null;
+let latestPollingGames = [];
+
+function getOddsPollingInterval(games) {
+  const now = Date.now();
+
+  const hasLiveGame = games.some(game => {
+    const espn = game?.espnStatus;
+
+    return (
+      espn?.statusState === 'in' &&
+      !String(espn?.statusDescription || '')
+        .toLowerCase()
+        .includes('delay')
+    );
+  });
+
+  if (hasLiveGame) {
+    return ODDS_POLL_LIVE_MS;
+  }
+  
+  
+
+  const hasStartingSoonGame = games.some(game => {
+    const startTime = new Date(
+      game.commence_time ||
+      game.commenceTime ||
+      game.startTime
+    ).getTime();
+
+    if (!Number.isFinite(startTime)) {
+      return false;
+    }
+
+    const minutesUntilStart =
+      (startTime - now) / 60000;
+
+    return (
+      minutesUntilStart > 0 &&
+      minutesUntilStart <= 60
+    );
+  });
+
+  if (hasStartingSoonGame) {
+    return ODDS_POLL_STARTING_SOON_MS;
+  }
+
+  const hasUpcomingGame = games.some(game => {
+    const startTime = new Date(
+      game.commence_time ||
+      game.commenceTime ||
+      game.startTime
+    ).getTime();
+
+    return (
+      Number.isFinite(startTime) &&
+      startTime > now
+    );
+  });
+
+  if (hasUpcomingGame) {
+    return ODDS_POLL_UPCOMING_MS;
+  }
+
+  return ODDS_POLL_IDLE_MS;
+} 
+
+function scheduleNextOddsPoll() {
+  if (oddsPollTimer) {
+    clearTimeout(oddsPollTimer);
+  }
+
+  const delay =
+    getOddsPollingInterval(latestPollingGames);
+
+  oddsPollTimer = setTimeout(async () => {
+    if (!document.hidden) {
+      await loadOdds();
+    }
+
+    scheduleNextOddsPoll();
+  }, delay);
+}  
 
 async function loadOdds() {
      const teamSelectReset = document.getElementById('team-select');
@@ -4590,6 +4906,8 @@ navButton.textContent = 'Home';
         heading.textContent = 'Live MLS Odds';
       } else if (sport === 'americanfootball_nfl') {
         heading.textContent = 'Live NFL Odds';
+	  } else if (sport === 'americanfootball_ncaaf') {
+        heading.textContent = 'Live NCAA Football Odds';	
       } else if (sport === 'basketball_ncaab') {
         heading.textContent = "Live NCAA (M) Odds";
       } else if (sport === 'basketball_wncaab') {
@@ -4658,10 +4976,11 @@ navButton.textContent = 'Home';
       }
 
     const games = Array.isArray(payload.games) ? payload.games : [];
+	latestPollingGames = games;
 
     const completedGames = Array.isArray(payload.completedGames)
-                                       ? payload.completedGames
-                                         : [];
+      ? payload.completedGames
+      : [];
 
 completedGames.forEach(espnGame => {
   upsertCompletedGameFromApi(espnGame, sport);
@@ -4717,6 +5036,58 @@ games.forEach(game => {
 
   const existingFinal =
     sportFinalTransitionCache[gameKey];
+	
+	if (
+      !existingFinal &&
+      window.scoSkipFinalTransitionsOnce === true
+    ) {
+      return;
+    }
+
+    const previousGame =
+     Array.isArray(window.currentOddsSnapshot)
+      ? window.currentOddsSnapshot.find(previous => {
+          const currentEspnId =
+            String(game?.espnStatus?.id || '');
+
+          const previousEspnId =
+            String(previous?.espnStatus?.id || '');
+
+          if (
+            currentEspnId &&
+            previousEspnId &&
+            currentEspnId === previousEspnId
+          ) {
+            return true;
+          }
+
+          return getGameKey(previous) === gameKey;
+        })
+      : null;
+
+  const previousGameWasFinal =
+    previousGame?.status === 'final' ||
+    previousGame?.espnStatus?.statusState === 'post' ||
+    previousGame?.espnStatus?.statusName ===
+      'STATUS_FINAL' ||
+    String(
+      previousGame?.espnStatus?.statusDescription ||
+      ''
+    ).toLowerCase() === 'final';
+
+  /*
+   * Create a new five-minute Final transition only when
+   * the game changed from non-Final to Final.
+   *
+   * If an expired Final is still returned by the API,
+   * do not create a new timestamp for it.
+   */
+  if (
+    !existingFinal &&
+    (!previousGame || previousGameWasFinal)
+  ) {
+    return;
+  }
 
   sportFinalTransitionCache[gameKey] = {
     ...game,
@@ -4757,6 +5128,35 @@ completedGames.forEach(espnGame => {
 
   const existingFinal =
     sportFinalTransitionCache[gameKey];
+	
+  if (
+    !existingFinal &&
+    window.scoSkipFinalTransitionsOnce === true
+  ) {
+    return;
+  }	
+
+  const previousFullGameWasFinal =
+    previousFullGame.status === 'final' ||
+    previousFullGame.espnStatus?.statusState ===
+      'post' ||
+    previousFullGame.espnStatus?.statusName ===
+      'STATUS_FINAL' ||
+    String(
+      previousFullGame.espnStatus
+        ?.statusDescription || ''
+    ).toLowerCase() === 'final';
+
+  /*
+   * Do not recreate an expired transition card when
+   * the previous dashboard snapshot was already Final.
+   */
+  if (
+    !existingFinal &&
+    previousFullGameWasFinal
+  ) {
+    return;
+  }
 
   sportFinalTransitionCache[gameKey] = {
     ...previousFullGame,
@@ -4800,7 +5200,10 @@ try {
   // If storage fails, retention still works for this session.
 }
 
-    window.currentOddsSnapshot = JSON.parse(JSON.stringify(games));
+    window.currentOddsSnapshot = 
+	  JSON.parse(JSON.stringify(games));
+	  
+    window.scoSkipFinalTransitionsOnce = false;	  
 
 
     if (statGames) {
@@ -4837,19 +5240,21 @@ try {
     }
 
     const sportLabel =
-                payload.sport === 'basketball_nba'
-                     ? 'Live NBA Odds'
-                     : payload.sport === 'basketball_wnba'
-                    ? 'Live WNBA Odds'
-                    : payload.sport === 'baseball_mlb'
-                   ? 'Live MLB Odds'
-                   : payload.sport === 'soccer_usa_mls'
-                   ? 'Live MLS Odds'
-                   : payload.sport === 'americanfootball_nfl'
-                   ? 'Live NFL Odds'
-                   : payload.sport === 'basketball_wncaab'
-                  ? 'Live NCAA (W) Odds'
-                  : 'Live NCAA (M) Odds';
+      payload.sport === 'basketball_nba'
+        ? 'Live NBA Odds'
+        : payload.sport === 'basketball_wnba'
+        ? 'Live WNBA Odds'
+        : payload.sport === 'baseball_mlb'
+        ? 'Live MLB Odds'
+        : payload.sport === 'soccer_usa_mls'
+        ? 'Live MLS Odds'
+        : payload.sport === 'americanfootball_nfl'
+        ? 'Live NFL Odds'
+        : payload.sport === 'americanfootball_ncaaf'
+        ? 'Live NCAA Football Odds'
+        : payload.sport === 'basketball_wncaab'
+        ? 'Live NCAA (W) Odds'
+        : 'Live NCAA (M) Odds';
 
     const oddsHeading = document.getElementById('odds-heading');
     if (oddsHeading) oddsHeading.textContent = sportLabel;
@@ -4907,7 +5312,7 @@ try {
                         </div>
                   </div>
                `
-               : '<div class="muted">No games available right now.</div>';
+               : '<div class="muted">No sportsbook odds are available right now.</div>';
           }
 
       const topPick = document.getElementById('top-pick');
@@ -4922,20 +5327,28 @@ try {
         topConfidenceReason.textContent = '';
       }
  
-      if (topPick) topPick.textContent = 'No positive value opportunity right now';
+      if (topPick) {
+        topPick.textContent = 'Waiting for sportsbook markets';
+      }
+
       if (topConfidence) {
         topConfidence.textContent = '';
         topConfidence.className = 'muted';
       }
-      if (topReason) topReason.textContent =
-                    'Markets are efficiently priced right now. We only highlight opportunities when real value exists.';
+
+      if (topReason) {
+        topReason.textContent =
+          'Value opportunities will appear automatically when sportsbook odds become available.';
+      }
+
       if (topMeta) {
         topMeta.textContent = '';
         topMeta.className = '';
       }
 
       if (arbPick) arbPick.textContent = 'No arbitrage currently';
-      if (arbDetails) arbDetails.textContent = 'No games available';
+      if (arbDetails) arbDetails.textContent =
+        'Waiting for sportsbook markets';
 
       if (statGames) {
         statGames.textContent = '0';
@@ -5337,8 +5750,9 @@ try {
   }
 
   if (topReason) {
-          topReason.textContent = 'No positive value exists right now. Odds shift frequently — refresh or check back shortly.';
-     }
+    topReason.textContent =
+      'No pricing advantage is detected right now. Odds shift frequently — refresh or check back shortly.';
+  }
 
   if (topConfidenceReason) {
           if (closestValuePick) {
@@ -5730,14 +6144,14 @@ try {
                                  <div
   onclick="scrollToGame('${arb.gameCardId}', null, ['${arb.book1}', '${arb.book2}'])"
   title="View game"
-  style="
-            color:#00ff88;
-            font-size:28px;
-            font-weight:800;
-            line-height:1.2;
-            cursor:pointer;
-  "
->
+    style="
+      color:#00ff88;
+      font-size:20px;
+      font-weight:700;
+      line-height:1.35;
+      cursor:pointer;
+    "
+    >
   ${arb.game}
 </div>
 
@@ -5745,7 +6159,7 @@ try {
                                          color:#00ff88;
                                          font-size:16px;
                                         font-weight:600;
-                                        margin-top:8px;
+                                        margin-top:10px;
           ">
                                     ${arb.edge.toFixed(2)}% edge available
                          </div>
@@ -6931,7 +7345,9 @@ if (sportSelect) {
   });
 }
 
-loadOdds();
+loadOdds().finally(() => {
+  scheduleNextOddsPoll();
+});
 
 setTimeout(() => {
   const shouldRestore = sessionStorage.getItem('scoShouldRestoreDashboardPosition');
@@ -6955,16 +7371,29 @@ setTimeout(() => {
   }
 }, 900);
 
-setInterval(() => {
-  if (!document.hidden) {
-    loadOdds();
-  }
-}, 120000);
-
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
+    window.scoTabHiddenAt = Date.now();
     return;
   }
+
+  const hiddenAt =
+    Number(window.scoTabHiddenAt) || 0;
+
+  const millisecondsHidden =
+    hiddenAt
+      ? Date.now() - hiddenAt
+      : 0;
+
+  /*
+   * After a long absence, the previous browser snapshot may
+   * still show games as LIVE even though they finished long ago.
+   * Do not treat those old completions as brand-new transitions.
+   */
+  window.scoSkipFinalTransitionsOnce =
+    millisecondsHidden > 5 * 60 * 1000;
+
+  window.scoTabHiddenAt = 0;
 
   const lastUpdateTime =
     window.scoLastOddsUpdate instanceof Date
@@ -6978,7 +7407,11 @@ document.addEventListener('visibilitychange', () => {
     !lastUpdateTime ||
     millisecondsSinceLastUpdate >= 30000
   ) {
-    loadOdds();
+    loadOdds().finally(() => {
+      scheduleNextOddsPoll();
+    });
+  } else {
+    scheduleNextOddsPoll();
   }
 });
 
@@ -7000,13 +7433,25 @@ setInterval(() => {
   lastUpdated.textContent =
   `Last updated: ${formattedTime} · Updated ${secondsAgo}s ago`;
 
-  if (secondsAgo >= 45) {
-    lastUpdated.style.color = '#fbbf24';
-  } else if (secondsAgo >= 30) {
-    lastUpdated.style.color = '#cbd5e1';
-  } else {
-    lastUpdated.style.color = '#9ca3af';
-  }
+const currentPollInterval =
+  getOddsPollingInterval(latestPollingGames);
+
+const pollSeconds =
+  currentPollInterval / 1000;
+
+const warningThreshold =
+  pollSeconds * 0.8;
+
+const agingThreshold =
+  pollSeconds * 0.5;
+
+if (secondsAgo >= warningThreshold) {
+  lastUpdated.style.color = '#fbbf24';
+} else if (secondsAgo >= agingThreshold) {
+  lastUpdated.style.color = '#cbd5e1';
+} else {
+  lastUpdated.style.color = '#9ca3af';
+}
 }, 1000);
 
 </script>

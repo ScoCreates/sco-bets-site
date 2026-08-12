@@ -90,10 +90,88 @@ async function upsertCompletedGames(completedGames, sport) {
   ) {
     return;
   }
+  
+  const completedGameKeys = completedGames
+  .map(game => game.gameKey)
+  .filter(Boolean);
+
+if (completedGameKeys.length === 0) {
+  return;
+}
+
+const {
+  data: existingCompletedGames,
+  error: existingCompletedGamesError
+} = await supabase
+  .from('completed_games')
+  .select('game_key, away_score, home_score')
+  .in('game_key', completedGameKeys);
+
+if (existingCompletedGamesError) {
+  throw new Error(
+    `Failed to check existing completed ${sport} games: ` +
+    existingCompletedGamesError.message
+  );
+}
+
+const existingCompletedGameMap = new Map(
+  (existingCompletedGames || []).map(game => [
+    game.game_key,
+    game
+  ])
+);
 
   const rows = completedGames
-    .filter(game => game.gameKey)
-    .map(game => ({
+  .filter(game => {
+    if (!game.gameKey) {
+      return false;
+    }
+
+    const existingGame =
+      existingCompletedGameMap.get(game.gameKey);
+
+    // This completed game has never been stored.
+    if (!existingGame) {
+      return true;
+    }
+
+    const awayScore = Number.isFinite(
+      Number(game.awayScore)
+    )
+      ? Number(game.awayScore)
+      : null;
+
+    const homeScore = Number.isFinite(
+      Number(game.homeScore)
+    )
+      ? Number(game.homeScore)
+      : null;
+
+    const existingAwayScore = Number.isFinite(
+      Number(existingGame.away_score)
+    )
+      ? Number(existingGame.away_score)
+      : null;
+
+    const existingHomeScore = Number.isFinite(
+      Number(existingGame.home_score)
+    )
+      ? Number(existingGame.home_score)
+      : null;
+
+    /*
+     * Skip the database write when this completed game
+     * is already stored with the same final score.
+     *
+     * If ESPN later corrects the score, allow the
+     * existing UPSERT below to update the row.
+     */
+    return (
+      awayScore !== existingAwayScore ||
+      homeScore !== existingHomeScore
+    );
+  })
+  .map(game => ({
       game_key: game.gameKey,
       sport,
       espn_game_id: game.id || null,
@@ -115,6 +193,12 @@ async function upsertCompletedGames(completedGames, sport) {
       espn_status: game,
       updated_at: new Date().toISOString()
     }));
+	
+console.log('COMPLETED GAMES WRITE CHECK:', {
+  sport,
+  completedGamesFound: completedGames.length,
+  rowsToWrite: rows.length
+});	
 
   if (rows.length === 0) {
     return;
