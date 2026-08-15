@@ -447,14 +447,13 @@ button:active {
   opacity: 1;
 }
 
+
 /* ==========================================================
    RESPONSIVE LAYOUT — MOBILE
    ========================================================== */
 
 @media (max-width: 700px) {
 	
-	
-
   .mobile-movement-row {
     display: block;
     grid-column: 2 / 5;
@@ -1006,11 +1005,11 @@ button:active {
   display: grid;
   align-items: center;
   column-gap: 6px;
-  row-gap: 5px;
+  row-gap: 8px;
   font-size: 13px;
   line-height: 1.1;
   white-space: nowrap;
-  margin-left: -30px;
+  margin-left: 5px;
 }
 
 .mlb-linescore span,
@@ -1191,13 +1190,14 @@ button:active {
 
 .football-total {
   color: #00ff88;
-  font-size: 23px;
-  font-weight: 950;
-  text-shadow: 0 0 10px rgba(0, 255, 136, 0.35);
+  font-size: 21px;
+  font-weight: 900;
+  text-shadow: 0 0 8px rgba(0, 255, 136, 0.30);
 }
 
 @media (max-width: 700px) {
   .football-linescore {
+	margin-bottom: 8px;
     max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
@@ -1217,6 +1217,7 @@ button:active {
   margin-left: -22px !important;
   margin-bottom: 8px;
   max-width: calc(100% + 18px);
+  
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 3px;
@@ -1242,7 +1243,7 @@ button:active {
   display: grid;
   gap: 5px;
   min-width: 150px;
-  margin-left: -32px;
+  margin-left: 2px;
 }
 
 .soccer-score-row {
@@ -1271,10 +1272,10 @@ button:active {
 
 .soccer-total {
   color: #00ff88;
-  font-size: 23px;
-  font-weight: 950;
+  font-size: 21px;
+  font-weight: 900;
   text-align: right;
-  text-shadow: 0 0 10px rgba(0, 255, 136, 0.35);
+  text-shadow: 0 0 8px rgba(0, 255, 136, 0.30);
 }
 
 .hockey-linescore {
@@ -1356,11 +1357,11 @@ button:active {
 }
 
 .baseball-scoreboard .game-summary-status-main {
-  left: -30px;
+  left: 5px;
 }
 
 .soccer-scoreboard .game-summary-status-main {
-  left: -32px;
+  left: 2px;
 }
 
 .basketball-scoreboard .game-summary-status-main {
@@ -1464,8 +1465,9 @@ button:active {
 
 .game-summary-right {
   display: flex;
-  justify-content: flex-end;
-  padding-right: 260px;
+  justify-content: flex-start;
+  width: 650px;
+  padding-right: 0;
 }
 
 .game-summary-left {
@@ -1520,6 +1522,7 @@ button:active {
   .game-summary-right {
     justify-content: flex-start;
     min-width: 0;
+	padding-right: 0 !important;
   }
   
   .basketball-linescore {
@@ -1619,7 +1622,7 @@ button:active {
 
 .odds-badge-row {
   position: absolute !important;
-  top: 48px !important;
+  top: 54px !important;
   right: 14px !important;
   min-width: 0 !important;
   padding-top: 0 !important;
@@ -3828,7 +3831,10 @@ const isFinal =
 const isLive =
   espn.statusState === 'in' &&
   !isDelayed &&
-  !isSuspended;
+  !isSuspended &&
+  !isPostponed &&
+  !isCanceled &&
+  !isRescheduled;
 
   const awayAbbr = espn.awayShort || 'AWY';
   const homeAbbr = espn.homeShort || 'HME';
@@ -4223,6 +4229,51 @@ const hasActualPlayStarted =
   };
 
   const gridColumns = `82px repeat(${periods.length}, 24px) 34px`;
+  
+ const awayScore = Number(espn.awayScore) || 0;
+ const homeScore = Number(espn.homeScore) || 0;
+
+ let awayTotalDisplay = '';
+ let homeTotalDisplay = '';
+
+ if (isFinal || currentPeriod > 1) {
+  awayTotalDisplay = awayScore;
+  homeTotalDisplay = homeScore;
+ } else if (hasActualPlayStarted && currentPeriod === 1) {
+
+  // Top 1st:
+  // Away total appears only after the away team scores.
+  // Home has not batted yet, so keep it blank.
+  if (isTop) {
+    awayTotalDisplay = awayScore > 0 ? awayScore : '';
+    homeTotalDisplay = '';
+  }
+
+  // Bottom 1st:
+  // Away team's first half-inning is complete, so show its total,
+  // including 0. Home stays blank until it scores.
+  else if (isBottom) {
+    awayTotalDisplay = awayScore;
+    homeTotalDisplay = homeScore > 0 ? homeScore : '';
+  }
+
+  // Covers an "End 1st" type state.
+  else if (
+  normalizedDetail.includes('middle') ||
+  normalizedDescription.includes('middle')
+) {
+  // Middle 1st:
+  // Away team's half-inning is complete.
+  // Home team has not batted yet.
+  awayTotalDisplay = awayScore;
+  homeTotalDisplay = '';
+}
+else {
+  // End 1st or another completed-first-inning state.
+  awayTotalDisplay = awayScore;
+  homeTotalDisplay = homeScore;
+}
+} 
 
   return `
     <div class="mlb-linescore" style="grid-template-columns:${gridColumns};">
@@ -4266,7 +4317,7 @@ const hasActualPlayStarted =
         `;
       }).join('')}
 
-      <strong class="mlb-total">${espn.awayScore ?? '-'}</strong>
+      <strong class="mlb-total">${awayTotalDisplay}</strong>
 
       <span class="mlb-team">
                      <span class="mlb-team-abbr">${espn.homeShort || 'HME'}</span>
@@ -4291,7 +4342,7 @@ const hasActualPlayStarted =
         `;
       }).join('')}
 
-      <strong class="mlb-total">${espn.homeScore ?? '-'}</strong>
+      <strong class="mlb-total">${homeTotalDisplay}</strong>
     </div>
   `;
 }
@@ -4861,7 +4912,11 @@ navButton.textContent = 'Home';
          };
    };
 
-  window.currentOddsSnapshot = window.currentOddsSnapshot || [];
+  window.currentOddsSnapshots =
+    window.currentOddsSnapshots || {};
+
+  window.currentOddsSnapshot =
+    window.currentOddsSnapshot || [];
 
   const status = document.getElementById('odds-status');
   const list = document.getElementById('odds-list');
@@ -4974,6 +5029,9 @@ navButton.textContent = 'Home';
       if (sport !== currentlySelectedSport) {
         return;
       }
+	  
+      window.currentOddsSnapshot =
+        window.currentOddsSnapshots[sport] || [];	  
 
     const games = Array.isArray(payload.games) ? payload.games : [];
 	latestPollingGames = games;
@@ -4986,6 +5044,28 @@ completedGames.forEach(espnGame => {
   upsertCompletedGameFromApi(espnGame, sport);
 });
 
+let authoritativeCompletedGames = [];
+
+try {
+  const authoritativeResponse = await fetch(
+    `/api/completed-games?sport=${encodeURIComponent(sport)}&hours=6`
+  );
+
+  if (authoritativeResponse.ok) {
+    const authoritativePayload =
+      await authoritativeResponse.json();
+
+    authoritativeCompletedGames =
+      Array.isArray(
+        authoritativePayload.completedGames
+      )
+        ? authoritativePayload.completedGames
+        : [];
+  }
+} catch (err) {
+  authoritativeCompletedGames = [];
+}
+
 try {
   localStorage.setItem(
     `scoCompletedGamesCache_${sport}`,
@@ -4995,7 +5075,7 @@ try {
   // Ignore storage errors.
 }
 
-const FINAL_CARD_RETENTION_MS = 5 * 60 * 1000;
+const FINAL_CARD_RETENTION_MS = 10 * 60 * 1000;
 const finalTransitionStorageKey =
   `scoFinalTransitionCache_${sport}`;
 
@@ -5095,6 +5175,16 @@ games.forEach(game => {
       existingFinal?.finalObservedAt ||
       Date.now()
   };
+  
+ try {
+  localStorage.setItem(
+    finalTransitionStorageKey,
+    JSON.stringify(sportFinalTransitionCache)
+  );
+} catch (err) {
+  // If storage fails, retention still works for this session.
+} 
+  
 });
 
 completedGames.forEach(espnGame => {
@@ -5158,7 +5248,38 @@ completedGames.forEach(espnGame => {
     return;
   }
 
-  sportFinalTransitionCache[gameKey] = {
+ const authoritativeCompletedGame =
+  authoritativeCompletedGames.find(completedGame =>
+    completedGame.gameKey === gameKey
+  );
+
+const authoritativeFinalTime = new Date(
+  authoritativeCompletedGame?.completedObservedAt ||
+  authoritativeCompletedGame?.serverCompletedAt ||
+  0
+).getTime();
+
+sportFinalTransitionCache[gameKey] = {
+  ...previousFullGame,
+  home:
+    espnGame.homeTeam ||
+    previousFullGame.home,
+  away:
+    espnGame.awayTeam ||
+    previousFullGame.away,
+  sport,
+  status: 'final',
+  cachedFinal: true,
+  espnStatus: espnGame,
+  finalObservedAt:
+    existingFinal?.finalObservedAt ||
+    (
+      Number.isFinite(authoritativeFinalTime) &&
+      authoritativeFinalTime > 0
+        ? authoritativeFinalTime
+        : Date.now()
+    )
+}; sportFinalTransitionCache[gameKey] = {
     ...previousFullGame,
     home:
       espnGame.homeTeam ||
@@ -5174,6 +5295,15 @@ completedGames.forEach(espnGame => {
       existingFinal?.finalObservedAt ||
       Date.now()
   };
+  
+  try {
+  localStorage.setItem(
+    finalTransitionStorageKey,
+    JSON.stringify(sportFinalTransitionCache)
+  );
+} catch (err) {
+  // If storage fails, retention still works for this session.
+}
 });
 
 Object.keys(sportFinalTransitionCache).forEach(gameKey => {
@@ -5200,8 +5330,11 @@ try {
   // If storage fails, retention still works for this session.
 }
 
-    window.currentOddsSnapshot = 
-	  JSON.parse(JSON.stringify(games));
+    window.currentOddsSnapshots[sport] =
+      JSON.parse(JSON.stringify(games));
+
+    window.currentOddsSnapshot =
+      window.currentOddsSnapshots[sport];
 	  
     window.scoSkipFinalTransitionsOnce = false;	  
 
@@ -5275,7 +5408,20 @@ try {
       status.textContent = '';
     }
 
-    if (!games.length) {
+    const hasRetainedFinalTransitions = Object.values(
+      sportFinalTransitionCache || {}
+    ).some(finalGame => {
+      const finalObservedAt =
+        Number(finalGame?.finalObservedAt) || 0;
+
+      return (
+        finalObservedAt > 0 &&
+        Date.now() - finalObservedAt <=
+          FINAL_CARD_RETENTION_MS
+      );
+    });
+
+    if (!games.length && !hasRetainedFinalTransitions) {
 
                const offseasonSports = {
                      basketball_nba: {
@@ -5507,9 +5653,14 @@ try {
     if (statEdge) {
       const edgeValue = bestValuePick.edge;
 
-    statEdge.textContent = String(valueOpportunityCount);
-    statEdge.classList.toggle('positive', valueOpportunityCount > 0);
-  }
+      statEdge.textContent = String(valueOpportunityCount);
+      statEdge.classList.toggle('positive', valueOpportunityCount > 0);
+
+      statEdge.title =
+        valueOpportunityCount > 0
+          ? 'Click to view current value opportunities.'
+          : 'No qualifying value opportunities are available right now.';
+    }
 
     const valueCard = document.getElementById('value-opportunities-card');
     const valueList = document.getElementById('value-opportunities-list');
@@ -5711,9 +5862,23 @@ try {
 
 } else {
   if (statEdge) {
-          statEdge.textContent = String(valueOpportunityCount);
-          statEdge.classList.toggle('positive', valueOpportunityCount > 0);
+  statEdge.textContent = String(valueOpportunityCount);
+  statEdge.classList.toggle('positive', valueOpportunityCount > 0);
+
+  statEdge.title =
+    valueOpportunityCount > 0
+      ? 'Click to view current value opportunities.'
+      : 'No qualifying value opportunities are available right now.';
 }
+
+  const valueCard = document.getElementById('value-opportunities-card');
+  const valueList = document.getElementById('value-opportunities-list');
+
+  if (valueCard && valueList) {
+    valueList.style.display = 'none';
+    valueList.innerHTML = '';
+    valueCard.onclick = null;
+  }
 
   if (topPick && closestValuePick) {
          const sign = closestValuePick.price > 0 ? '+' : '';
@@ -6060,7 +6225,12 @@ try {
                   font-weight:700;
                   color:#e5e7eb;
                 ">
-                  <span style="color:${mover.movement === 'up' ? '#00ff88' : '#fbbf24'};">${mover.team}</span>
+ <span style="
+  color:${mover.movement === 'up' ? '#00ff88' : '#fbbf24'};
+  font-size:20px;
+">
+  ${mover.team}
+</span>
 
                   <span style="
                                                       color:${mover.movement === 'up' ? '#00ff88' : '#fbbf24'};
@@ -6138,7 +6308,7 @@ try {
                         .sort((a, b) => b.edge - a.edge)
                        .map((arb, arbIndex) => `
                               <div style="
-                                         padding:10px 0;
+                                         padding:6px 0;
                             ">
                            <div style="margin-top:6px;">
                                  <div
@@ -6230,7 +6400,7 @@ try {
                                 Open ${sportsbookShortNames[arb.book2] || arb.book2}
                           </a>
                     </div>
-                   ${arbIndex < activeArbs.length - 1 ? '<div class="card-divider"></div>' : ''}
+                   ${arbIndex < activeArbs.length - 1 ? '<div class="card-divider" style="margin:8px 0 4px;"></div>' : ''}
                </div>
            `)
            .join('') + '<div class="card-divider"></div>';
@@ -6285,6 +6455,15 @@ try {
   }
 })();
 
+try {
+  localStorage.setItem(
+    finalTransitionStorageKey,
+    JSON.stringify(sportFinalTransitionCache)
+  );
+} catch (err) {
+  // If storage fails, retention still works for this session.
+}
+
 const retainedFinalGames = Object.values(
   sportFinalTransitionCache || {}
 )
@@ -6327,9 +6506,6 @@ mergedGames.forEach(game => {
   game.previousDisplayIndex =
     previousIndex;
 });
-
-const FINAL_CARD_RETENTION_MS =
-  5 * 60 * 1000;
 
 const visibleGames = mergedGames.filter(game => {
   const espn = game?.espnStatus || {};
@@ -7152,12 +7328,33 @@ const completedGames = Object.values(completedGamesByKey)
   previousOddsSnapshot = window.currentOddsSnapshot;
 
   try {
-    localStorage.setItem(`scoPreviousOddsSnapshot_${sport}`, JSON.stringify(window.currentOddsSnapshot));
-    localStorage.setItem(`scoLineMovementTimestamps_${sport}`, JSON.stringify(lineMovementTimestamps));
-    localStorage.setItem(`scoBiggestMovers_${sport}`, JSON.stringify(window.biggestMovers || []));
-  } catch (err) {
-    // If browser storage fails, line movement still works for this session.
-  }
+  const biggestMoversCutoff =
+    Date.now() - 5 * 60 * 1000;
+
+  window.biggestMovers = (
+    window.biggestMovers || []
+  ).filter(mover =>
+    mover.timestamp &&
+    mover.timestamp >= biggestMoversCutoff
+  );
+
+  localStorage.setItem(
+    `scoPreviousOddsSnapshot_${sport}`,
+    JSON.stringify(window.currentOddsSnapshot)
+  );
+
+  localStorage.setItem(
+    `scoLineMovementTimestamps_${sport}`,
+    JSON.stringify(lineMovementTimestamps)
+  );
+
+  localStorage.setItem(
+    `scoBiggestMovers_${sport}`,
+    JSON.stringify(window.biggestMovers)
+  );
+} catch (err) {
+  // If browser storage fails, line movement still works for this session.
+}
 }
 
 }
