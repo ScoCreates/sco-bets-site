@@ -4086,8 +4086,8 @@ const isStartingSoon =
 } else {
   statusLabel = 'STARTS';
   context = dateText
-    ? `• ${dateText} • ${timeText}`
-    : `• ${timeText}`;
+    ? `• ${dateText} • <span style="display:inline-block; margin-left:5px;">${timeText}</span>`
+    : `• <span style="display:inline-block; margin-left:5px;">${timeText}</span>`;
 }
 }
 
@@ -5094,6 +5094,52 @@ if (!window.scoFinalTransitionCache[sport]) {
 
 const sportFinalTransitionCache =
   window.scoFinalTransitionCache[sport];
+  
+authoritativeCompletedGames.forEach(completedGame => {
+  const gameKey =
+    completedGame.gameKey ||
+    getGameKey(completedGame);
+
+  if (!gameKey) {
+    return;
+  }
+
+  const authoritativeFinalTime = new Date(
+    completedGame.completedObservedAt ||
+    completedGame.serverCompletedAt ||
+    0
+  ).getTime();
+
+  if (
+    !Number.isFinite(authoritativeFinalTime) ||
+    authoritativeFinalTime <= 0 ||
+    Date.now() - authoritativeFinalTime >
+      FINAL_CARD_RETENTION_MS
+  ) {
+    return;
+  }
+
+  if (sportFinalTransitionCache[gameKey]) {
+    return;
+  }
+
+  sportFinalTransitionCache[gameKey] = {
+    ...completedGame,
+    sport,
+    status: 'final',
+    cachedFinal: true,
+    finalObservedAt: authoritativeFinalTime
+  };
+});
+
+try {
+  localStorage.setItem(
+    finalTransitionStorageKey,
+    JSON.stringify(sportFinalTransitionCache)
+  );
+} catch (err) {
+  // If storage fails, retention still works for this session.
+}  
 
 games.forEach(game => {
   const isFinalGame =
