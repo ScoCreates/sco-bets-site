@@ -3,62 +3,205 @@ import supabase from '../lib/supabase.js';
 
 const DEBUG_SNAPSHOT = true;
 
-export default async function handler(req, res) {
-  const cronSecret = process.env.CRON_SECRET;
+const SNAPSHOT_SPORTS = [
+  'baseball_mlb',
+  'basketball_wnba',
+  'soccer_usa_mls',
+  'americanfootball_nfl',
+  'americanfootball_ncaaf'
+];
 
-    if (!cronSecret) {
-    return res.status(500).json({
-      ok: false,
-      error: 'Missing CRON_SECRET'
-    });
+const SNAPSHOT_POLL_LIVE_MS = 60 * 1000;          // 1 minute
+const SNAPSHOT_POLL_STARTING_SOON_MS = 60 * 1000; // 1 minute
+const SNAPSHOT_POLL_UPCOMING_MS = 2 * 60 * 1000;  // 2 minutes
+const SNAPSHOT_POLL_MIDRANGE_MS = 5 * 60 * 1000;  // 5 minutes
+const SNAPSHOT_POLL_FAR_FUTURE_MS = 15 * 60 * 1000; // 15 minutes
+const SNAPSHOT_POLL_IDLE_MS = 15 * 60 * 1000;       // 15 minutes
+
+function getSnapshotPollingInterval(payload) {
+  const games = Array.isArray(payload?.games)
+    ? payload.games
+    : [];
+
+  const now = Date.now();
+
+  const hasLiveGame = games.some(game => {
+    const espn = game?.espnStatus;
+
+    return (
+      espn?.statusState === 'in' &&
+      !String(
+        espn?.statusDescription || ''
+      )
+        .toLowerCase()
+        .includes('delay')
+    );
+  });
+
+  if (hasLiveGame) {
+    return SNAPSHOT_POLL_LIVE_MS;
   }
+
+  const hasStartingSoonGame = games.some(game => {
+    const startTime = new Date(
+      game.commence_time ||
+      game.commenceTime ||
+      game.startTime
+    ).getTime();
+
+    if (!Number.isFinite(startTime)) {
+      return false;
+    }
+
+    const minutesUntilStart =
+      (startTime - now) / 60000;
+
+    return (
+      minutesUntilStart > 0 &&
+      minutesUntilStart <= 60
+    );
+  });
+
+  if (hasStartingSoonGame) {
+    return SNAPSHOT_POLL_STARTING_SOON_MS;
+  }
+
+  const hoursUntilNextGame = games.reduce(
+    (closest, game) => {
+      const startTime = new Date(
+        game.commence_time ||
+        game.commenceTime ||
+        game.startTime
+      ).getTime();
+
+      if (
+        !Number.isFinite(startTime) ||
+        startTime <= now
+      ) {
+        return closest;
+      }
+
+      const hoursUntilStart =
+        (startTime - now) /
+        (60 * 60 * 1000);
+
+      return Math.min(
+        closest,
+        hoursUntilStart
+      );
+    },
+    Infinity
+  );
+
+  if (hoursUntilNextGame <= 72) {
+    return SNAPSHOT_POLL_UPCOMING_MS;
+  }
+
+  if (hoursUntilNextGame <= 168) {
+    return SNAPSHOT_POLL_MIDRANGE_MS;
+  }
+
+  if (Number.isFinite(hoursUntilNextGame)) {
+    return SNAPSHOT_POLL_FAR_FUTURE_MS;
+  }
+
+  return SNAPSHOT_POLL_IDLE_MS;
+}
+
+function isSnapshotDue(snapshotRow) {
+  if (!snapshotRow) {
+    return true;
+  }
+
+  const payload = snapshotRow.payload || null;
+
+  const fetchedAt = new Date(
+    snapshotRow.fetched_at ||
+    snapshotRow.last_success_at ||
+    0
+  ).getTime();
 
   if (
-    req.headers.authorization !== `Bearer ${cronSecret}`
+    !Number.isFinite(fetchedAt) ||
+    fetchedAt <= 0
   ) {
-    return res.status(401).json({
-      ok: false,
-      error: 'Unauthorized'
-    });
+    return true;
   }
 
-  const requestedSport =
-    req.query.sport ||
-    'baseball_mlb';
+  const pollInterval =
+    getSnapshotPollingInterval(payload);
 
-  try {
-   let previousGames = [];
+  return (
+    Date.now() - fetchedAt >= pollInterval
+  );
+}
 
-   const { data: previousSnapshot } =
-     await supabase
-      .from('odds_snapshots')
-      .select('payload')
-      .eq('sport', requestedSport)
-      .maybeSingle();
+async function getStoredSnapshotRow(sport) {
+  const { data, error } = await supabase
+    .from('odds_snapshots')
+    .select(`
+      sport,
+      payload,
+      fetched_at,
+      last_success_at
+    `)
+    .eq('sport', sport)
+    .maybeSingle();
 
-   if (
-     previousSnapshot?.payload?.games &&
-     Array.isArray(previousSnapshot.payload.games)
-   ) {
-     previousGames =
-       previousSnapshot.payload.games;
-   }
-    const payload =
-      await buildOddsPayload(
-        requestedSport,
-        previousGames
-      );
+  if (error) {
+    throw error;
+  }
 
-    const snapshotTime =
-      new Date().toISOString();
+  return data || null;
+}
 
-    const snapshotPayload = {
-      schemaVersion: 1,
-      ...payload,
-      snapshotGeneratedAt: snapshotTime
+async function getDueSnapshotSports() {
+  const dueSports = [];
+
+  for (const sport of SNAPSHOT_SPORTS) {
+    const snapshotRow =
+      await getStoredSnapshotRow(sport);
+
+    if (isSnapshotDue(snapshotRow)) {
+      dueSports.push(sport);
+    }
+  }
+
+  return dueSports;
+}
+
+async function prepareSportSnapshot(
+  sport,
+  forceRefresh = false
+) {
+  const previousSnapshot =
+    await getStoredSnapshotRow(sport);
+
+  if (
+    !forceRefresh &&
+    !isSnapshotDue(previousSnapshot)
+  ) {
+    return {
+      skipped: true,
+      previousSnapshot,
+      previousGames: []
     };
-	
-const makeComparablePayload = (sourcePayload) => {
+  }
+
+  const previousGames =
+    previousSnapshot?.payload?.games &&
+    Array.isArray(previousSnapshot.payload.games)
+      ? previousSnapshot.payload.games
+      : [];
+
+  return {
+    skipped: false,
+    previousSnapshot,
+    previousGames
+  };
+}
+
+function makeComparablePayload(sourcePayload) {
   if (!sourcePayload) {
     return null;
   }
@@ -78,7 +221,6 @@ const makeComparablePayload = (sourcePayload) => {
                     ? bookmaker.odds
                         .map(odd => ({
                           ...odd,
-
                           edge: undefined
                         }))
                         .sort((a, b) => {
@@ -124,14 +266,8 @@ const makeComparablePayload = (sourcePayload) => {
     debug: undefined,
     games: comparableGames
   };
-};
+}
 
-const previousComparablePayload =
-  makeComparablePayload(previousSnapshot?.payload);
-
-const currentComparablePayload =
-  makeComparablePayload(snapshotPayload);
-  
 function findFirstDifference(a, b, path = 'payload') {
   if (a === b) {
     return null;
@@ -188,18 +324,23 @@ function findFirstDifference(a, b, path = 'payload') {
   }
 
   return null;
-}  
+}
 
-const firstDifference =
-  findFirstDifference(
-    previousComparablePayload,
-    currentComparablePayload
-  );
+function makeGameDebugKey(game) {
+  return `${game?.away || ''} vs ${game?.home || ''} | ${game?.commence_time || ''}`;
+}
 
-const snapshotChanged =
-  firstDifference !== null;
+function logSnapshotDebug(
+  sport,
+  snapshotChanged,
+  firstDifference,
+  previousComparablePayload,
+  currentComparablePayload
+) {
+  if (!DEBUG_SNAPSHOT) {
+    return;
+  }
 
-if (DEBUG_SNAPSHOT) {
   const pacificTime = new Date().toLocaleString(
     'en-US',
     {
@@ -207,31 +348,32 @@ if (DEBUG_SNAPSHOT) {
       hour12: true
     }
   );
-const makeGameDebugKey = (game) =>
-  `${game?.away || ''} vs ${game?.home || ''} | ${game?.commence_time || ''}`;
 
-const previousGameKeys = new Set(
-  (previousComparablePayload?.games || []).map(makeGameDebugKey)
-);
-
-const currentGameKeys = new Set(
-  (currentComparablePayload?.games || []).map(makeGameDebugKey)
-);
-
-const addedGames =
-  [...currentGameKeys].filter(
-    gameKey => !previousGameKeys.has(gameKey)
+  const previousGameKeys = new Set(
+    (previousComparablePayload?.games || [])
+      .map(makeGameDebugKey)
   );
 
-const removedGames =
-  [...previousGameKeys].filter(
-    gameKey => !currentGameKeys.has(gameKey)
+  const currentGameKeys = new Set(
+    (currentComparablePayload?.games || [])
+      .map(makeGameDebugKey)
   );
+
+  const addedGames =
+    [...currentGameKeys].filter(
+      gameKey => !previousGameKeys.has(gameKey)
+    );
+
+  const removedGames =
+    [...previousGameKeys].filter(
+      gameKey => !currentGameKeys.has(gameKey)
+    );
+
   console.log(`
 ========================================
 ODDS SNAPSHOT WRITE CHECK
 Time: ${pacificTime}
-Sport: ${requestedSport}
+Sport: ${sport}
 Changed: ${snapshotChanged}
 First Difference: ${firstDifference ?? 'None'}
 Previous Games: ${previousComparablePayload?.games?.length ?? 0}
@@ -242,51 +384,133 @@ Removed Games: ${removedGames.length ? removedGames.join(' || ') : 'None'}
 `);
 }
 
-if (
-  firstDifference &&
-  firstDifference.includes('.bookmakers.length')
+async function updateSportSnapshot(
+  sport,
+  forceRefresh = false
 ) {
-  const match =
-    firstDifference.match(/games\[(\d+)\]/);
+  const {
+    skipped,
+    previousSnapshot,
+    previousGames
+  } = await prepareSportSnapshot(
+    sport,
+    forceRefresh
+  );
 
-  const gameIndex = match
-    ? Number(match[1])
-    : null;
-
-  if (Number.isInteger(gameIndex)) {
-    const previousGame =
-      previousComparablePayload?.games?.[gameIndex];
-
-    const currentGame =
-      currentComparablePayload?.games?.[gameIndex];
-
-    console.log('BOOKMAKER LENGTH DIFFERENCE:', {
-      gameIndex,
-
-      previousGame:
-        `${previousGame?.away || ''} vs ${previousGame?.home || ''}`,
-
-      currentGame:
-        `${currentGame?.away || ''} vs ${currentGame?.home || ''}`,
-
-      previousBookmakers:
-        previousGame?.bookmakers?.map(
-          bookmaker => bookmaker.title
-        ) || [],
-
-      currentBookmakers:
-        currentGame?.bookmakers?.map(
-          bookmaker => bookmaker.title
-        ) || []
-    });
+  if (skipped) {
+    return {
+      ok: true,
+      sport,
+      snapshotChanged: false,
+      snapshotSkipped: true,
+      message: 'Odds snapshot is still fresh — upstream refresh skipped.'
+    };
   }
-}
 
-if (!snapshotChanged) {
-  return res.status(200).json({
+  const payload =
+    await buildOddsPayload(
+      sport,
+      previousGames
+    );
+
+  const snapshotTime =
+    new Date().toISOString();
+
+  const snapshotPayload = {
+    schemaVersion: 1,
+    ...payload,
+    snapshotGeneratedAt: snapshotTime
+  };
+
+  const previousComparablePayload =
+    makeComparablePayload(
+      previousSnapshot?.payload
+    );
+
+  const currentComparablePayload =
+    makeComparablePayload(
+      snapshotPayload
+    );
+
+  const firstDifference =
+    findFirstDifference(
+      previousComparablePayload,
+      currentComparablePayload
+    );
+
+  const snapshotChanged =
+    firstDifference !== null;
+
+  logSnapshotDebug(
+    sport,
+    snapshotChanged,
+    firstDifference,
+    previousComparablePayload,
+    currentComparablePayload
+  );
+
+  if (
+    firstDifference &&
+    firstDifference.includes('.bookmakers.length')
+  ) {
+    const match =
+      firstDifference.match(/games\[(\d+)\]/);
+
+    const gameIndex = match
+      ? Number(match[1])
+      : null;
+
+    if (Number.isInteger(gameIndex)) {
+      const previousGame =
+        previousComparablePayload?.games?.[gameIndex];
+
+      const currentGame =
+        currentComparablePayload?.games?.[gameIndex];
+
+      console.log('BOOKMAKER LENGTH DIFFERENCE:', {
+        gameIndex,
+
+        previousGame:
+          `${previousGame?.away || ''} vs ${previousGame?.home || ''}`,
+
+        currentGame:
+          `${currentGame?.away || ''} vs ${currentGame?.home || ''}`,
+
+        previousBookmakers:
+          previousGame?.bookmakers?.map(
+            bookmaker => bookmaker.title
+          ) || [],
+
+        currentBookmakers:
+          currentGame?.bookmakers?.map(
+            bookmaker => bookmaker.title
+          ) || []
+      });
+    }
+  }
+
+  if (!snapshotChanged) {
+  const { error: freshnessUpdateError } =
+    await supabase
+      .from('odds_snapshots')
+      .update({
+        fetched_at: snapshotTime,
+        last_success_at: snapshotTime,
+        last_error: null,
+        updated_at: snapshotTime
+      })
+      .eq('sport', sport);
+
+  if (freshnessUpdateError) {
+    throw freshnessUpdateError;
+  }
+
+  return {
     ok: true,
+    sport,
     snapshotChanged: false,
-    message: 'Odds snapshot unchanged — database write skipped.',
+    snapshotSkipped: false,
+    message: 'Odds snapshot unchanged — freshness timestamp updated.',
     totalGames: payload.totalGames,
     gameCount: Array.isArray(payload.games)
       ? payload.games.length
@@ -295,45 +519,141 @@ if (!snapshotChanged) {
       Array.isArray(payload.completedGames)
         ? payload.completedGames.length
         : 0
-  });
-}	
+  };
+}
 
-    const { data, error } = await supabase
-      .from('odds_snapshots')
-      .upsert(
-        {
-          sport: payload.sport,
-          payload: snapshotPayload,
-          schema_version: 1,
-          fetched_at: snapshotTime,
-          last_success_at: snapshotTime,
-          last_error: null,
-          updated_at: snapshotTime
-        },
-        {
-          onConflict: 'sport'
-        }
-      )
-      .select('sport, schema_version, fetched_at, last_success_at')
-      .single();
+  const { data, error } = await supabase
+    .from('odds_snapshots')
+    .upsert(
+      {
+        sport: payload.sport,
+        payload: snapshotPayload,
+        schema_version: 1,
+        fetched_at: snapshotTime,
+        last_success_at: snapshotTime,
+        last_error: null,
+        updated_at: snapshotTime
+      },
+      {
+        onConflict: 'sport'
+      }
+    )
+    .select('sport, schema_version, fetched_at, last_success_at')
+    .single();
 
-    if (error) {
-      throw error;
-    }
+  if (error) {
+    throw error;
+  }
 
-    return res.status(200).json({
-      ok: true,
-      message: 'Odds snapshot saved successfully.',
-      snapshot: data,
-      totalGames: payload.totalGames,
-      gameCount: Array.isArray(payload.games)
-        ? payload.games.length
-        : 0,
-      completedGameCount:
-        Array.isArray(payload.completedGames)
-          ? payload.completedGames.length
-          : 0
+  return {
+    ok: true,
+    sport,
+    snapshotChanged: true,
+    snapshotSkipped: false,
+    message: 'Odds snapshot saved successfully.',
+    snapshot: data,
+    totalGames: payload.totalGames,
+    gameCount: Array.isArray(payload.games)
+      ? payload.games.length
+      : 0,
+    completedGameCount:
+      Array.isArray(payload.completedGames)
+        ? payload.completedGames.length
+        : 0
+  };
+}
+
+export default async function handler(req, res) {
+  const cronSecret = process.env.CRON_SECRET;
+
+    if (!cronSecret) {
+    return res.status(500).json({
+      ok: false,
+      error: 'Missing CRON_SECRET'
     });
+  }
+
+  if (
+    req.headers.authorization !== `Bearer ${cronSecret}`
+  ) {
+    return res.status(401).json({
+      ok: false,
+      error: 'Unauthorized'
+    });
+  }
+
+const explicitlyRequestedSport =
+  String(req.query.sport || '').trim();
+
+const requestedSport =
+  explicitlyRequestedSport ||
+  'baseball_mlb';
+
+const forceRefresh =
+  Boolean(explicitlyRequestedSport);
+  
+ if (!explicitlyRequestedSport) {
+  const dueSports =
+    await getDueSnapshotSports();
+
+  const results = [];
+
+  for (const sport of dueSports) {
+    try {
+      const result =
+        await updateSportSnapshot(
+          sport,
+          false
+        );
+
+      results.push(result);
+    } catch (err) {
+      console.error(
+        `ODDS SNAPSHOT UPDATE FAILED FOR ${sport}:`,
+        err
+      );
+
+      try {
+        await supabase
+          .from('odds_snapshots')
+          .update({
+            last_error: err.message,
+            updated_at: new Date().toISOString()
+          })
+          .eq('sport', sport);
+      } catch (storageErr) {
+        console.error(
+          `FAILED TO RECORD SNAPSHOT ERROR FOR ${sport}:`,
+          storageErr
+        );
+      }
+
+      results.push({
+        ok: false,
+        sport,
+        error: err.message
+      });
+    }
+  }
+
+  return res.status(200).json({
+    ok: true,
+    mode: 'scheduler',
+    dueSports,
+    updatedSports: results
+  });
+} 
+
+try {
+ const sportUpdate =
+  await updateSportSnapshot(
+    requestedSport,
+    forceRefresh
+  );
+
+return res.status(200).json(
+  sportUpdate
+);
   } catch (err) {
     console.error(
       'UPDATE ODDS SNAPSHOT ERROR:',

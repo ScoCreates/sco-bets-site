@@ -243,7 +243,10 @@ console.log(
 
     if (sport === 'soccer_usa_mls') {
       windowEnd.setDate(windowEnd.getDate() + 30);
-    } else if (sport === 'americanfootball_nfl') {
+    } else if (
+      sport === 'americanfootball_nfl' ||
+      sport === 'americanfootball_ncaaf'
+    ) {
       windowEnd.setDate(windowEnd.getDate() + 14);
     } else {
       windowEnd.setDate(windowEnd.getDate() + 2);

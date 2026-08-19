@@ -1522,7 +1522,9 @@ button:active {
   .game-summary-right {
     justify-content: flex-start;
     min-width: 0;
-	padding-right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-right: 0 !important;
   }
   
   .basketball-linescore {
@@ -1622,7 +1624,7 @@ button:active {
 
 .odds-badge-row {
   position: absolute !important;
-  top: 54px !important;
+  top: 43px !important;
   right: 14px !important;
   min-width: 0 !important;
   padding-top: 0 !important;
@@ -1643,16 +1645,17 @@ button:active {
   
  .mobile-movement-row {
   position: absolute !important;
-  top: 30px !important;
-  right: 14px !important;
-  grid-column: auto !important;
+  top: 23px !important;
+  left: calc(100% - 101px) !important;
+  right: auto !important;
   margin: 0 !important;
   padding: 0 !important;
-  text-align: right !important;
+  text-align: left !important;
   white-space: nowrap !important;
+  line-height: 1 !important;
   z-index: 1;
-} 
-  
+}
+   
 .desktop-movement-marker {
   display: none !important;
 }
@@ -3836,8 +3839,31 @@ const isLive =
   !isCanceled &&
   !isRescheduled;
 
-  const awayAbbr = espn.awayShort || 'AWY';
-  const homeAbbr = espn.homeShort || 'HME';
+  const awayAbbr =
+    espn.awayShort ||
+    String(
+      espn.awayTeam ||
+      game.away ||
+      game.away_team ||
+      'AWY'
+    )
+      .split(/\s+/)
+      .map(word => word[0])
+      .join('')
+      .toUpperCase();
+
+  const homeAbbr =
+    espn.homeShort ||
+    String(
+      espn.homeTeam ||
+      game.home ||
+      game.home_team ||
+      'HME'
+    )
+      .split(/\s+/)
+      .map(word => word[0])
+      .join('')
+      .toUpperCase();
 
   const awayRecord = espn.awayRecord || '';
   const homeRecord = espn.homeRecord || '';
@@ -3980,6 +4006,47 @@ if (liveStatusText.includes('halftime')) {
 } else if (liveStatusText.includes('intermission')) {
   statusLabel = 'INTERMISSION';
   context = '';
+} else if (
+  selectedSport.includes('soccer')
+) {
+  const soccerClock =
+    String(espn.clock || '').trim();
+
+  const soccerDetail =
+    String(
+      espn.statusDetail ||
+      espn.statusDescription ||
+      ''
+    ).trim();
+
+  if (
+    soccerClock &&
+    soccerClock.includes(':')
+  ) {
+    context = `<span style="display:inline-block; margin-left:6px;">${soccerClock}</span>`;
+  } else {
+    const soccerMinuteMatch =
+      soccerDetail.match(
+        /^(\d+)'(?:\+(\d+))?$/
+      );
+
+    if (soccerMinuteMatch) {
+      const baseMinute =
+        soccerMinuteMatch[1];
+
+      const addedTime =
+        soccerMinuteMatch[2];
+
+      const soccerMinuteText =
+        addedTime
+          ? `${baseMinute}+${addedTime} MIN`
+          : `${baseMinute} MIN`;
+
+      context = `<span style="display:inline-block; margin-left:6px;">${soccerMinuteText}</span>`;
+    } else {
+      context = soccerDetail;
+    }
+  }
 } else if (
   selectedSport.includes('basketball') &&
   basketballPeriod &&
@@ -4228,7 +4295,22 @@ const hasActualPlayStarted =
     return '';
   };
 
-  const gridColumns = `82px repeat(${periods.length}, 24px) 34px`;
+const isExtraInnings = periods.length > 9;
+
+const teamColumnWidth =
+  isExtraInnings ? 70 : 82;
+
+const inningColumnWidth =
+  isExtraInnings ? 20 : 24;
+
+const totalColumnWidth =
+  isExtraInnings ? 30 : 34;
+
+const gridColumns =
+  `${teamColumnWidth}px repeat(${periods.length}, ${inningColumnWidth}px) ${totalColumnWidth}px`;
+
+const gridColumnGap =
+  isExtraInnings ? 3 : 6;
   
  const awayScore = Number(espn.awayScore) || 0;
  const homeScore = Number(espn.homeScore) || 0;
@@ -4276,7 +4358,13 @@ else {
 } 
 
   return `
-    <div class="mlb-linescore" style="grid-template-columns:${gridColumns};">
+    <div
+      class="mlb-linescore"
+      style="
+        grid-template-columns:${gridColumns};
+        column-gap:${gridColumnGap}px;
+      "
+    >
       <span></span>
 
       ${periods.map(period => {
@@ -4361,13 +4449,33 @@ function buildBasketballLinescore(espn) {
   };
 
  const getValue = (linescores, period) => {
-  const found = (linescores || []).find(ls => Number(ls.period) === period);
+  const found = (linescores || []).find(
+    ls => Number(ls.period) === period
+  );
 
-  if (found) {
-    return found.displayValue ?? '';
+  if (!found) {
+    return '';
   }
 
-  return '';
+  const value = found.displayValue ?? '';
+
+  const isHalftime =
+    espn.statusDescription === 'Halftime' ||
+    espn.statusDetail === 'Halftime';
+
+  const isCurrentActivePeriod =
+    espn.statusState === 'in' &&
+    !isHalftime &&
+    Number(espn.period) === period;
+
+  if (
+    isCurrentActivePeriod &&
+    Number(value) === 0
+  ) {
+    return '';
+  }
+
+  return value;
 };
 
   const gridColumns = `82px repeat(${periods.length}, 34px) 40px`;
@@ -4781,7 +4889,9 @@ function toggleWhy(contentId, el) {
 const ODDS_POLL_LIVE_MS = 60000;          // 1 minute
 const ODDS_POLL_STARTING_SOON_MS = 60000; // 1 minute
 const ODDS_POLL_UPCOMING_MS = 120000;     // 2 minutes
-const ODDS_POLL_IDLE_MS = 300000;         // 5 minutes
+const ODDS_POLL_MIDRANGE_MS = 300000;     // 5 minutes
+const ODDS_POLL_FAR_FUTURE_MS = 900000;   // 15 minutes
+const ODDS_POLL_IDLE_MS = 900000;         // 15 minutes
 
 let oddsPollTimer = null;
 let latestPollingGames = [];
@@ -4803,8 +4913,6 @@ function getOddsPollingInterval(games) {
   if (hasLiveGame) {
     return ODDS_POLL_LIVE_MS;
   }
-  
-  
 
   const hasStartingSoonGame = games.some(game => {
     const startTime = new Date(
@@ -4830,21 +4938,42 @@ function getOddsPollingInterval(games) {
     return ODDS_POLL_STARTING_SOON_MS;
   }
 
-  const hasUpcomingGame = games.some(game => {
-    const startTime = new Date(
-      game.commence_time ||
-      game.commenceTime ||
-      game.startTime
-    ).getTime();
+  const hoursUntilNextGame = games.reduce(
+    (closest, game) => {
+      const startTime = new Date(
+        game.commence_time ||
+        game.commenceTime ||
+        game.startTime
+      ).getTime();
 
-    return (
-      Number.isFinite(startTime) &&
-      startTime > now
-    );
-  });
+      if (
+        !Number.isFinite(startTime) ||
+        startTime <= now
+      ) {
+        return closest;
+      }
 
-  if (hasUpcomingGame) {
+      const hoursUntilStart =
+        (startTime - now) / (60 * 60 * 1000);
+
+      return Math.min(
+        closest,
+        hoursUntilStart
+      );
+    },
+    Infinity
+  );
+
+  if (hoursUntilNextGame <= 72) {
     return ODDS_POLL_UPCOMING_MS;
+  }
+
+  if (hoursUntilNextGame <= 168) {
+    return ODDS_POLL_MIDRANGE_MS;
+  }
+
+  if (Number.isFinite(hoursUntilNextGame)) {
+    return ODDS_POLL_FAR_FUTURE_MS;
   }
 
   return ODDS_POLL_IDLE_MS;
@@ -5009,14 +5138,21 @@ navButton.textContent = 'Home';
   if (arbPick) arbPick.textContent = `Checking ${loadingSportLabel} arbitrage...`;
   if (arbDetails) arbDetails.textContent = 'Scanning sportsbook price differences.';
 
-    try {
-      const sportSelect = document.getElementById('sport-select');
-      const sport = sportSelect ? sportSelect.value : 'basketball_nba';
+  try {
+    const sportSelect = document.getElementById('sport-select');
+    const sport = sportSelect ? sportSelect.value : 'basketball_nba';
 
-      const oddsEndpoint =
-        sport === 'baseball_mlb'
-          ? `/api/odds-snapshot?sport=${sport}`
-          : `/api/odds?sport=${sport}`;
+    const useSharedSnapshot =
+      sport === 'baseball_mlb' ||
+      sport === 'basketball_wnba' ||
+      sport === 'soccer_usa_mls' ||
+      sport === 'americanfootball_nfl' ||
+      sport === 'americanfootball_ncaaf';
+
+    const oddsEndpoint =
+      useSharedSnapshot
+        ? `/api/odds-snapshot?sport=${sport}`
+        : `/api/odds?sport=${sport}`;
 
       const res = await fetch(oddsEndpoint);
       if (!res.ok) throw new Error('Failed to load odds');
@@ -5469,24 +5605,27 @@ try {
 
     if (!games.length && !hasRetainedFinalTransitions) {
 
-               const offseasonSports = {
-                     basketball_nba: {
-                           title: '🏀 NBA is currently in the offseason',
-                          message: 'Regular season odds will automatically appear here once sportsbooks begin posting games.'
-                    },
-                    basketball_ncaab: {
-                           title: '🏀 NCAA Men\'s Basketball is currently in the offseason',
-                           message: 'Odds will automatically appear here once sportsbooks begin posting games.'
-                    },
-                    basketball_wncaab: {
-                         title: '🏀 NCAA Women\'s Basketball is currently in the offseason',
-                         message: 'Odds will automatically appear here once sportsbooks begin posting games.'
-                    }
-                    ,
-       americanfootball_nfl: {
-                        title: '🏈 NFL preseason begins soon',
-                       message: 'Odds will automatically appear here as sportsbooks begin posting preseason games.'
-                  }
+      const offseasonSports = {
+        basketball_nba: {
+          title: '🏀 NBA is currently in the offseason',
+          message: 'Regular season odds will automatically appear here once sportsbooks begin posting games.'
+        },
+        basketball_ncaab: {
+          title: '🏀 NCAA Men\'s Basketball is currently in the offseason',
+          message: 'Odds will automatically appear here once sportsbooks begin posting games.'
+        },
+        basketball_wncaab: {
+          title: '🏀 NCAA Women\'s Basketball is currently in the offseason',
+          message: 'Odds will automatically appear here once sportsbooks begin posting games.'
+        },
+        americanfootball_ncaaf: {
+          title: '🏈 NCAA Football season begins soon',
+          message: 'Odds will automatically appear here as sportsbooks begin posting college football games.'
+        },
+        americanfootball_nfl: {
+          title: '🏈 No NFL games scheduled for today',
+          message: 'Odds will automatically appear here when the next NFL markets are available.'
+        }
 
                 };
 
@@ -7249,6 +7388,22 @@ const completedGames = Object.values(completedGamesByKey)
           const recentLabel = completedTime
                                 ? formatResultTime(completedTime)
                                 : '';
+								
+		  const finalInning = Math.max(
+            Number(game.espnStatus?.period) || 0,
+            ...((game.espnStatus?.awayLinescores || []).map(
+              ls => Number(ls.period) || 0
+            )),
+            ...((game.espnStatus?.homeLinescores || []).map(
+              ls => Number(ls.period) || 0
+            ))
+          );
+
+         const extraInningsLabel =
+           game.sport === 'baseball_mlb' &&
+           finalInning > 9
+             ? ` (${finalInning})`
+             : '';						
 
          return `
                <div style="padding:8px 0; border-bottom:2px solid rgba(255,255,255,0.14);">
@@ -7260,7 +7415,7 @@ const completedGames = Object.values(completedGamesByKey)
                                                                  text-transform:none;
                                                                  letter-spacing:0.04em;
                ">
-                                                                 FINAL${recentLabel ? ` • ${recentLabel}` : ''}
+                                                                 FINAL${extraInningsLabel}${recentLabel ? ` • ${recentLabel}` : ''}
                                         </div>
                     <div style="display:flex; justify-content:space-between; gap:12px;">
                         <span style="

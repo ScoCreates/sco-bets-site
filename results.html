@@ -327,6 +327,22 @@ function renderResults() {
     const resultTime = resultTimestamp
       ? formatResultTime(resultTimestamp)
       : '';
+	  
+    const finalInning = Math.max(
+      Number(game.espnStatus?.period) || 0,
+      ...((game.espnStatus?.awayLinescores || []).map(
+        ls => Number(ls.period) || 0
+      )),
+      ...((game.espnStatus?.homeLinescores || []).map(
+        ls => Number(ls.period) || 0
+      ))
+    );
+
+    const extraInningsLabel =
+      game.sport === 'baseball_mlb' &&
+      finalInning > 9
+        ? ` (${finalInning})`
+        : '';	  
 
     const awayScore = game.espnStatus?.awayScore ?? '-';
     const homeScore = game.espnStatus?.homeScore ?? '-';
@@ -354,7 +370,7 @@ function renderResults() {
               font-weight:700;
               text-transform:none;
             ">
-              FINAL${resultTime ? ` • ${resultTime}` : ''}
+              FINAL${extraInningsLabel}${resultTime ? ` • ${resultTime}` : ''}
             </span>
 
             <span style="

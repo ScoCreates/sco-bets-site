@@ -14,13 +14,18 @@ const sportMap = {
     league: 'nba'
   },
   soccer_usa_mls: {
-    group: 'soccer',
-    league: 'usa.1'
-  },
-  americanfootball_nfl: {
-    group: 'football',
-    league: 'nfl'
-  }
+  group: 'soccer',
+  league: 'usa.1'
+},
+americanfootball_nfl: {
+  group: 'football',
+  league: 'nfl'
+},
+americanfootball_ncaaf: {
+  group: 'football',
+  league: 'college-football'
+}
+  
 };
 
 const defaultSports = [
@@ -28,7 +33,8 @@ const defaultSports = [
   'basketball_wnba',
   'basketball_nba',
   'soccer_usa_mls',
-  'americanfootball_nfl'
+  'americanfootball_nfl',
+  'americanfootball_ncaaf'
 ];
 
 function getRequestedSports(req) {
@@ -248,39 +254,74 @@ async function fetchEspnGames(requestedSport, date) {
       competitor => competitor.homeAway === 'away'
     );
 
-    return {
-      id: event.id,
-      gameKey: event.id
-        ? `espn_${event.id}`
-        : null,
+ return {
+  id: event.id,
+  gameKey: event.id
+    ? `espn_${event.id}`
+    : null,
 
-      name: event.name,
-      date: event.date,
+  name: event.name,
+  date: event.date,
 
-      awayTeam:
-        away?.team?.displayName || null,
+  awayTeam:
+    away?.team?.displayName || null,
 
-      homeTeam:
-        home?.team?.displayName || null,
+  homeTeam:
+    home?.team?.displayName || null,
 
-      awayScore:
-        away?.score ?? null,
+  awayShort:
+    away?.team?.abbreviation || null,
 
-      homeScore:
-        home?.score ?? null,
+  homeShort:
+    home?.team?.abbreviation || null,
 
-      statusName:
-        event.status?.type?.name || null,
+  awayScore:
+    away?.score ?? null,
 
-      statusState:
-        event.status?.type?.state || null,
+  homeScore:
+    home?.score ?? null,
 
-      statusDescription:
-        event.status?.type?.description || null,
+  awayLinescores: Array.isArray(away?.linescores)
+    ? away.linescores.map(ls => ({
+        period: ls.period ?? null,
+        value: ls.value ?? null,
+        displayValue:
+          ls.displayValue ??
+          String(ls.value ?? '')
+      }))
+    : [],
 
-      completed:
-        event.status?.type?.completed ?? false
-    };
+  homeLinescores: Array.isArray(home?.linescores)
+    ? home.linescores.map(ls => ({
+        period: ls.period ?? null,
+        value: ls.value ?? null,
+        displayValue:
+          ls.displayValue ??
+          String(ls.value ?? '')
+      }))
+    : [],
+
+  period:
+    event.status?.period ?? null,
+
+  clock:
+    event.status?.displayClock || null,
+
+  statusName:
+    event.status?.type?.name || null,
+
+  statusState:
+    event.status?.type?.state || null,
+
+  statusDescription:
+    event.status?.type?.description || null,
+
+  statusDetail:
+    event.status?.type?.detail || null,
+
+  completed:
+    event.status?.type?.completed ?? false
+};
   });
 }
 
