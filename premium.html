@@ -13,6 +13,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SCO Bets Pro Dashboard</title>
+<link rel="icon" href="data:,">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
@@ -137,6 +138,12 @@ body {
 
 .stat-value.positive {
   color: #00ff88;
+}
+
+.stat-value.zero-state {
+  font-size: 20px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .sport-label {
@@ -1214,7 +1221,7 @@ button:active {
 }	
 	
 .mlb-linescore {
-  margin-left: -22px !important;
+  margin-left: 0 !important;
   margin-bottom: 8px;
   max-width: calc(100% + 18px);
   
@@ -1248,9 +1255,9 @@ button:active {
 
 .soccer-score-row {
   display: grid;
-  grid-template-columns: 98px 36px;
+  grid-template-columns: 130px 36px;
   align-items: center;
-  gap: 16px;
+  column-gap: 12px;
   line-height: 1.1;
 }
 
@@ -3723,6 +3730,8 @@ const liveText = espn && espn.statusState === 'in'
 
 function buildMiniScoreboard(game) {
      const espn = game?.espnStatus;
+window.scoPregameStatusCache =
+  window.scoPregameStatusCache || {};	 
   console.log('SCOREBOARD ESPN OBJECT:', espn);
 
  console.log(
@@ -3745,6 +3754,7 @@ function buildMiniScoreboard(game) {
 
   const selectedSport = document.getElementById('sport-select')?.value || '';
   const gameDate = new Date(getGameCommenceTime(game));
+  const scoreboardGameKey = getGameKey(game);
 
   if (!espn) {
   const hasValidStartTime =
@@ -3755,13 +3765,38 @@ function buildMiniScoreboard(game) {
     return '';
   }
 
-  const startTime = gameDate.toLocaleTimeString([], {
-    hour: 'numeric',
-    minute: '2-digit',
-    timeZoneName: 'short'
-  });
+const startTime = gameDate.toLocaleTimeString([], {
+  hour: 'numeric',
+  minute: '2-digit',
+  timeZoneName: 'short'
+});
 
-  return `
+const now = new Date();
+
+const minutesUntilStart =
+  (gameDate.getTime() - now.getTime()) /
+  (60 * 1000);
+
+let fallbackStatusLabel =
+  window.scoPregameStatusCache?.[scoreboardGameKey] || 'STARTS';
+
+if (
+  !window.scoPregameStatusCache?.[scoreboardGameKey]
+) {
+  if (
+    Number.isFinite(minutesUntilStart) &&
+    minutesUntilStart <= 5
+  ) {
+    fallbackStatusLabel = 'PREGAME';
+  } else if (
+    Number.isFinite(minutesUntilStart) &&
+    minutesUntilStart <= 30
+  ) {
+    fallbackStatusLabel = 'STARTING SOON';
+  }
+}
+
+return `
     <div style="
       display:flex;
       justify-content:flex-end;
@@ -3782,7 +3817,7 @@ function buildMiniScoreboard(game) {
         letter-spacing:0.04em;
         white-space:nowrap;
       ">
-        ● STARTS ${startTime}
+        ● ${fallbackStatusLabel} ${startTime}
       </div>
     </div>
   `;
@@ -3791,6 +3826,23 @@ function buildMiniScoreboard(game) {
 const statusName = String(espn.statusName || '').toUpperCase();
 const statusDescription = String(espn.statusDescription || '').trim();
 const statusDetail = String(espn.statusDetail || '').trim();
+
+const officialPregameText =
+  `${statusName} ${statusDescription} ${statusDetail}`.toLowerCase();
+
+const isOfficialWarmupForCache =
+  officialPregameText.includes('warmup') ||
+  officialPregameText.includes('warm-up');
+
+const isOfficialPregameForCache =
+  officialPregameText.includes('pregame') ||
+  officialPregameText.includes('pre-game');
+
+if (isOfficialWarmupForCache) {
+  window.scoPregameStatusCache[scoreboardGameKey] = 'WARMUP';
+} else if (isOfficialPregameForCache) {
+  window.scoPregameStatusCache[scoreboardGameKey] = 'PREGAME';
+}
 
 const combinedStatusText =
   `${statusName} ${statusDescription} ${statusDetail}`.toLowerCase();
@@ -5687,9 +5739,11 @@ try {
       }
 
       if (statEdge) {
-                    statEdge.textContent = '0';
-                    statEdge.classList.remove('positive');
-                }
+        statEdge.textContent = 'No opportunities right now';
+        statEdge.classList.remove('positive');
+        statEdge.classList.add('zero-state');
+        statEdge.title = '';
+      }
 
       if (statArb) {
         statArb.textContent = '0';
@@ -5831,24 +5885,34 @@ try {
     const topConfidence = document.getElementById('top-confidence');
     const topReason = document.getElementById('top-reason');
     const topConfidenceReason = document.getElementById('top-confidence-reason');
+	
+	if (statEdge) {
+      statEdge.textContent =
+        valueOpportunityCount > 0
+          ? String(valueOpportunityCount)
+          : 'No opportunities right now.';
 
-    if (bestValuePick) {
-      const sign = bestValuePick.price > 0 ? '+' : '';
-
-    if (statEdge) {
-      const edgeValue = bestValuePick.edge;
-
-      statEdge.textContent = String(valueOpportunityCount);
-      statEdge.classList.toggle('positive', valueOpportunityCount > 0);
+      statEdge.classList.toggle(
+        'positive',
+        valueOpportunityCount > 0
+      );
+	  
+	  statEdge.classList.toggle(
+        'zero-state',
+        valueOpportunityCount === 0
+      );
 
       statEdge.title =
         valueOpportunityCount > 0
           ? 'Click to view current value opportunities.'
-          : 'No qualifying value opportunities are available right now.';
+          : '';
     }
 
-    const valueCard = document.getElementById('value-opportunities-card');
-    const valueList = document.getElementById('value-opportunities-list');
+    if (bestValuePick) {
+      const sign = bestValuePick.price > 0 ? '+' : '';
+
+      const valueCard = document.getElementById('value-opportunities-card');
+      const valueList = document.getElementById('value-opportunities-list');
 
     if (valueCard && valueList) {
                valueOpportunities.sort((a, b) => b.edge - a.edge);
@@ -5903,10 +5967,21 @@ try {
          };
     });
   } else {
-     valueList.style.display = 'none';
-     valueList.innerHTML = '';
-     valueCard.onclick = null;
-   }
+    valueList.style.display = 'block';
+
+    valueList.innerHTML = `
+      <div style="
+        padding:8px 0 2px;
+        color:#94a3b8;
+        font-size:12px;
+        line-height:1.45;
+      ">
+        No qualifying value opportunities right now.
+      </div>
+    `;
+
+    valueCard.onclick = null;
+  }
 }
 
   if (topPick) {
@@ -6047,14 +6122,17 @@ try {
 
 } else {
   if (statEdge) {
-  statEdge.textContent = String(valueOpportunityCount);
-  statEdge.classList.toggle('positive', valueOpportunityCount > 0);
-
-  statEdge.title =
+    statEdge.textContent =
     valueOpportunityCount > 0
-      ? 'Click to view current value opportunities.'
-      : 'No qualifying value opportunities are available right now.';
-}
+      ? String(valueOpportunityCount)
+      : 'None';
+    statEdge.classList.toggle('positive', valueOpportunityCount > 0);
+
+    statEdge.title =
+      valueOpportunityCount > 0
+        ? 'Click to view current value opportunities.'
+        : 'No qualifying value opportunities are available right now.';
+  }
 
   const valueCard = document.getElementById('value-opportunities-card');
   const valueList = document.getElementById('value-opportunities-list');
@@ -6226,8 +6304,26 @@ try {
           gap: arbGap
         };
       }
+	  
+const arbEspn = game?.espnStatus;
 
-     if (implied < 1) {
+const arbStatusText = String(
+  arbEspn?.statusDescription ||
+  arbEspn?.statusDetail ||
+  arbEspn?.statusName ||
+  ''
+).toLowerCase();
+
+const isNonActionableForArb =
+  arbEspn?.completed === true ||
+  arbEspn?.statusState === 'post' ||
+  arbStatusText.includes('final') ||
+  arbStatusText.includes('postponed') ||
+  arbStatusText.includes('canceled') ||
+  arbStatusText.includes('cancelled') ||
+  arbStatusText.includes('suspended');
+
+if (implied < 1 && !isNonActionableForArb) {
         const edge = (1 - implied) * 100;
 
      activeArbs.push({
@@ -6374,9 +6470,16 @@ try {
           });
 
       if (recentMovers.length > 0) {
-        const sortedMovers = recentMovers
-          .sort((a, b) => b.amount - a.amount)
-          .slice(0, 3);
+        const sortedMovers = Array.from(
+          new Map(
+            recentMovers
+              .sort((a, b) => b.amount - a.amount)
+              .map(mover => [
+                `${mover.gameKey}|${mover.team}`,
+                mover
+              ])
+          ).values()
+        ).slice(0, 3);
 
         if (biggestMoversEl) {
           biggestMoversEl.innerHTML = sortedMovers
@@ -6496,7 +6599,7 @@ try {
                                          padding:6px 0;
                             ">
                            <div style="margin-top:6px;">
-                                 <div
+<div
   onclick="scrollToGame('${arb.gameCardId}', null, ['${arb.book1}', '${arb.book2}'])"
   title="View game"
     style="
@@ -6520,26 +6623,31 @@ try {
                          </div>
                          </div>
 
-                        <div
-                                  onclick="scrollToGame('${arb.gameCardId}', null, ['${arb.book1}', '${arb.book2}'])"
-                                  style="
-                                            margin-top:10px;
-                                            cursor:pointer;
-                                            color:#ffffff;
-                                            font-weight:700;
-                                            line-height:1.4;
-                          "
-             >
-                                 ${arb.team1} at ${arb.book1} (${arb.price1})<br>
-                                 ${arb.team2} at ${arb.book2} (${arb.price2})
+ <div
+  onclick="scrollToGame('${arb.gameCardId}', null, ['${arb.book1}', '${arb.book2}'])"
+  style="
+    margin-top:10px;
+    cursor:pointer;
+    color:#cbd5e1;
+    font-weight:600;
+    line-height:1.45;
+  "
+>
+  <div>
+    ${arb.team1} at ${arb.book1} (${arb.price1})
+  </div>
 
-                           <div style="
-                                margin-top:8px;
-                                display:flex;
-                               gap:14px;
-                               justify-content:center;
-                              flex-wrap:wrap;
-         ">
+  <div style="margin-top:4px;">
+    ${arb.team2} at ${arb.book2} (${arb.price2})
+  </div>
+
+  <div style="
+    margin-top:12px;
+    display:flex;
+    gap:18px;
+    justify-content:flex-start;
+    flex-wrap:wrap;
+  ">                       
                             <span
                                   style="
                                        color:#60a5fa;
@@ -7828,8 +7936,13 @@ setInterval(() => {
     minute: '2-digit'
   });
 
+  const freshnessText =
+  secondsAgo < 60
+    ? `${secondsAgo}s ago`
+    : `${Math.floor(secondsAgo / 60)}:${String(secondsAgo % 60).padStart(2, '0')} ago`;
+
   lastUpdated.textContent =
-  `Last updated: ${formattedTime} · Updated ${secondsAgo}s ago`;
+    `Last updated: ${formattedTime} · Updated ${freshnessText}`;
 
 const currentPollInterval =
   getOddsPollingInterval(latestPollingGames);
