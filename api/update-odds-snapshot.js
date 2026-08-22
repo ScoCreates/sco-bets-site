@@ -11,12 +11,36 @@ const SNAPSHOT_SPORTS = [
   'americanfootball_ncaaf'
 ];
 
-const SNAPSHOT_POLL_LIVE_MS = 60 * 1000;          // 1 minute
-const SNAPSHOT_POLL_STARTING_SOON_MS = 60 * 1000; // 1 minute
-const SNAPSHOT_POLL_UPCOMING_MS = 2 * 60 * 1000;  // 2 minutes
-const SNAPSHOT_POLL_MIDRANGE_MS = 5 * 60 * 1000;  // 5 minutes
-const SNAPSHOT_POLL_FAR_FUTURE_MS = 15 * 60 * 1000; // 15 minutes
-const SNAPSHOT_POLL_IDLE_MS = 15 * 60 * 1000;       // 15 minutes
+const SNAPSHOT_POLLING_MODE = 'conservative';
+
+const AGGRESSIVE_POLLING = {
+  live: 60 * 1000,
+  startingSoon: 60 * 1000,
+  within3Hours: 2 * 60 * 1000,
+  within12Hours: 2 * 60 * 1000,
+  within24Hours: 2 * 60 * 1000,
+  within72Hours: 2 * 60 * 1000,
+  within7Days: 5 * 60 * 1000,
+  farFuture: 15 * 60 * 1000,
+  idle: 15 * 60 * 1000
+};
+
+const CONSERVATIVE_POLLING = {
+  live: 2 * 60 * 1000,
+  startingSoon: 2 * 60 * 1000,
+  within3Hours: 10 * 60 * 1000,
+  within12Hours: 20 * 60 * 1000,
+  within24Hours: 30 * 60 * 1000,
+  within72Hours: 60 * 60 * 1000,
+  within7Days: 4 * 60 * 60 * 1000,
+  farFuture: 8 * 60 * 60 * 1000,
+  idle: 8 * 60 * 60 * 1000
+};
+
+const SNAPSHOT_POLLING =
+  SNAPSHOT_POLLING_MODE === 'aggressive'
+    ? AGGRESSIVE_POLLING
+    : CONSERVATIVE_POLLING;
 
 function getSnapshotPollingInterval(payload) {
   const games = Array.isArray(payload?.games)
@@ -39,7 +63,7 @@ function getSnapshotPollingInterval(payload) {
   });
 
   if (hasLiveGame) {
-    return SNAPSHOT_POLL_LIVE_MS;
+    return SNAPSHOT_POLLING.live;
   }
 
   const hasStartingSoonGame = games.some(game => {
@@ -63,7 +87,7 @@ function getSnapshotPollingInterval(payload) {
   });
 
   if (hasStartingSoonGame) {
-    return SNAPSHOT_POLL_STARTING_SOON_MS;
+    return SNAPSHOT_POLLING.startingSoon;
   }
 
   const hoursUntilNextGame = games.reduce(
@@ -93,19 +117,47 @@ function getSnapshotPollingInterval(payload) {
     Infinity
   );
 
-  if (hoursUntilNextGame <= 72) {
-    return SNAPSHOT_POLL_UPCOMING_MS;
+  if (SNAPSHOT_POLLING_MODE === 'aggressive') {
+    if (hoursUntilNextGame <= 72) {
+      return SNAPSHOT_POLLING.within72Hours;
+    }
+
+    if (hoursUntilNextGame <= 168) {
+      return SNAPSHOT_POLLING.within7Days;
+    }
+
+    if (Number.isFinite(hoursUntilNextGame)) {
+      return SNAPSHOT_POLLING.farFuture;
+    }
+
+    return SNAPSHOT_POLLING.idle;
   }
 
-  if (hoursUntilNextGame <= 168) {
-    return SNAPSHOT_POLL_MIDRANGE_MS;
-  }
+if (hoursUntilNextGame <= 3) {
+  return SNAPSHOT_POLLING.within3Hours;
+}
 
-  if (Number.isFinite(hoursUntilNextGame)) {
-    return SNAPSHOT_POLL_FAR_FUTURE_MS;
-  }
+if (hoursUntilNextGame <= 12) {
+  return SNAPSHOT_POLLING.within12Hours;
+}
 
-  return SNAPSHOT_POLL_IDLE_MS;
+if (hoursUntilNextGame <= 24) {
+  return SNAPSHOT_POLLING.within24Hours;
+}
+
+if (hoursUntilNextGame <= 72) {
+  return SNAPSHOT_POLLING.within72Hours;
+}
+
+if (hoursUntilNextGame <= 168) {
+  return SNAPSHOT_POLLING.within7Days;
+}
+
+if (Number.isFinite(hoursUntilNextGame)) {
+  return SNAPSHOT_POLLING.farFuture;
+}
+
+return SNAPSHOT_POLLING.idle;
 }
 
 function isSnapshotDue(snapshotRow) {
@@ -566,7 +618,7 @@ async function updateSportSnapshot(
 export default async function handler(req, res) {
   const cronSecret = process.env.CRON_SECRET;
 
-    if (!cronSecret) {
+if (!cronSecret) {
     return res.status(500).json({
       ok: false,
       error: 'Missing CRON_SECRET'
