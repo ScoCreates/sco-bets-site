@@ -1669,6 +1669,22 @@ button:active {
 
 }
 
+@media (max-width: 700px) {
+  .mlb-second-base {
+    left: 7px !important;
+  }
+
+  .mlb-first-base {
+    right: 1px !important;
+  }
+}
+
+@keyframes sco-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1793,6 +1809,30 @@ window.addEventListener("DOMContentLoaded", checkAccess);
     Live sportsbook odds & market intelligence
   </span>
 
+  <span
+    id="dashboard-loading-indicator"
+    style="
+      display:none;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      white-space:nowrap;
+    "
+  >
+    <span
+      style="
+        width:12px;
+        height:12px;
+        border:2px solid rgba(255,255,255,0.22);
+        border-top-color:#00ff88;
+        border-radius:50%;
+        display:inline-block;
+        animation:sco-spin 0.8s linear infinite;
+      "
+    ></span>
+    <span id="dashboard-loading-text">Loading live market data...</span>
+  </span>
+
   <span class="banner-right">
     Live odds — refresh for the latest market updates.
   </span>
@@ -1890,7 +1930,31 @@ window.addEventListener("DOMContentLoaded", checkAccess);
   <div class="card odds-section">
     <h3 id="odds-heading">Live NCAA Basketball Odds</h3>
 
-  <div id="odds-status" class="muted" style="margin-top:8px;">Loading live odds...</div>
+  <div
+  id="odds-status"
+  class="muted"
+  style="
+    margin-top:8px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    min-height:18px;
+  "
+>
+  <span
+    id="odds-loading-spinner"
+    style="
+      width:12px;
+      height:12px;
+      border:2px solid rgba(255,255,255,0.18);
+      border-top-color:#9ca3af;
+      border-radius:50%;
+      display:inline-block;
+      animation:sco-spin 0.8s linear infinite;
+    "
+  ></span>
+  <span id="odds-status-text">Loading live odds...</span>
+</div>
   <div id="last-updated" class="muted" style="margin-top:4px;"></div>
 
   <div class="helper-toggle" onclick="toggleWhy('odds-help-content', this)">
@@ -2167,6 +2231,34 @@ function trackOddsRowClick(bookName, gameName, teamName, odds) {
 }
 
 function renderBookmakersWithHighlights(game) {
+  const selectedSport =
+    document.getElementById('sport-select')?.value ||
+    'baseball_mlb';
+
+  const marketVerifiedAt =
+    window.marketVerifiedAtBySport?.[selectedSport] ||
+    null;
+
+  const expectedVerificationInterval =
+    getExpectedMarketVerificationInterval(
+      window.currentOddsSnapshot || []
+    );
+
+  const verificationAge =
+    marketVerifiedAt
+      ? Date.now() - new Date(marketVerifiedAt).getTime()
+      : Infinity;
+
+  const verificationHealthWindow =
+    Math.max(
+      expectedVerificationInterval * 1.5,
+      3 * 60 * 1000
+    );
+
+  const isMarketVerificationHealthy =
+    Number.isFinite(verificationAge) &&
+    verificationAge <= verificationHealthWindow;	
+	
   const bestByTeam = {};
   const pricesByTeam = {};
 
@@ -2715,16 +2807,39 @@ pricesByTeam[outcome.name].push(outcome.price);
               return `<span style="color:#fbbf24; font-weight:600;"> • Updated ${ageText}</span>`;
             }
 
-    return `
+    if (isMarketVerificationHealthy && marketVerifiedAt) {
+  const verifiedTime =
+    new Date(marketVerifiedAt).toLocaleTimeString(
+      [],
+      {
+        hour: 'numeric',
+        minute: '2-digit'
+      }
+    );
+
+  return `
+    <span style="color:#9ca3af; font-weight:600;">
+      •
+      <span class="hold-tooltip">
+        Price verified ⓘ
+        <span class="hold-tooltip-text">
+          We successfully checked the market feed at ${verifiedTime} and confirmed this is still the price being supplied. This market is checked based on its current game schedule. The source reports this bookmaker price was last updated ${ageText}.
+        </span>
+      </span>
+    </span>
+  `;
+}
+
+return `
   <span style="color:#f87171; font-weight:600;">
     •
     <span class="hold-tooltip">
       Verify current price ⓘ
       <span class="hold-tooltip-text">
-        These odds have not been updated recently. They may still be accurate, but it might be a good idea to click Open and verify the current sportsbook price before placing a live bet.
+        SCO Bets AI has not verified this market within its expected polling window. Consider clicking Open to confirm the current sportsbook price before placing a bet.
       </span>
     </span>
-    • ${ageText}
+    • Last source update ${ageText}
   </span>
 `;
           })() : ''}
@@ -3729,12 +3844,29 @@ const liveText = espn && espn.statusState === 'in'
    ========================================================== */
 
 function buildMiniScoreboard(game) {
-     const espn = game?.espnStatus;
+     const espn = game?.freshEspnStatus || game?.espnStatus;
+	 
+if (
+  String(game?.away || '').includes('Cardinals') &&
+  String(game?.home || '').includes('Phillies')
+) {
+  console.log('CARDINALS SCOREBOARD SOURCE:', {
+    hasFreshEspnStatus: Boolean(game?.freshEspnStatus),
+    freshStatusName: game?.freshEspnStatus?.statusName,
+    freshStatusDetail: game?.freshEspnStatus?.statusDetail,
+    embeddedStatusName: game?.espnStatus?.statusName,
+    embeddedStatusDetail: game?.espnStatus?.statusDetail,
+    chosenStatusName: espn?.statusName,
+    chosenStatusDetail: espn?.statusDetail
+  });
+}	 
+	 
 window.scoPregameStatusCache =
   window.scoPregameStatusCache || {};	 
-  console.log('SCOREBOARD ESPN OBJECT:', espn);
+ // console.log('SCOREBOARD ESPN OBJECT:', espn);
 
- console.log(
+ /*
+console.log(
   `ESPN STATUS CATALOG | ID: ${espn?.id || 'unknown'} | ${espn?.gameKey || 'unknown'} | ${espn?.awayShort || 'AWY'} @ ${espn?.homeShort || 'HME'} | ${espn?.date || 'unknown date'}`,
   {
     game: `${espn?.awayShort} @ ${espn?.homeShort}`,
@@ -3751,6 +3883,7 @@ window.scoPregameStatusCache =
     clock: espn?.clock
   }
 );
+*/
 
   const selectedSport = document.getElementById('sport-select')?.value || '';
   const gameDate = new Date(getGameCommenceTime(game));
@@ -3772,6 +3905,30 @@ const startTime = gameDate.toLocaleTimeString([], {
 });
 
 const now = new Date();
+
+const isToday =
+  gameDate.toDateString() ===
+  now.toDateString();
+
+const tomorrow = new Date(now);
+tomorrow.setDate(now.getDate() + 1);
+
+const isTomorrow =
+  gameDate.toDateString() ===
+  tomorrow.toDateString();
+
+let fallbackDateText = '';
+
+if (isTomorrow) {
+  fallbackDateText = 'TOMORROW';
+} else if (!isToday) {
+  fallbackDateText =
+    gameDate.toLocaleDateString([], {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    }).toUpperCase();
+}
 
 const minutesUntilStart =
   (gameDate.getTime() - now.getTime()) /
@@ -3817,7 +3974,7 @@ return `
         letter-spacing:0.04em;
         white-space:nowrap;
       ">
-        ● ${fallbackStatusLabel} ${startTime}
+        ● ${fallbackStatusLabel}${fallbackDateText ? ` • ${fallbackDateText} •` : ''} ${startTime}
       </div>
     </div>
   `;
@@ -3928,6 +4085,7 @@ const isLive =
            ? `${homeAbbr} (${homeRecord})`
            : homeAbbr;
 
+/*
 console.log('SCOREBOARD RECORDS:', {
   awayAbbr,
   awayRecord,
@@ -3937,6 +4095,7 @@ console.log('SCOREBOARD RECORDS:', {
   homeLabel,
   espn
 });
+*/
 
 
   const awayScore = espn.awayScore ?? 0;
@@ -4058,6 +4217,108 @@ if (liveStatusText.includes('halftime')) {
 } else if (liveStatusText.includes('intermission')) {
   statusLabel = 'INTERMISSION';
   context = '';
+} else if (
+  selectedSport.startsWith('baseball')
+) {
+  const baseballDetail =
+    String(
+      espn.statusDetail ||
+      espn.statusDescription ||
+      ''
+    ).trim();
+
+  const baseballDetailLower =
+    baseballDetail.toLowerCase();
+
+  const isActiveHalfInning =
+    baseballDetailLower.includes('top') ||
+    baseballDetailLower.includes('bottom');
+
+  if (isActiveHalfInning) {
+  const balls = Number(espn.balls ?? 0);
+  const strikes = Number(espn.strikes ?? 0);
+  const outs = Number(espn.outs ?? 0);
+
+  const outsText =
+    outs === 1
+      ? '1 OUT'
+      : `${outs} OUTS`;
+
+  const baseIndicators = `
+  <span
+    style="
+      position:relative;
+      display:inline-block;
+      width:27px;
+      height:11px;
+      vertical-align:middle;
+    "
+  >
+      <span
+        class="mlb-second-base"
+        title="Second base"
+        style="
+        position:absolute;
+        top:-8px;
+        left:8px;
+        color:${espn.onSecond ? '#00ff88' : '#9ca3af'};
+        font-size:12px;
+        line-height:12px;
+      "
+    >${espn.onSecond ? '◆' : '◇'}</span>
+
+    <span
+      title="Third base"
+      style="
+        position:absolute;
+        bottom:0;
+        left:0;
+        color:${espn.onThird ? '#00ff88' : '#9ca3af'};
+        font-size:12px;
+        line-height:12px;
+      "
+    >${espn.onThird ? '◆' : '◇'}</span>
+
+      <span
+        class="mlb-first-base"
+        title="First base"
+        style="
+        position:absolute;
+        bottom:0;
+        right:0;
+        color:${espn.onFirst ? '#00ff88' : '#9ca3af'};
+        font-size:12px;
+        line-height:12px;
+      "
+    >${espn.onFirst ? '◆' : '◇'}</span>
+  </span>
+`;
+
+  context = `
+    <span>${baseballDetail}</span>
+
+    <span
+      style="
+        display:inline-flex;
+        align-items:center;
+        gap:3px;
+        margin-left:18px;
+      "
+    >
+      ${baseIndicators}
+    </span>
+
+    <span style="display:inline-block; margin-left:18px;">
+      ${balls}-${strikes}
+    </span>
+
+    <span style="display:inline-block; margin-left:18px;">
+      ${outsText}
+    </span>
+  `;
+} else {
+    context = baseballDetail;
+  }
 } else if (
   selectedSport.includes('soccer')
 ) {
@@ -4482,7 +4743,9 @@ else {
         `;
       }).join('')}
 
-      <strong class="mlb-total">${homeTotalDisplay}</strong>
+            <strong class="mlb-total">${homeTotalDisplay}</strong>
+
+      
     </div>
   `;
 }
@@ -4952,7 +5215,9 @@ function getOddsPollingInterval(games) {
   const now = Date.now();
 
   const hasLiveGame = games.some(game => {
-    const espn = game?.espnStatus;
+    const espn =
+      game?.freshEspnStatus ||
+      game?.espnStatus;
 
     return (
       espn?.statusState === 'in' &&
@@ -5046,7 +5311,93 @@ function scheduleNextOddsPoll() {
 
     scheduleNextOddsPoll();
   }, delay);
-}  
+}
+
+async function refreshIndependentScoreboards() {
+  if (document.hidden) {
+    return;
+  }
+
+  const sport =
+    document.getElementById('sport-select')?.value || '';
+
+  if (!sport || !Array.isArray(latestPollingGames)) {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `/api/scores?sport=${encodeURIComponent(sport)}`
+    );
+
+    if (!response.ok) {
+      return;
+    }
+
+    const payload = await response.json();
+
+    const freshGames =
+      Array.isArray(payload.games)
+        ? payload.games
+        : [];
+
+    const normalizeTeam = value =>
+      String(value || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
+
+    const freshByMatchup = new Map(
+  freshGames.map(game => [
+    `${normalizeTeam(game.awayTeam)}_${normalizeTeam(game.homeTeam)}_${String(game.date || '').slice(0, 10)}`,
+    game
+  ])
+);
+
+latestPollingGames.forEach(game => {
+  const gameDate =
+    String(
+      game.commence_time ||
+      game.commenceTime ||
+      game.startTime ||
+      ''
+    ).slice(0, 10);
+
+  const matchupKey =
+    `${normalizeTeam(game.away)}_${normalizeTeam(game.home)}_${gameDate}`;
+
+  const freshEspnGame =
+    freshByMatchup.get(matchupKey);
+
+  if (!freshEspnGame) {
+    return;
+  }
+
+  game.freshEspnStatus = freshEspnGame;
+
+      const gameCard =
+        document.getElementById(
+          `game-${getGameKey(game)}`
+        );
+
+      const scoreboard =
+        gameCard?.querySelector('.game-summary-right');
+
+      if (scoreboard) {
+        scoreboard.innerHTML =
+          buildMiniScoreboard(game);
+      }
+    });
+  } catch (err) {
+    console.error(
+      'INDEPENDENT SCOREBOARD REFRESH FAILED:',
+      err
+    );
+  }
+}
+
+setInterval(() => {
+  refreshIndependentScoreboards();
+}, 15 * 1000);
 
 async function loadOdds() {
      const teamSelectReset = document.getElementById('team-select');
@@ -5099,7 +5450,83 @@ navButton.textContent = 'Home';
   window.currentOddsSnapshot =
     window.currentOddsSnapshot || [];
 
+  window.marketVerifiedAtBySport =
+    window.marketVerifiedAtBySport || {};
+	
+function getExpectedMarketVerificationInterval(games = []) {
+  const now = Date.now();
+
+  const hasLiveGame = games.some(game => {
+    const espn = game?.espnStatus;
+
+    return (
+      espn?.statusState === 'in' &&
+      !String(espn?.statusDescription || '')
+        .toLowerCase()
+        .includes('delay')
+    );
+  });
+
+  if (hasLiveGame) {
+    return 60 * 1000;
+  }
+
+  const futureStartTimes = games
+    .map(game =>
+      new Date(
+        game.commence_time ||
+        game.commenceTime ||
+        game.startTime
+      ).getTime()
+    )
+    .filter(startTime =>
+      Number.isFinite(startTime) &&
+      startTime > now
+    );
+
+  const minutesUntilNextGame =
+    futureStartTimes.length
+      ? (Math.min(...futureStartTimes) - now) / 60000
+      : Infinity;
+
+  if (minutesUntilNextGame <= 120) {
+    return 60 * 1000;
+  }
+
+  const hoursUntilNextGame =
+    minutesUntilNextGame / 60;
+
+  if (hoursUntilNextGame <= 3) {
+    return 5 * 60 * 1000;
+  }
+
+  if (hoursUntilNextGame <= 12) {
+    return 10 * 60 * 1000;
+  }
+
+  if (hoursUntilNextGame <= 24) {
+    return 30 * 60 * 1000;
+  }
+
+  if (hoursUntilNextGame <= 72) {
+    return 60 * 60 * 1000;
+  }
+
+  if (hoursUntilNextGame <= 168) {
+    return 4 * 60 * 60 * 1000;
+  }
+
+  return 8 * 60 * 60 * 1000;
+}
+
+window.getExpectedMarketVerificationInterval =
+  getExpectedMarketVerificationInterval;	
+
   const status = document.getElementById('odds-status');
+  const statusText = document.getElementById('odds-status-text');
+  const loadingSpinner = document.getElementById('odds-loading-spinner');
+  const dashboardLoadingIndicator = document.getElementById('dashboard-loading-indicator');
+  const dashboardLoadingText = document.getElementById('dashboard-loading-text');
   const list = document.getElementById('odds-list');
   const statGames = document.getElementById('stat-games');
   const statTodayGames = document.getElementById('stat-today-games');
@@ -5156,8 +5583,12 @@ navButton.textContent = 'Home';
     refreshBtn.textContent = 'Refreshing...';
   }
 
-  if (status) {
-    status.textContent = 'Refreshing live odds...';
+  if (statusText) {
+  statusText.textContent = 'Refreshing live odds...';
+  }
+
+  if (loadingSpinner) {
+    loadingSpinner.style.display = 'inline-block';
   }
 
   const loadingSportLabel =
@@ -5174,6 +5605,15 @@ navButton.textContent = 'Home';
               : sport === 'basketball_wncaab'
               ? 'NCAA (W)'
               : 'NCAA (M)';
+			  
+  	if (dashboardLoadingText) {
+      dashboardLoadingText.textContent =
+        `Loading ${loadingSportLabel} market data...`;
+    }
+
+    if (dashboardLoadingIndicator) {
+      dashboardLoadingIndicator.style.display = 'inline-flex';
+    }		  
 
   if (statGames) statGames.textContent = '...';
   if (statEdge) statEdge.textContent = '...';
@@ -5206,13 +5646,22 @@ navButton.textContent = 'Home';
         ? `/api/odds-snapshot?sport=${sport}`
         : `/api/odds?sport=${sport}`;
 
-      const res = await fetch(oddsEndpoint);
-      if (!res.ok) throw new Error('Failed to load odds');
+    const res = await fetch(oddsEndpoint);
+    if (!res.ok) throw new Error('Failed to load odds');
 
-      const payload = await res.json();
+    const marketVerifiedAt =
+      res.headers.get('X-Snapshot-Fetched-At') ||
+      null;
 
-      const currentlySelectedSport =
-        document.getElementById('sport-select')?.value || '';
+    const payload = await res.json();
+
+    if (marketVerifiedAt) {
+      window.marketVerifiedAtBySport[sport] =
+        marketVerifiedAt;
+    }
+
+    const currentlySelectedSport =
+      document.getElementById('sport-select')?.value || '';
 
       if (sport !== currentlySelectedSport) {
         return;
@@ -5222,11 +5671,70 @@ navButton.textContent = 'Home';
         window.currentOddsSnapshots[sport] || [];	  
 
     const games = Array.isArray(payload.games) ? payload.games : [];
-	latestPollingGames = games;
 
-    const completedGames = Array.isArray(payload.completedGames)
-      ? payload.completedGames
-      : [];
+let freshEspnGames = [];
+
+try {
+  const scoresResponse = await fetch(
+    `/api/scores?sport=${encodeURIComponent(sport)}`
+  );
+
+  if (scoresResponse.ok) {
+    const scoresPayload = await scoresResponse.json();
+
+    freshEspnGames =
+      Array.isArray(scoresPayload.games)
+        ? scoresPayload.games
+        : [];
+  }
+} catch (err) {
+  freshEspnGames = [];
+}
+
+console.log(
+  'INDEPENDENT ESPN SCOREBOARD:',
+  sport,
+  freshEspnGames.length,
+  freshEspnGames
+);
+
+latestPollingGames = games;
+
+const completedGames = Array.isArray(payload.completedGames)
+  ? payload.completedGames
+  : [];
+  
+const normalizeScoreboardTeamName = value =>
+  String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+
+const freshEspnByMatchup = new Map(
+  freshEspnGames.map(game => [
+    `${normalizeScoreboardTeamName(game.awayTeam)}_${normalizeScoreboardTeamName(game.homeTeam)}_${String(game.date || '').slice(0, 10)}`,
+    game
+  ])
+);
+
+games.forEach(game => {
+  const gameDate =
+    String(
+      game.commence_time ||
+      game.commenceTime ||
+      game.startTime ||
+      ''
+    ).slice(0, 10);
+
+  const matchupKey =
+    `${normalizeScoreboardTeamName(game.away)}_${normalizeScoreboardTeamName(game.home)}_${gameDate}`;
+
+  const freshEspnGame =
+    freshEspnByMatchup.get(matchupKey);
+
+  if (freshEspnGame) {
+    game.freshEspnStatus = freshEspnGame;
+  }
+}); 
 
 completedGames.forEach(espnGame => {
   upsertCompletedGameFromApi(espnGame, sport);
@@ -5330,13 +5838,18 @@ try {
 }  
 
 games.forEach(game => {
-  const isFinalGame =
-    game.status === 'final' ||
-    game.espnStatus?.statusState === 'post' ||
-    game.espnStatus?.statusName === 'STATUS_FINAL' ||
-    String(
-      game.espnStatus?.statusDescription || ''
-    ).toLowerCase() === 'final';
+  const currentEspnStatus =
+  game?.freshEspnStatus ||
+  game?.espnStatus ||
+  {};
+
+const isFinalGame =
+  game.status === 'final' ||
+  currentEspnStatus.statusState === 'post' ||
+  currentEspnStatus.statusName === 'STATUS_FINAL' ||
+  String(
+    currentEspnStatus.statusDescription || ''
+  ).toLowerCase() === 'final';
 
   if (!isFinalGame) {
     return;
@@ -5404,11 +5917,14 @@ games.forEach(game => {
   }
 
   sportFinalTransitionCache[gameKey] = {
-    ...game,
-    finalObservedAt:
-      existingFinal?.finalObservedAt ||
-      Date.now()
-  };
+  ...game,
+  status: 'final',
+  cachedFinal: true,
+  espnStatus: currentEspnStatus,
+  finalObservedAt:
+    existingFinal?.finalObservedAt ||
+    Date.now()
+};
   
  try {
   localStorage.setItem(
@@ -5574,37 +6090,65 @@ try {
 
 
     if (statGames) {
-               const availableGames = games.filter(game => {
-                    const status = String(game.status || '').toLowerCase();
+  const availableGames = games.filter(game => {
+    const status = String(game.status || '').toLowerCase();
 
-                   return (
-                        status !== 'final' &&
-                        status !== 'completed'
-                    );
-                });
+    const currentEspnStatus =
+      game?.freshEspnStatus ||
+      game?.espnStatus ||
+      {};
 
-              statGames.textContent = String(availableGames.length);
-         }
+    const espnStatusName =
+      String(currentEspnStatus.statusName || '').toUpperCase();
 
-   if (statTodayGames) {
-            const todayLocalDate = new Date().toLocaleDateString('en-CA');
+    const espnStatusState =
+      String(currentEspnStatus.statusState || '').toLowerCase();
 
-    const todayGames = games.filter(game => {
-                if (!game.commence_time) return false;
+    const isClosed =
+      status === 'final' ||
+      status === 'completed' ||
+      espnStatusName === 'STATUS_FINAL' ||
+      espnStatusState === 'post';
 
-               const gameLocalDate = new Date(game.commence_time).toLocaleDateString('en-CA');
+    return !isClosed;
+  });
 
-               const isClosed =
-                    game.status === 'final' ||
-                    game.status === 'completed' ||
-                    game.completed === true ||
-                    game.cachedFinal === true;
+  statGames.textContent = String(availableGames.length);
+}
 
-      return gameLocalDate === todayLocalDate && !isClosed;
-           });
+if (statTodayGames) {
+  const todayLocalDate = new Date().toLocaleDateString('en-CA');
 
-           statTodayGames.textContent = String(todayGames.length);
-    }
+  const todayGames = games.filter(game => {
+    if (!game.commence_time) return false;
+
+    const gameLocalDate =
+      new Date(game.commence_time).toLocaleDateString('en-CA');
+
+    const currentEspnStatus =
+      game?.freshEspnStatus ||
+      game?.espnStatus ||
+      {};
+
+    const espnStatusName =
+      String(currentEspnStatus.statusName || '').toUpperCase();
+
+    const espnStatusState =
+      String(currentEspnStatus.statusState || '').toLowerCase();
+
+    const isClosed =
+      game.status === 'final' ||
+      game.status === 'completed' ||
+      game.completed === true ||
+      game.cachedFinal === true ||
+      espnStatusName === 'STATUS_FINAL' ||
+      espnStatusState === 'post';
+
+    return gameLocalDate === todayLocalDate && !isClosed;
+  });
+
+  statTodayGames.textContent = String(todayGames.length);
+}
 
     const sportLabel =
       payload.sport === 'basketball_nba'
@@ -5638,8 +6182,16 @@ try {
       lastUpdated.textContent = `Last updated: ${formattedTime} · Updated just now`;
     }
 
-    if (status) {
-      status.textContent = '';
+    if (statusText) {
+      statusText.textContent = '';
+    }
+
+    if (loadingSpinner) {
+      loadingSpinner.style.display = 'none';
+    }
+	
+	if (dashboardLoadingIndicator) {
+      dashboardLoadingIndicator.style.display = 'none';
     }
 
     const hasRetainedFinalTransitions = Object.values(
@@ -5801,7 +6353,28 @@ try {
     const finalizedGames = window.finalizedGames;
 
     games.forEach(game => {
-      const teamMarkets = {};
+  const gameStatusInfo =
+    formatGameStatus(
+      getGameCommenceTime(game),
+      game
+    );
+
+  const currentEspnStatus =
+    game?.freshEspnStatus ||
+    game?.espnStatus ||
+    {};
+
+  const isGameClosedForValue =
+    game.status === 'final' ||
+    game.cachedFinal ||
+    currentEspnStatus.statusState === 'post' ||
+    currentEspnStatus.statusName === 'STATUS_FINAL' ||
+    gameStatusInfo.status === 'final' ||
+    gameStatusInfo.status === 'closed';
+
+  if (isGameClosedForValue) return;
+
+  const teamMarkets = {};
       
       (game.bookmakers || []).forEach(book => {
         (book.odds || []).forEach(outcome => {
@@ -6238,11 +6811,18 @@ try {
     games.forEach(game => {
                const gameStatusInfo = formatGameStatus(getGameCommenceTime(game), game);
 
-              const isGameClosedForArb =
-                   game.status === 'final' ||
-                  game.cachedFinal ||
-                 gameStatusInfo.status === 'final' ||
-                 gameStatusInfo.status === 'closed';
+const currentEspnStatus =
+  game?.freshEspnStatus ||
+  game?.espnStatus ||
+  {};
+
+const isGameClosedForArb =
+  game.status === 'final' ||
+  game.cachedFinal ||
+  currentEspnStatus.statusState === 'post' ||
+  currentEspnStatus.statusName === 'STATUS_FINAL' ||
+  gameStatusInfo.status === 'final' ||
+  gameStatusInfo.status === 'closed';
 
              if (isGameClosedForArb) return;
 
@@ -6789,7 +7369,10 @@ mergedGames.forEach(game => {
 });
 
 const visibleGames = mergedGames.filter(game => {
-  const espn = game?.espnStatus || {};
+  const espn =
+    game?.freshEspnStatus ||
+    game?.espnStatus ||
+    {};
 
   const statusName =
     String(espn.statusName || '').toUpperCase();
@@ -7090,13 +7673,16 @@ if (aIsFinal && bIsFinal) {
           const scoreChangeClass = isLiveStatus ? getLiveScoreChangeClass(game) : '';
           const scoreAnimation = 'none';
 
-        if (
+        const currentEspnStatus =
+  game?.freshEspnStatus || game?.espnStatus;
+
+if (
   game.status === 'final' ||
-  game.espnStatus?.statusState === 'post'
+  currentEspnStatus?.statusState === 'post'
 ) {
   isFinalStatus = true;
 
-  const espn = game.espnStatus;
+  const espn = currentEspnStatus;
 
   if (espn) {
     console.log(
@@ -7123,28 +7709,28 @@ if (aIsFinal && bIsFinal) {
 
   const completedKey = getGameKey(game);
 
-                         if (completedKey) {
-                                                                       markGameCompletedIfObserved(game, sport);
+    if (completedKey) {
+      markGameCompletedIfObserved(game, sport);
 
-                                                                       try {
-                                                                            localStorage.setItem(
-                                                                               `scoCompletedGamesCache_${sport}`,
-                                                                              JSON.stringify(window.completedGamesCache)
-                                                                            );
-                                                                       } catch (err) {
-                                                                         // If storage fails, completed games still work for this session.
-                                                                      }
-                                                                 }
+    try {
+       localStorage.setItem(
+       `scoCompletedGamesCache_${sport}`,
+        JSON.stringify(window.completedGamesCache)
+       );
+        } catch (err) {
+      // If storage fails, completed games still work for this session.
+       }
+     }
 
-                        const finalScores = Array.isArray(game.scores) ? game.scores : [];
+  const finalScores = Array.isArray(game.scores) ? game.scores : [];
 
-                        const homeScore =
-                             finalScores.find(s => s.name === game.home)?.score ??
-                             game.espnStatus?.homeScore;
+  const homeScore =
+    finalScores.find(s => s.name === game.home)?.score ??
+    currentEspnStatus?.homeScore;
 
-                        const awayScore =
-                              finalScores.find(s => s.name === game.away)?.score ??
-                              game.espnStatus?.awayScore;
+  const awayScore =
+    finalScores.find(s => s.name === game.away)?.score ??
+    currentEspnStatus?.awayScore;
 
                         const hasValidScores =
                              homeScore !== undefined &&
@@ -7269,8 +7855,16 @@ ${gameSignal ? `
 } catch (err) {
   console.error(err);
 
+  if (statusText) {
+  statusText.textContent =
+    'Live odds are temporarily unavailable. Please refresh shortly.';
+  }
+
+  if (loadingSpinner) {
+    loadingSpinner.style.display = 'none';
+  }
+
   if (status) {
-    status.textContent = 'Live odds are temporarily unavailable. Please refresh shortly.';
     status.classList.remove('positive');
   }
 
@@ -7823,6 +8417,13 @@ const savedSport = localStorage.getItem('selectedSport');
 if (savedSport && sportSelect) {
   sportSelect.value = savedSport;
 }
+
+const initialSportForHistory =
+  sportSelect?.value ||
+  savedSport ||
+  'baseball_mlb';
+
+loadOddsHistoryStateForSport(initialSportForHistory);
 
 if (sportSelect) {
   sportSelect.addEventListener('change', () => {

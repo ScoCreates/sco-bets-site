@@ -26,10 +26,10 @@ const AGGRESSIVE_POLLING = {
 };
 
 const CONSERVATIVE_POLLING = {
-  live: 2 * 60 * 1000,
-  startingSoon: 2 * 60 * 1000,
-  within3Hours: 10 * 60 * 1000,
-  within12Hours: 20 * 60 * 1000,
+  live: 60 * 1000,
+  startingSoon: 60 * 1000,
+  within3Hours: 5 * 60 * 1000,
+  within12Hours: 10 * 60 * 1000,
   within24Hours: 30 * 60 * 1000,
   within72Hours: 60 * 60 * 1000,
   within7Days: 4 * 60 * 60 * 1000,
@@ -82,7 +82,7 @@ function getSnapshotPollingInterval(payload) {
 
     return (
       minutesUntilStart > 0 &&
-      minutesUntilStart <= 60
+      minutesUntilStart <= 120
     );
   });
 
@@ -546,6 +546,8 @@ async function updateSportSnapshot(
     await supabase
       .from('odds_snapshots')
       .update({
+        payload: snapshotPayload,
+        schema_version: 1,
         fetched_at: snapshotTime,
         last_success_at: snapshotTime,
         last_error: null,

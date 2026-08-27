@@ -48,6 +48,7 @@ export default async function handler(req, res) {
 
       const status = event.status || {};
       const type = status.type || {};
+      const situation = competition?.situation || {};
 
       return {
         id: event.id,
@@ -60,6 +61,37 @@ export default async function handler(req, res) {
         statusDetail: type.detail || null,
         period: status.period || null,
         clock: status.displayClock || null,
+		
+		balls:
+          sport === 'baseball_mlb'
+            ? situation.balls ?? null
+            : null,
+
+        strikes:
+          sport === 'baseball_mlb'
+            ? situation.strikes ?? null
+            : null,
+
+        outs:
+          sport === 'baseball_mlb'
+            ? situation.outs ?? null
+            : null,
+
+        onFirst:
+          sport === 'baseball_mlb'
+            ? Boolean(situation.onFirst)
+            : false,
+
+        onSecond:
+          sport === 'baseball_mlb'
+            ? Boolean(situation.onSecond)
+            : false,
+
+        onThird:
+          sport === 'baseball_mlb'
+            ? Boolean(situation.onThird)
+            : false,
+		
         homeTeam: home?.team?.displayName || null,
         awayTeam: away?.team?.displayName || null,
         homeShort: home?.team?.abbreviation || null,
