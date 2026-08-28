@@ -24,7 +24,11 @@ module.exports = async (req, res) => {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
-        const email = session.customer_email ? session.customer_email.trim().toLowerCase() : null;
+        const email = (
+          session.customer_email ||
+          session.customer_details?.email ||
+          ""
+        ).trim().toLowerCase() || null;
         const stripeCustomerId = session.customer || null;
         const stripeSubscriptionId = session.subscription || null;
 
