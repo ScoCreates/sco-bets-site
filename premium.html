@@ -7325,13 +7325,31 @@ try {
   // If storage fails, retention still works for this session.
 }
 
+const authoritativeCompletedGameKeys =
+  new Set(
+    authoritativeCompletedGames
+      .map(completedGame =>
+        completedGame.gameKey ||
+        getGameKey(completedGame)
+      )
+      .filter(Boolean)
+  );
+
+const activeGames = games.filter(game =>
+  !authoritativeCompletedGameKeys.has(
+    getGameKey(game)
+  )
+);
+
+latestPollingGames = activeGames;
+
 const retainedFinalGames = Object.values(
   sportFinalTransitionCache || {}
 )
   .filter(finalGame => {
     const finalGameKey = getGameKey(finalGame);
 
-    return !games.some(game =>
+    return !activeGames.some(game =>
       getGameKey(game) === finalGameKey
     );
   })
@@ -7345,7 +7363,7 @@ const retainedFinalGames = Object.values(
   }));
 
 const mergedGames = [
-  ...games,
+  ...activeGames,
   ...retainedFinalGames
 ];
 
