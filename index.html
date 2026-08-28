@@ -1770,10 +1770,6 @@ and avoid bad bets when the numbers don’t support it.
 
       resetHomepageUi();
 
-      window.addEventListener("focus", function () {
-        resetHomepageUi();
-      });
-
       document.addEventListener("visibilitychange", function () {
         if (!document.hidden) {
           resetHomepageUi();
