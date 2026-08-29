@@ -546,8 +546,6 @@ async function updateSportSnapshot(
     await supabase
       .from('odds_snapshots')
       .update({
-        payload: snapshotPayload,
-        schema_version: 1,
         fetched_at: snapshotTime,
         last_success_at: snapshotTime,
         last_error: null,
