@@ -199,24 +199,34 @@ export default async function handler(req, res) {
       ? requestedSport
       : 'basketball_nba';
 
-    const oddsApiSport =
-  sport === 'americanfootball_nfl'
-    ? 'americanfootball_nfl_preseason'
-    : sport;
+    const oddsApiSports =
+  sport === 'americanfootball_ncaaf'
+    ? ['americanfootball_ncaaf', 'americanfootball_ncaaf_fcs']
+    : sport === 'americanfootball_nfl'
+    ? ['americanfootball_nfl_preseason']
+    : [sport];
 
-const url = `https://api.the-odds-api.com/v4/sports/${oddsApiSport}/odds?regions=us&markets=h2h&oddsFormat=american&bookmakers=draftkings,fanduel,betmgm,fanatics,williamhill_us&apiKey=${apiKey}`;
+let data = [];
 
-    const response = await fetch(url);
+for (const oddsApiSport of oddsApiSports) {
+  const url = `https://api.the-odds-api.com/v4/sports/${oddsApiSport}/odds?regions=us&markets=h2h&oddsFormat=american&bookmakers=draftkings,fanduel,betmgm,fanatics,williamhill_us&apiKey=${apiKey}`;
 
-    if (!response.ok) {
-      const text = await response.text();
-      return res.status(response.status).json({
-        error: "Odds API request failed",
-        details: text
-      });
-    }
+  const response = await fetch(url);
 
-    const data = await response.json();
+  if (!response.ok) {
+    const text = await response.text();
+    return res.status(response.status).json({
+      error: "Odds API request failed",
+      details: text
+    });
+  }
+
+  const sportData = await response.json();
+
+  if (Array.isArray(sportData)) {
+    data.push(...sportData);
+  }
+}
 
 // This logs the raw Odds API response for debugging
 // console.log('RAW ODDS API SAMPLE:', JSON.stringify(data?.[0], null, 2));
