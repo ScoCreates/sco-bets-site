@@ -228,19 +228,44 @@ console.log('COMPLETED GAMES WRITE CHECK:', {
 async function fetchEspnGames(requestedSport, date) {
   const espnSport = sportMap[requestedSport];
 
-  const url =
+    const url =
     `https://site.api.espn.com/apis/site/v2/sports/` +
     `${espnSport.group}/${espnSport.league}/scoreboard?dates=${date}`;
 
-  const response = await fetch(url);
+  const urls =
+    requestedSport === 'americanfootball_ncaaf'
+      ? [url, `${url}&groups=81`]
+      : [url];
 
-  if (!response.ok) {
-    throw new Error(
-      `ESPN request failed for ${requestedSport}: ${response.status}`
-    );
+  const responses = await Promise.all(
+    urls.map(fetchUrl => fetch(fetchUrl))
+  );
+
+  for (const response of responses) {
+    if (!response.ok) {
+      throw new Error(
+        `ESPN request failed for ${requestedSport}: ${response.status}`
+      );
+    }
   }
 
-  const data = await response.json();
+  const dataSets = await Promise.all(
+    responses.map(response => response.json())
+  );
+
+  const eventMap = new Map();
+
+  for (const dataSet of dataSets) {
+    for (const event of dataSet.events || []) {
+      if (event?.id) {
+        eventMap.set(event.id, event);
+      }
+    }
+  }
+
+  const data = {
+    events: Array.from(eventMap.values())
+  };
 
   return (data.events || []).map(event => {
     const competition = event.competitions?.[0];
