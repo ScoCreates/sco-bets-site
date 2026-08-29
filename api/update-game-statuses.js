@@ -435,26 +435,6 @@ if (possibleFinalGames.length > 0) {
         liveInsertError.message
       );
     }
-
-    for (const game of liveGames) {
-      const {
-        error: metadataUpdateError
-      } = await supabase
-        .from('game_observations')
-        .update({
-          espn_game_id: game.id,
-          away_team: game.awayTeam,
-          home_team: game.homeTeam
-        })
-        .eq('game_key', game.gameKey);
-
-      if (metadataUpdateError) {
-        throw new Error(
-          `Failed to update ${requestedSport} game information: ` +
-          metadataUpdateError.message
-        );
-      }
-    }
   }
 
   let existingObservations = [];
