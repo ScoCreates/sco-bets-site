@@ -87,8 +87,40 @@ function getSnapshotPollingInterval(payload) {
   });
 
   if (hasStartingSoonGame) {
-    return SNAPSHOT_POLLING.startingSoon;
+  return SNAPSHOT_POLLING.startingSoon;
+}
+
+const hasPastStartPregame = games.some(game => {
+  const espn = game?.espnStatus;
+
+  const espnState =
+    String(espn?.statusState || '').toLowerCase();
+
+  const startTime = new Date(
+    game.commence_time ||
+    game.commenceTime ||
+    game.startTime
+  ).getTime();
+
+  if (
+    espnState !== 'pre' ||
+    !Number.isFinite(startTime)
+  ) {
+    return false;
   }
+
+  const minutesSinceStart =
+    (now - startTime) / 60000;
+
+  return (
+    minutesSinceStart >= 0 &&
+    minutesSinceStart <= 360
+  );
+});
+
+if (hasPastStartPregame) {
+  return SNAPSHOT_POLLING.live;
+}
 
   const hoursUntilNextGame = games.reduce(
     (closest, game) => {
