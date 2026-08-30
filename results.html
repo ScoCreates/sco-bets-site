@@ -367,7 +367,11 @@ function buildHistoricalMlbScoreboard(game) {
       </strong>
 
       <span style="
-        color:#00ff88;
+        color:${
+          Number(espn.awayScore) > Number(espn.homeScore)
+            ? '#00ff88'
+            : '#f8fafc'
+        };
         font-weight:900;
       ">
         ${espn.awayShort || 'AWY'}
@@ -375,16 +379,20 @@ function buildHistoricalMlbScoreboard(game) {
 
       ${innings.map(inning => `
         <span style="
-          color:#f8fafc;
+          color:${
+            Number(espn.awayScore) > Number(espn.homeScore)
+              ? '#00ff88'
+              : '#f8fafc'
+          };
           font-weight:800;
           text-align:center;
         ">
-          ${getInningValue(
-            awayLinescores,
-            inning
-          )}
-        </span>
-      `).join('')}
+    ${getInningValue(
+      awayLinescores,
+      inning
+    )}
+  </span>
+`).join('')}
 
       <strong style="
         color:${
@@ -399,7 +407,11 @@ function buildHistoricalMlbScoreboard(game) {
       </strong>
 
       <span style="
-        color:#00ff88;
+        color:${
+          Number(espn.homeScore) > Number(espn.awayScore)
+            ? '#00ff88'
+            : '#f8fafc'
+        };
         font-weight:900;
       ">
         ${espn.homeShort || 'HME'}
@@ -407,7 +419,11 @@ function buildHistoricalMlbScoreboard(game) {
 
       ${innings.map(inning => `
         <span style="
-          color:#f8fafc;
+          color:${
+            Number(espn.homeScore) > Number(espn.awayScore)
+              ? '#00ff88'
+              : '#f8fafc'
+          };
           font-weight:800;
           text-align:center;
         ">
@@ -545,18 +561,18 @@ function buildHistoricalBasketballScoreboard(game) {
       </strong>
 
       <span style="
-        color:#00ff88;
-        font-weight:900;
-      ">
-        ${espn.awayShort || 'AWY'}
-      </span>
+       color:${awayWon ? '#00ff88' : '#f8fafc'};
+       font-weight:900;
+     ">
+       ${espn.awayShort || 'AWY'}
+     </span>
 
       ${periods.map(period => `
         <span style="
-          color:#f8fafc;
+          color:${awayWon ? '#00ff88' : '#f8fafc'};
           font-weight:800;
           text-align:center;
-        ">
+       ">
           ${getPeriodValue(
             awayLinescores,
             period
@@ -573,15 +589,15 @@ function buildHistoricalBasketballScoreboard(game) {
       </strong>
 
       <span style="
-        color:#00ff88;
-        font-weight:900;
-      ">
-        ${espn.homeShort || 'HME'}
-      </span>
+       color:${homeWon ? '#00ff88' : '#f8fafc'};
+       font-weight:900;
+     ">
+       ${espn.homeShort || 'HME'}
+     </span>
 
       ${periods.map(period => `
         <span style="
-          color:#f8fafc;
+          color:${homeWon ? '#00ff88' : '#f8fafc'};
           font-weight:800;
           text-align:center;
         ">
@@ -713,7 +729,7 @@ function buildHistoricalFootballScoreboard(game) {
       </strong>
 
       <span style="
-        color:#00ff88;
+        color:${awayWon ? '#00ff88' : '#f8fafc'};
         font-weight:900;
       ">
         ${espn.awayShort || 'AWY'}
@@ -721,7 +737,7 @@ function buildHistoricalFootballScoreboard(game) {
 
       ${periods.map(period => `
         <span style="
-          color:#f8fafc;
+          color:${awayWon ? '#00ff88' : '#f8fafc'};
           font-weight:800;
           text-align:center;
         ">
@@ -741,7 +757,7 @@ function buildHistoricalFootballScoreboard(game) {
       </strong>
 
       <span style="
-        color:#00ff88;
+        color:${homeWon ? '#00ff88' : '#f8fafc'};
         font-weight:900;
       ">
         ${espn.homeShort || 'HME'}
@@ -749,7 +765,7 @@ function buildHistoricalFootballScoreboard(game) {
 
       ${periods.map(period => `
         <span style="
-          color:#f8fafc;
+          color:${homeWon ? '#00ff88' : '#f8fafc'};
           font-weight:800;
           text-align:center;
         ">
