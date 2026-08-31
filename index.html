@@ -1551,8 +1551,16 @@ and avoid bad bets when the numbers don’t support it.
             <button id="subscriber-login-btn" class="btn btn-primary email-modal-btn">
               Open Dashboard
             </button>
+
             <div class="email-modal-subtext">
               We’ll verify your membership and open your dashboard.
+            </div>
+
+            <div id="subscriber-login-trial-link" class="email-modal-subtext hidden">
+              Not a member yet?
+              <a href="#" id="subscriber-login-trial-cta">
+                Start your 7-day free trial →
+              </a>
             </div>
           </div>
         </div>
@@ -1742,7 +1750,8 @@ and avoid bad bets when the numbers don’t support it.
     const subscriberLoginBtn = document.getElementById("subscriber-login-btn");
     const subscriberLoginEmail = document.getElementById("subscriber-login-email");
     const subscriberLoginMessage = document.getElementById("subscriber-login-message");
-
+	const subscriberLoginTrialLink = document.getElementById("subscriber-login-trial-link");
+    const subscriberLoginTrialCta = document.getElementById("subscriber-login-trial-cta");
     const teaserModal = document.getElementById("teaser-modal");
     const teaserUnlockBtn = document.getElementById("teaser-unlock-btn");
 
@@ -1828,11 +1837,18 @@ and avoid bad bets when the numbers don’t support it.
 
     function openSubscriberLoginModal() {
       if (!subscriberLoginModal) return;
+
       showHiddenModal(subscriberLoginModal);
+
       if (subscriberLoginMessage) {
         subscriberLoginMessage.textContent = "";
         subscriberLoginMessage.style.color = "";
       }
+
+      if (subscriberLoginTrialLink) {
+        subscriberLoginTrialLink.classList.add("hidden");
+      }
+
       if (subscriberLoginEmail) {
         subscriberLoginEmail.value = "";
       }
@@ -2022,6 +2038,19 @@ directCheckoutButtons.forEach((button) => {
         }
       });
     }
+	
+	if (subscriberLoginEmail) {
+      subscriberLoginEmail.addEventListener("input", function () {
+        if (subscriberLoginMessage) {
+          subscriberLoginMessage.textContent = "";
+          subscriberLoginMessage.style.color = "";
+        }
+
+        if (subscriberLoginTrialLink) {
+          subscriberLoginTrialLink.classList.add("hidden");
+        }
+      });
+    }
 
     if (subscriberLoginBtn) {
       subscriberLoginBtn.addEventListener("click", async function () {
@@ -2057,12 +2086,17 @@ directCheckoutButtons.forEach((button) => {
             setTimeout(() => {
               window.location.href = "/premium.html";
             }, 500);
+			
           } else {
             if (subscriberLoginMessage) {
               subscriberLoginMessage.style.color = "#f87171";
               subscriberLoginMessage.textContent = "We could not confirm active access for that email.";
             }
+
+            if (subscriberLoginTrialLink) {
+              subscriberLoginTrialLink.classList.remove("hidden");
           }
+        }
         } catch (err) {
           console.error(err);
 
@@ -2076,6 +2110,15 @@ directCheckoutButtons.forEach((button) => {
         }
       });
     }
+	
+        if (subscriberLoginTrialCta) {
+          subscriberLoginTrialCta.addEventListener("click", function (e) {
+            e.preventDefault();
+
+            closeSubscriberLoginModal();
+            openCheckoutModal();
+          });
+        }	
 
     if (teaserModal) {
       hideElement(teaserModal);
