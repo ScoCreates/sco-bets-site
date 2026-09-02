@@ -2053,7 +2053,7 @@ directCheckoutButtons.forEach((button) => {
     }
 	
 	if (subscriberLoginEmail) {
-      subscriberLoginEmail.addEventListener("focus", function () {
+      subscriberLoginEmail.addEventListener("click", function () {
         const failedAccess =
           subscriberLoginMessage &&
           subscriberLoginMessage.textContent.startsWith("We couldn’t confirm access");
