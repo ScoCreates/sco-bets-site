@@ -890,7 +890,7 @@
   border: 1px solid rgba(255,255,255,0.1);
   background: #0f172a;
   color: #fff;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
 }
 
 .email-modal-btn {
@@ -909,7 +909,7 @@
 }
 
 .email-modal-message {
-  margin: 8px 0;
+  margin: 4px 0 12px;
   font-size: 0.9rem;
   color: #f87171;
 }
@@ -1539,7 +1539,7 @@ and avoid bad bets when the numbers don’t support it.
             <button class="email-modal-close" id="subscriber-login-close" aria-label="Close">&times;</button>
             <h3>Member Login</h3>
             <p class="email-modal-text">
-              Enter your membership email to access your SCO Bets AI dashboard.
+              Enter your membership email<br>to access the dashboard.
             </p>
             <input
               type="email"
@@ -1558,7 +1558,7 @@ and avoid bad bets when the numbers don’t support it.
 
             <div id="subscriber-login-trial-link" class="email-modal-subtext hidden">
               Not a member yet?
-              <a href="#" id="subscriber-login-trial-cta">
+              <a href="#" id="subscriber-login-trial-cta" style="color:#00ff88; font-weight:600;">
                 Start your 7-day free trial →
               </a>
             </div>
@@ -2051,6 +2051,25 @@ directCheckoutButtons.forEach((button) => {
         }
       });
     }
+	
+	if (subscriberLoginEmail) {
+      subscriberLoginEmail.addEventListener("focus", function () {
+        const failedAccess =
+          subscriberLoginMessage &&
+          subscriberLoginMessage.textContent.startsWith("We couldn’t confirm access");
+
+        if (failedAccess) {
+          subscriberLoginEmail.value = "";
+
+          subscriberLoginMessage.textContent = "";
+          subscriberLoginMessage.style.color = "";
+
+          if (subscriberLoginTrialLink) {
+            subscriberLoginTrialLink.classList.add("hidden");
+          }
+        }
+      });
+    }
 
     if (subscriberLoginBtn) {
       subscriberLoginBtn.addEventListener("click", async function () {
@@ -2090,7 +2109,7 @@ directCheckoutButtons.forEach((button) => {
           } else {
             if (subscriberLoginMessage) {
               subscriberLoginMessage.style.color = "#f87171";
-              subscriberLoginMessage.textContent = "We could not confirm active access for that email.";
+              subscriberLoginMessage.textContent = "We couldn’t confirm access for that email. Please check the address and try again, or start your free trial below.";
             }
 
             if (subscriberLoginTrialLink) {
@@ -2107,6 +2126,18 @@ directCheckoutButtons.forEach((button) => {
         } finally {
           subscriberLoginBtn.disabled = false;
           subscriberLoginBtn.textContent = "Open Dashboard";
+        }
+      });
+    }
+	
+	if (subscriberLoginEmail && subscriberLoginBtn) {
+      subscriberLoginEmail.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+
+          if (!subscriberLoginBtn.disabled) {
+            subscriberLoginBtn.click();
+          }
         }
       });
     }
