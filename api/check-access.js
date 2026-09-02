@@ -2,6 +2,7 @@ const supabase = require("../lib/supabase");
 
 module.exports = async (req, res) => {
   const email = req.query.email ? req.query.email.trim().toLowerCase() : "";
+  const source = req.query.source ? req.query.source.trim().toLowerCase() : "";
 
   if (!email) {
     return res.status(400).json({ access: false });
@@ -11,13 +12,30 @@ module.exports = async (req, res) => {
     const { data, error } = await supabase
       .from("subscribers")
       .select("email,status")
-      .ilike('email', email)
+      .ilike("email", email)
       .eq("status", "active")
       .maybeSingle();
 
     if (error) {
       console.error("check-access error:", error.message);
       return res.status(500).json({ access: false });
+    }
+
+    if (data && source === "dashboard") {
+      const { error: updateError } = await supabase
+        .from("subscribers")
+        .update({
+          last_dashboard_seen_at: new Date().toISOString()
+        })
+        .ilike("email", email)
+        .eq("status", "active");
+
+      if (updateError) {
+        console.error(
+          "last_dashboard_seen_at update error:",
+          updateError.message
+        );
+      }
     }
 
     return res.status(200).json({ access: !!data });

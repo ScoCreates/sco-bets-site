@@ -1704,7 +1704,9 @@ async function checkAccess() {
   }
 
   try {
-    const res = await fetch(`/api/check-access?email=${encodeURIComponent(email)}`);
+    const res = await fetch(
+      `/api/check-access?email=${encodeURIComponent(email)}&source=dashboard`
+    );
     const data = await res.json();
 
     if (!data.access) {
