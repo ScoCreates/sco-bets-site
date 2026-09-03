@@ -1535,35 +1535,62 @@ and avoid bad bets when the numbers don’t support it.
 </div>
 
         <div id="subscriber-login-modal" class="email-modal hidden">
-          <div class="email-modal-card">
-            <button class="email-modal-close" id="subscriber-login-close" aria-label="Close">&times;</button>
-            <h3>Member Login</h3>
-            <p class="email-modal-text">
-              Enter your membership email<br>to access the dashboard.
-            </p>
-            <input
-              type="email"
-              id="subscriber-login-email"
-              class="email-modal-input"
-              placeholder="you@example.com"
-            />
-            <div id="subscriber-login-message" class="email-modal-message"></div>
-            <button id="subscriber-login-btn" class="btn btn-primary email-modal-btn">
-              Open Dashboard
-            </button>
+  <div class="email-modal-card">
+    <button class="email-modal-close" id="subscriber-login-close" aria-label="Close">&times;</button>
 
-            <div class="email-modal-subtext">
-              We’ll verify your membership and open your dashboard.
-            </div>
+    <h3>Member Login</h3>
 
-            <div id="subscriber-login-trial-link" class="email-modal-subtext hidden">
-              Not a member yet?
-              <a href="#" id="subscriber-login-trial-cta" style="color:#00ff88; font-weight:600;">
-                Start your 7-day free trial →
-              </a>
-            </div>
-          </div>
-        </div>
+    <p class="email-modal-text">
+      Enter your membership email<br>to access the dashboard.
+    </p>
+
+    <input
+      type="email"
+      id="subscriber-login-email"
+      class="email-modal-input"
+      placeholder="you@example.com"
+    />
+
+    <div id="subscriber-login-message" class="email-modal-message"></div>
+
+    <button id="subscriber-login-btn" class="btn btn-primary email-modal-btn">
+      Open Dashboard
+    </button>
+
+    <div class="email-modal-subtext">
+      We’ll verify your membership and open your dashboard.
+    </div>
+
+    <div id="subscriber-login-trial-link" class="email-modal-subtext hidden">
+      Not a member yet?
+      <a href="#" id="subscriber-login-trial-cta" style="color:#00ff88; font-weight:600;">
+        Start your 7-day free trial →
+      </a>
+    </div>
+
+    <div id="subscriber-login-code-step" class="hidden" style="display:none;">
+      <p class="email-modal-text">
+        Enter the 6-digit verification code<br>we sent to your email.
+      </p>
+
+      <input
+        type="text"
+        id="subscriber-login-code"
+        class="email-modal-input"
+        inputmode="numeric"
+        autocomplete="one-time-code"
+        maxlength="6"
+        placeholder="6-digit code"
+      />
+
+      <div id="subscriber-login-code-message" class="email-modal-message"></div>
+
+      <button id="subscriber-login-verify-btn" class="btn btn-primary email-modal-btn">
+        Verify &amp; Open Dashboard
+      </button>
+    </div>
+  </div>
+</div>
 
 <div id="checkout-modal" class="checkout-modal">
   <div class="checkout-modal-content">
@@ -1750,8 +1777,12 @@ and avoid bad bets when the numbers don’t support it.
     const subscriberLoginBtn = document.getElementById("subscriber-login-btn");
     const subscriberLoginEmail = document.getElementById("subscriber-login-email");
     const subscriberLoginMessage = document.getElementById("subscriber-login-message");
-	const subscriberLoginTrialLink = document.getElementById("subscriber-login-trial-link");
+    const subscriberLoginTrialLink = document.getElementById("subscriber-login-trial-link");
     const subscriberLoginTrialCta = document.getElementById("subscriber-login-trial-cta");
+    const subscriberLoginCodeStep = document.getElementById("subscriber-login-code-step");
+    const subscriberLoginCode = document.getElementById("subscriber-login-code");
+    const subscriberLoginCodeMessage = document.getElementById("subscriber-login-code-message");
+    const subscriberLoginVerifyBtn = document.getElementById("subscriber-login-verify-btn");
     const teaserModal = document.getElementById("teaser-modal");
     const teaserUnlockBtn = document.getElementById("teaser-unlock-btn");
 
@@ -2072,64 +2103,146 @@ directCheckoutButtons.forEach((button) => {
     }
 
     if (subscriberLoginBtn) {
-      subscriberLoginBtn.addEventListener("click", async function () {
-        const email = subscriberLoginEmail ? subscriberLoginEmail.value.trim().toLowerCase() : "";
+  subscriberLoginBtn.addEventListener("click", async function () {
+    const email = subscriberLoginEmail
+      ? subscriberLoginEmail.value.trim().toLowerCase()
+      : "";
 
-        if (!email) {
-          if (subscriberLoginMessage) {
-            subscriberLoginMessage.style.color = "#f87171";
-            subscriberLoginMessage.textContent = "Please enter your subscriber email.";
-          }
-          return;
-        }
-
-        subscriberLoginBtn.disabled = true;
-        subscriberLoginBtn.textContent = "Checking access...";
-
-        if (subscriberLoginMessage) {
-          subscriberLoginMessage.textContent = "";
-        }
-
-        try {
-          const res = await fetch(`/api/check-access?email=${encodeURIComponent(email)}`);
-          const data = await res.json();
-
-          if (data.access) {
-            localStorage.setItem("sco_bets_email", email);
-
-            if (subscriberLoginMessage) {
-              subscriberLoginMessage.style.color = "#22c55e";
-              subscriberLoginMessage.textContent = "Access confirmed. Redirecting...";
-            }
-
-            setTimeout(() => {
-              window.location.href = "/premium.html";
-            }, 500);
-			
-          } else {
-            if (subscriberLoginMessage) {
-              subscriberLoginMessage.style.color = "#f87171";
-              subscriberLoginMessage.textContent = "We couldn’t confirm access for that email. Please check the address and try again, or start your free trial below.";
-            }
-
-            if (subscriberLoginTrialLink) {
-              subscriberLoginTrialLink.classList.remove("hidden");
-          }
-        }
-        } catch (err) {
-          console.error(err);
-
-          if (subscriberLoginMessage) {
-            subscriberLoginMessage.style.color = "#f87171";
-            subscriberLoginMessage.textContent = "Something went wrong. Please try again.";
-          }
-        } finally {
-          subscriberLoginBtn.disabled = false;
-          subscriberLoginBtn.textContent = "Open Dashboard";
-        }
-      });
+    if (!email) {
+      if (subscriberLoginMessage) {
+        subscriberLoginMessage.style.color = "#f87171";
+        subscriberLoginMessage.textContent = "Please enter your subscriber email.";
+      }
+      return;
     }
-	
+
+    subscriberLoginBtn.disabled = true;
+    subscriberLoginBtn.textContent = "Sending code...";
+
+    if (subscriberLoginMessage) {
+      subscriberLoginMessage.textContent = "";
+    }
+
+    try {
+      const res = await fetch("/api/request-login-code", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Unable to send verification code.");
+      }
+
+      if (subscriberLoginMessage) {
+        subscriberLoginMessage.style.color = "#22c55e";
+        subscriberLoginMessage.textContent =
+          "Verification code sent. Check your email.";
+      }
+
+      if (subscriberLoginCodeStep) {
+        subscriberLoginCodeStep.style.display = "block";
+      }
+
+      if (subscriberLoginTrialLink) {
+        subscriberLoginTrialLink.classList.add("hidden");
+      }
+
+      if (subscriberLoginCode) {
+        subscriberLoginCode.value = "";
+        subscriberLoginCode.focus();
+      }
+    } catch (err) {
+      console.error(err);
+
+      if (subscriberLoginMessage) {
+        subscriberLoginMessage.style.color = "#f87171";
+        subscriberLoginMessage.textContent =
+          "Unable to send a verification code. Please try again.";
+      }
+    } finally {
+      subscriberLoginBtn.disabled = false;
+      subscriberLoginBtn.textContent = "Send Verification Code";
+    }
+  });
+}
+
+if (subscriberLoginVerifyBtn) {
+  subscriberLoginVerifyBtn.addEventListener("click", async function () {
+    const email = subscriberLoginEmail
+      ? subscriberLoginEmail.value.trim().toLowerCase()
+      : "";
+
+    const token = subscriberLoginCode
+      ? subscriberLoginCode.value.trim()
+      : "";
+
+    if (!/^\d{6}$/.test(token)) {
+      if (subscriberLoginCodeMessage) {
+        subscriberLoginCodeMessage.style.color = "#f87171";
+        subscriberLoginCodeMessage.textContent =
+          "Please enter the 6-digit verification code.";
+      }
+      return;
+    }
+
+    subscriberLoginVerifyBtn.disabled = true;
+    subscriberLoginVerifyBtn.textContent = "Verifying...";
+
+    if (subscriberLoginCodeMessage) {
+      subscriberLoginCodeMessage.textContent = "";
+    }
+
+    try {
+      const { createClient } = await import(
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
+      );
+
+      const supabaseAuth = createClient(
+        "https://tqeuczcdpqhgqduspxmh.supabase.co",
+        "YOUR_PUBLISHABLE_KEY"
+      );
+
+      const { data, error } = await supabaseAuth.auth.verifyOtp({
+        email,
+        token,
+        type: "email"
+      });
+
+      if (error || !data.session) {
+        throw error || new Error("No authenticated session was created.");
+      }
+
+      localStorage.setItem("sco_bets_email", email);
+
+      if (subscriberLoginCodeMessage) {
+        subscriberLoginCodeMessage.style.color = "#22c55e";
+        subscriberLoginCodeMessage.textContent =
+          "Verified. Opening dashboard...";
+      }
+
+      setTimeout(() => {
+        window.location.href = "/premium.html";
+      }, 500);
+    } catch (err) {
+      console.error(err);
+
+      if (subscriberLoginCodeMessage) {
+        subscriberLoginCodeMessage.style.color = "#f87171";
+        subscriberLoginCodeMessage.textContent =
+          "That code is invalid or has expired. Please try again.";
+      }
+    } finally {
+      subscriberLoginVerifyBtn.disabled = false;
+      subscriberLoginVerifyBtn.textContent = "Verify & Open Dashboard";
+    }
+  });
+}
+
 	if (subscriberLoginEmail && subscriberLoginBtn) {
       subscriberLoginEmail.addEventListener("keydown", function (e) {
         if (e.key === "Enter") {

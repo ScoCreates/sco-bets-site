@@ -14,18 +14,34 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { email } = req.body || {};
+    const authHeader = req.headers.authorization || '';
+    const customAccessToken = req.headers['x-sco-access-token'] || '';
 
-    if (!email) {
-      return res.status(400).json({ error: 'Missing email' });
+    const accessToken = authHeader.startsWith('Bearer ')
+      ? authHeader.slice(7).trim()
+      : String(customAccessToken).trim();
+
+
+    if (!accessToken) {
+      return res.status(401).json({ error: 'Authentication required' });
     }
 
-    const normalizedEmail = String(email).trim().toLowerCase();
+    const {
+      data: { user },
+      error: userError
+    } = await supabase.auth.getUser(accessToken);
+
+    if (userError || !user?.email) {
+      return res.status(401).json({ error: 'Invalid authentication session' });
+    }
+
+    const normalizedEmail = user.email.trim().toLowerCase();
 
     const { data: subscriber, error: subError } = await supabase
       .from('subscribers')
       .select('email, stripe_customer_id, status')
       .ilike('email', normalizedEmail)
+      .eq('status', 'active')
       .maybeSingle();
 
     if (subError) {
@@ -48,6 +64,8 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ url: session.url });
   } catch (err) {
+    console.error('create-portal-session error:', err);
+
     return res.status(500).json({
       error: 'Failed to create portal session',
       details: err.message

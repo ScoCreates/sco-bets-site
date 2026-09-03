@@ -1715,32 +1715,73 @@ button:active {
    SUBSCRIBER ACCESS AND SESSION SETUP
    ========================================================== */
 
-async function checkAccess() {
-  const email = localStorage.getItem("sco_bets_email");
+let scoSupabaseAuthClient = null;
 
-  if (!email) {
-    window.location.href = "/index.html";
-    return;
+async function getScoSupabaseAuthClient() {
+  if (scoSupabaseAuthClient) {
+    return scoSupabaseAuthClient;
   }
 
-  try {
-    const res = await fetch(
-      `/api/check-access?email=${encodeURIComponent(email)}&source=dashboard`
-    );
-    const data = await res.json();
+  const configRes = await fetch("/api/auth-config");
+  const config = await configRes.json();
 
-    if (!data.access) {
+  if (
+    !configRes.ok ||
+    !config.supabaseUrl ||
+    !config.supabasePublishableKey
+  ) {
+    throw new Error("Authentication configuration unavailable.");
+  }
+
+  const { createClient } = await import(
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
+  );
+
+  scoSupabaseAuthClient = createClient(
+    config.supabaseUrl,
+    config.supabasePublishableKey
+  );
+
+  return scoSupabaseAuthClient;
+}
+
+async function checkAccess() {
+  try {
+    const supabaseAuth = await getScoSupabaseAuthClient();
+
+    const {
+      data: { session },
+      error: sessionError
+    } = await supabaseAuth.auth.getSession();
+
+    if (sessionError || !session?.access_token) {
       window.location.href = "/index.html";
       return;
     }
 
-    const accessVerification = document.getElementById("access-verification");
+    const res = await fetch("/api/member-access", {
+      headers: {
+        Authorization: `Bearer ${session.access_token}`
+      }
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.access) {
+      window.location.href = "/index.html";
+      return;
+    }
+
+    localStorage.setItem("sco_bets_email", data.email);
+
+    const accessVerification =
+      document.getElementById("access-verification");
 
     if (accessVerification) {
       accessVerification.remove();
     }
   } catch (err) {
-    console.error(err);
+    console.error("Authenticated access check failed:", err);
     window.location.href = "/index.html";
   }
 }
@@ -3382,45 +3423,55 @@ function getSportsbookUrl(bookName, sportOverride = null) {
    ========================================================== */
 
 async function openCustomerPortal() {
-  const email = (localStorage.getItem('sco_bets_email') || '').trim().toLowerCase();
- 
-  if (!email) {
-    alert('No subscriber email found. Please log in again.');
-    window.location.href = '/index.html';
-    return;
-  }
-
   try {
     const btn = document.getElementById('manage-subscription-btn');
+
     if (btn) {
       btn.disabled = true;
       btn.textContent = 'Opening...';
     }
 
+    const supabaseAuth = await getScoSupabaseAuthClient();
+
+    const {
+      data: { session },
+      error: sessionError
+    } = await supabaseAuth.auth.getSession();
+
+    if (sessionError || !session?.access_token) {
+      window.location.href = '/index.html';
+      return;
+    }
+
     const res = await fetch('/api/create-portal-session', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
+      headers: {
+        'X-SCO-Access-Token': session.access_token
+      }
     });
 
     const data = await res.json();
-    
+
     if (!res.ok || !data.url) {
-      throw new Error(data.details || data.error || 'Unable to open billing portal');
+      throw new Error(
+        data.details ||
+        data.error ||
+        'Unable to open billing portal'
+      );
     }
 
     window.location.href = data.url;
-
-    } catch (err) {
-      console.error('Manage Subscription error:', err);
-      alert(err.message || 'Could not open subscription portal right now.');
-    } finally {
+  } catch (err) {
+    console.error('Manage Subscription error:', err);
+    alert(err.message || 'Could not open subscription portal right now.');
+  } finally {
     const btn = document.getElementById('manage-subscription-btn');
+
     if (btn) {
       btn.disabled = false;
       btn.textContent = 'Manage Subscription';
     }
-    }
+  }
 }
 
 /* ==========================================================
