@@ -1812,7 +1812,13 @@ and avoid bad bets when the numbers don’t support it.
 
       document.addEventListener("visibilitychange", function () {
         if (!document.hidden) {
-          resetHomepageUi();
+          const subscriberLoginIsOpen =
+            subscriberLoginModal &&
+            !subscriberLoginModal.classList.contains("hidden");
+
+          if (!subscriberLoginIsOpen) {
+            resetHomepageUi();
+          }
         }
       });
    
@@ -2047,12 +2053,6 @@ directCheckoutButtons.forEach((button) => {
         trackEvent("access_premium_click", {
           page_location: window.location.href
         });
-
-        const savedEmail = localStorage.getItem("sco_bets_email");
-        if (savedEmail) {
-          window.location.href = "/premium.html";
-          return;
-        }
 
         openSubscriberLoginModal();
       });
