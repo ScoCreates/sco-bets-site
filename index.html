@@ -1569,8 +1569,11 @@ and avoid bad bets when the numbers don’t support it.
     </div>
 
     <div id="subscriber-login-code-step" class="hidden" style="display:none;">
-      <p class="email-modal-text">
-        Enter the 6-digit verification code<br>we sent to your email.
+            <p class="email-modal-text">
+        Enter the 6-digit verification code<br>we sent to your email.<br>
+        <span style="font-size:12px; color:#94a3b8;">
+          Code is valid for 10 minutes.
+        </span>
       </p>
 
       <input
@@ -1750,6 +1753,25 @@ and avoid bad bets when the numbers don’t support it.
     };
 
   window.addEventListener("load", function () {
+    let homepageSupabaseAuth = null;
+
+    async function getHomepageSupabaseAuth() {
+      if (homepageSupabaseAuth) {
+        return homepageSupabaseAuth;
+      }
+
+      const { createClient } = await import(
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
+      );
+
+      homepageSupabaseAuth = createClient(
+        "https://tqeuczcdpqhgqduspxmh.supabase.co",
+        "YOUR_PUBLISHABLE_KEY"
+      );
+
+      return homepageSupabaseAuth;
+    }
+
     const params = new URLSearchParams(window.location.search);
 
     const successBanner = document.getElementById("success-banner");
@@ -2046,13 +2068,28 @@ directCheckoutButtons.forEach((button) => {
     }
 
  
-    if (accessPremiumLink) {
-      accessPremiumLink.addEventListener("click", function (e) {
+        if (accessPremiumLink) {
+      accessPremiumLink.addEventListener("click", async function (e) {
         e.preventDefault();
 
         trackEvent("access_premium_click", {
           page_location: window.location.href
         });
+
+        try {
+          const supabaseAuth = await getHomepageSupabaseAuth();
+
+          const {
+            data: { session }
+          } = await supabaseAuth.auth.getSession();
+
+          if (session) {
+            window.location.href = "/premium.html";
+            return;
+          }
+        } catch (err) {
+          console.error("Unable to check member session:", err);
+        }
 
         openSubscriberLoginModal();
       });
@@ -2164,9 +2201,49 @@ directCheckoutButtons.forEach((button) => {
         subscriberLoginMessage.textContent =
           "Unable to send a verification code. Please try again.";
       }
-    } finally {
+        } finally {
       subscriberLoginBtn.disabled = false;
-      subscriberLoginBtn.textContent = "Send Verification Code";
+
+      const codeStepIsVisible =
+        subscriberLoginCodeStep &&
+        subscriberLoginCodeStep.style.display === "block";
+
+      subscriberLoginBtn.textContent = codeStepIsVisible
+        ? "Send a new code"
+        : "Send Verification Code";
+    }
+    });
+}
+
+if (subscriberLoginCode) {
+  subscriberLoginCode.addEventListener("click", function () {
+    const failedCode =
+      subscriberLoginCodeMessage &&
+      subscriberLoginCodeMessage.textContent.includes(
+        "invalid or has expired"
+      );
+
+    if (failedCode) {
+      subscriberLoginCode.value = "";
+      subscriberLoginCodeMessage.textContent = "";
+      subscriberLoginCodeMessage.style.color = "";
+    }
+  });
+
+  subscriberLoginCode.addEventListener("input", function () {
+    if (subscriberLoginCodeMessage) {
+      subscriberLoginCodeMessage.textContent = "";
+      subscriberLoginCodeMessage.style.color = "";
+    }
+  });
+
+  subscriberLoginCode.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+
+      if (subscriberLoginVerifyBtn && !subscriberLoginVerifyBtn.disabled) {
+        subscriberLoginVerifyBtn.click();
+      }
     }
   });
 }
@@ -2198,14 +2275,7 @@ if (subscriberLoginVerifyBtn) {
     }
 
     try {
-      const { createClient } = await import(
-        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
-      );
-
-      const supabaseAuth = createClient(
-        "https://tqeuczcdpqhgqduspxmh.supabase.co",
-        "YOUR_PUBLISHABLE_KEY"
-      );
+      const supabaseAuth = await getHomepageSupabaseAuth();
 
       const { data, error } = await supabaseAuth.auth.verifyOtp({
         email,
