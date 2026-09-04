@@ -295,6 +295,17 @@ function makeComparablePayload(sourcePayload) {
         .map(game => ({
           ...game,
 
+          espnStatus: game?.espnStatus
+            ? {
+                statusName:
+                  game.espnStatus.statusName ?? null,
+                statusState:
+                  game.espnStatus.statusState ?? null,
+                statusDescription:
+                  game.espnStatus.statusDescription ?? null
+              }
+            : null,
+
           bookmakers: Array.isArray(game.bookmakers)
             ? game.bookmakers
                 .map(bookmaker => ({
