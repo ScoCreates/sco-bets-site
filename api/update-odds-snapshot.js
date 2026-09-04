@@ -1,5 +1,6 @@
 import { buildOddsPayload } from '../lib/build-odds-payload.js';
 import supabase from '../lib/supabase.js';
+import redis, { getOddsSnapshotKey } from '../lib/redis.js';
 
 const DEBUG_SNAPSHOT = true;
 
@@ -516,6 +517,11 @@ async function updateSportSnapshot(
     ...payload,
     snapshotGeneratedAt: snapshotTime
   };
+
+  await redis.set(
+    getOddsSnapshotKey(sport),
+    snapshotPayload
+  );
 
   const previousComparablePayload =
     makeComparablePayload(

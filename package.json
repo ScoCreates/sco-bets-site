@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@supabase/supabase-js": "^2.100.1",
+    "@upstash/redis": "^1.38.4",
     "stripe": "^21.0.1"
   }
 }

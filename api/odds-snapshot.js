@@ -1,10 +1,35 @@
 import supabase from '../lib/supabase.js';
+import redis, { getOddsSnapshotKey } from '../lib/redis.js';
 
 export default async function handler(req, res) {
   try {
     const requestedSport =
       req.query.sport ||
       'baseball_mlb';
+
+    const redisPayload =
+      await redis.get(
+        getOddsSnapshotKey(requestedSport)
+      );
+
+    if (redisPayload) {
+      res.setHeader(
+        'X-Snapshot-Fetched-At',
+        redisPayload.snapshotGeneratedAt || ''
+      );
+
+      res.setHeader(
+        'X-Snapshot-Schema-Version',
+        String(redisPayload.schemaVersion || 1)
+      );
+
+      res.setHeader(
+        'Cache-Control',
+        'no-store'
+      );
+
+      return res.status(200).json(redisPayload);
+    }
 
     const { data, error } = await supabase
       .from('odds_snapshots')
