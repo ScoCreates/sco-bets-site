@@ -1,4 +1,3 @@
-import supabase from '../lib/supabase.js';
 import redis, { getOddsSnapshotKey } from '../lib/redis.js';
 
 export default async function handler(req, res) {
@@ -12,66 +11,21 @@ export default async function handler(req, res) {
         getOddsSnapshotKey(requestedSport)
       );
 
-    if (redisPayload) {
-      res.setHeader(
-        'X-Snapshot-Fetched-At',
-        redisPayload.snapshotGeneratedAt || ''
-      );
-
-      res.setHeader(
-        'X-Snapshot-Schema-Version',
-        String(redisPayload.schemaVersion || 1)
-      );
-
-      res.setHeader(
-        'Cache-Control',
-        'no-store'
-      );
-
-      return res.status(200).json(redisPayload);
-    }
-
-    const { data, error } = await supabase
-      .from('odds_snapshots')
-      .select(
-        `
-          sport,
-          payload,
-          schema_version,
-          fetched_at,
-          last_success_at,
-          last_error
-        `
-      )
-      .eq('sport', requestedSport)
-      .maybeSingle();
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
+    if (!redisPayload) {
       return res.status(404).json({
-        error: 'Odds snapshot not found',
-        sport: requestedSport
-      });
-    }
-
-    if (!data.payload) {
-      return res.status(500).json({
-        error: 'Stored odds snapshot has no payload',
+        error: 'Odds snapshot not available',
         sport: requestedSport
       });
     }
 
     res.setHeader(
       'X-Snapshot-Fetched-At',
-      data.fetched_at || ''
+      redisPayload.snapshotGeneratedAt || ''
     );
 
     res.setHeader(
       'X-Snapshot-Schema-Version',
-      String(data.schema_version || 1)
+      String(redisPayload.schemaVersion || 1)
     );
 
     res.setHeader(
@@ -79,15 +33,15 @@ export default async function handler(req, res) {
       'no-store'
     );
 
-    return res.status(200).json(data.payload);
+    return res.status(200).json(redisPayload);
   } catch (err) {
     console.error(
-      'ODDS SNAPSHOT READ ERROR:',
+      'REDIS ODDS SNAPSHOT READ ERROR:',
       err
     );
 
-    return res.status(500).json({
-      error: 'Failed to read odds snapshot',
+    return res.status(503).json({
+      error: 'Live odds snapshot temporarily unavailable',
       details: err.message
     });
   }
