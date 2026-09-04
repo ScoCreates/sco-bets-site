@@ -1,5 +1,4 @@
 import { buildOddsPayload } from '../lib/build-odds-payload.js';
-import supabase from '../lib/supabase.js';
 import redis, { getOddsSnapshotKey } from '../lib/redis.js';
 
 const DEBUG_SNAPSHOT = true;
@@ -245,24 +244,11 @@ async function getStoredSnapshotRow(sport) {
       sport,
       redisError
     );
+
+    throw redisError;
   }
 
-  const { data, error } = await supabase
-    .from('odds_snapshots')
-    .select(`
-      sport,
-      payload,
-      fetched_at,
-      last_success_at
-    `)
-    .eq('sport', sport)
-    .maybeSingle();
-
-  if (error) {
-    throw error;
-  }
-
-  return data || null;
+  return null;
 }
 
 async function getDueSnapshotSports() {
@@ -616,59 +602,21 @@ async function updateSportSnapshot(
   }
 
   if (!snapshotChanged) {
-  const { error: freshnessUpdateError } =
-    await supabase
-      .from('odds_snapshots')
-      .update({
-        fetched_at: snapshotTime,
-        last_success_at: snapshotTime,
-        last_error: null,
-        updated_at: snapshotTime
-      })
-      .eq('sport', sport);
-
-  if (freshnessUpdateError) {
-    throw freshnessUpdateError;
-  }
-
-  return {
-    ok: true,
-    sport,
-    snapshotChanged: false,
-    snapshotSkipped: false,
-    message: 'Odds snapshot unchanged — freshness timestamp updated.',
-    totalGames: payload.totalGames,
-    gameCount: Array.isArray(payload.games)
-      ? payload.games.length
-      : 0,
-    completedGameCount:
-      Array.isArray(payload.completedGames)
-        ? payload.completedGames.length
-        : 0
-  };
-}
-
-  const { data, error } = await supabase
-    .from('odds_snapshots')
-    .upsert(
-      {
-        sport: payload.sport,
-        payload: snapshotPayload,
-        schema_version: 1,
-        fetched_at: snapshotTime,
-        last_success_at: snapshotTime,
-        last_error: null,
-        updated_at: snapshotTime
-      },
-      {
-        onConflict: 'sport'
-      }
-    )
-    .select('sport, schema_version, fetched_at, last_success_at')
-    .single();
-
-  if (error) {
-    throw error;
+    return {
+      ok: true,
+      sport,
+      snapshotChanged: false,
+      snapshotSkipped: false,
+      message: 'Odds snapshot unchanged — Redis remains current.',
+      totalGames: payload.totalGames,
+      gameCount: Array.isArray(payload.games)
+        ? payload.games.length
+        : 0,
+      completedGameCount:
+        Array.isArray(payload.completedGames)
+          ? payload.completedGames.length
+          : 0
+    };
   }
 
   return {
@@ -676,8 +624,7 @@ async function updateSportSnapshot(
     sport,
     snapshotChanged: true,
     snapshotSkipped: false,
-    message: 'Odds snapshot saved successfully.',
-    snapshot: data,
+    message: 'Odds snapshot saved to Redis successfully.',
     totalGames: payload.totalGames,
     gameCount: Array.isArray(payload.games)
       ? payload.games.length
@@ -739,21 +686,6 @@ const forceRefresh =
         err
       );
 
-      try {
-        await supabase
-          .from('odds_snapshots')
-          .update({
-            last_error: err.message,
-            updated_at: new Date().toISOString()
-          })
-          .eq('sport', sport);
-      } catch (storageErr) {
-        console.error(
-          `FAILED TO RECORD SNAPSHOT ERROR FOR ${sport}:`,
-          storageErr
-        );
-      }
-
       results.push({
         ok: false,
         sport,
@@ -785,21 +717,6 @@ return res.status(200).json(
       'UPDATE ODDS SNAPSHOT ERROR:',
       err
     );
-
-    try {
-      await supabase
-        .from('odds_snapshots')
-        .update({
-          last_error: err.message,
-          updated_at: new Date().toISOString()
-        })
-        .eq('sport', requestedSport);
-    } catch (storageErr) {
-      console.error(
-        'FAILED TO RECORD SNAPSHOT ERROR:',
-        storageErr
-      );
-    }
 
     return res.status(500).json({
       ok: false,
