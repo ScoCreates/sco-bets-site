@@ -222,6 +222,31 @@ function isSnapshotDue(snapshotRow) {
 }
 
 async function getStoredSnapshotRow(sport) {
+  try {
+    const redisPayload =
+      await redis.get(
+        getOddsSnapshotKey(sport)
+      );
+
+    if (redisPayload) {
+      const snapshotTime =
+        redisPayload.snapshotGeneratedAt || null;
+
+      return {
+        sport,
+        payload: redisPayload,
+        fetched_at: snapshotTime,
+        last_success_at: snapshotTime
+      };
+    }
+  } catch (redisError) {
+    console.error(
+      'REDIS SNAPSHOT READ FAILED:',
+      sport,
+      redisError
+    );
+  }
+
   const { data, error } = await supabase
     .from('odds_snapshots')
     .select(`
