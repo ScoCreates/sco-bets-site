@@ -5824,20 +5824,35 @@ completedGames.forEach(espnGame => {
 let authoritativeCompletedGames = [];
 
 try {
-  const authoritativeResponse = await fetch(
-    `/api/completed-games?sport=${encodeURIComponent(sport)}&hours=6`
-  );
+  const completedGamesController =
+    new AbortController();
 
-  if (authoritativeResponse.ok) {
-    const authoritativePayload =
-      await authoritativeResponse.json();
+  const completedGamesTimeout =
+    setTimeout(() => {
+      completedGamesController.abort();
+    }, 2000);
 
-    authoritativeCompletedGames =
-      Array.isArray(
-        authoritativePayload.completedGames
-      )
-        ? authoritativePayload.completedGames
-        : [];
+  try {
+    const authoritativeResponse = await fetch(
+      `/api/completed-games?sport=${encodeURIComponent(sport)}&hours=6`,
+      {
+        signal: completedGamesController.signal
+      }
+    );
+
+    if (authoritativeResponse.ok) {
+      const authoritativePayload =
+        await authoritativeResponse.json();
+
+      authoritativeCompletedGames =
+        Array.isArray(
+          authoritativePayload.completedGames
+        )
+          ? authoritativePayload.completedGames
+          : [];
+    }
+  } finally {
+    clearTimeout(completedGamesTimeout);
   }
 } catch (err) {
   authoritativeCompletedGames = [];
@@ -6110,22 +6125,7 @@ sportFinalTransitionCache[gameKey] = {
         ? authoritativeFinalTime
         : Date.now()
     )
-}; sportFinalTransitionCache[gameKey] = {
-    ...previousFullGame,
-    home:
-      espnGame.homeTeam ||
-      previousFullGame.home,
-    away:
-      espnGame.awayTeam ||
-      previousFullGame.away,
-    sport,
-    status: 'final',
-    cachedFinal: true,
-    espnStatus: espnGame,
-    finalObservedAt:
-      existingFinal?.finalObservedAt ||
-      Date.now()
-  };
+};
   
   try {
   localStorage.setItem(
