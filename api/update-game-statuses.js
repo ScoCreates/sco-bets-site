@@ -1,4 +1,11 @@
 const supabase = require('../lib/supabase');
+const { Redis } = require('@upstash/redis');
+
+const redis = Redis.fromEnv();
+
+function getGameObservationKey(gameKey) {
+  return `game_observation:${gameKey}`;
+}
 
 const sportMap = {
   baseball_mlb: {
@@ -445,22 +452,46 @@ if (possibleFinalGames.length > 0) {
 }
 
   if (liveObservationRows.length > 0) {
-    const {
-      error: liveInsertError
-    } = await supabase
-      .from('game_observations')
-      .upsert(liveObservationRows, {
-        onConflict: 'game_key',
-        ignoreDuplicates: true
-      });
+  const {
+    error: liveInsertError
+  } = await supabase
+    .from('game_observations')
+    .upsert(liveObservationRows, {
+      onConflict: 'game_key',
+      ignoreDuplicates: true
+    });
 
-    if (liveInsertError) {
-      throw new Error(
-        `Failed to record live ${requestedSport} games: ` +
-        liveInsertError.message
-      );
-    }
+  if (liveInsertError) {
+    throw new Error(
+      `Failed to record live ${requestedSport} games: ` +
+      liveInsertError.message
+    );
   }
+
+  try {
+    await Promise.all(
+      liveObservationRows.map(row =>
+        redis.set(
+          getGameObservationKey(row.game_key),
+          {
+            seen_live_at: row.seen_live_at,
+            completed_observed_at: null,
+            last_status: 'live'
+          },
+          {
+            nx: true,
+            ex: 12 * 60 * 60
+          }
+        )
+      )
+    );
+  } catch (redisError) {
+    console.error(
+      `Failed to mirror live ${requestedSport} observations to Redis:`,
+      redisError
+    );
+  }
+}
 
   let existingObservations = [];
 
@@ -540,7 +571,83 @@ if (possibleFinalGames.length > 0) {
         completionUpdateError.message
       );
     }
+	
+try {
+  const redisKey =
+    getGameObservationKey(game.gameKey);
+
+  const redisObservation =
+    await redis.get(redisKey);
+
+  if (redisObservation) {
+    await redis.set(
+      redisKey,
+      {
+        ...redisObservation,
+        completed_observed_at: completedAt,
+        last_status: 'final'
+      },
+      {
+        ex: 12 * 60 * 60
+      }
+    );
   }
+} catch (redisError) {
+  console.error(
+    `Failed to mirror ${requestedSport} completion to Redis:`,
+    redisError
+  );
+}	
+}
+
+for (const game of completedGames) {
+  const observation =
+    observationMap.get(game.gameKey);
+
+  if (
+    !observation?.seen_live_at ||
+    !observation?.completed_observed_at
+  ) {
+    continue;
+  }
+
+  try {
+    const redisKey =
+      getGameObservationKey(game.gameKey);
+
+    const redisObservation =
+      await redis.get(redisKey);
+
+    if (
+      redisObservation?.completed_observed_at ===
+        observation.completed_observed_at &&
+      redisObservation?.last_status === 'final'
+    ) {
+      continue;
+    }
+
+    await redis.set(
+      redisKey,
+      {
+        ...(redisObservation || {}),
+        seen_live_at:
+          redisObservation?.seen_live_at ||
+          observation.seen_live_at,
+        completed_observed_at:
+          observation.completed_observed_at,
+        last_status: 'final'
+      },
+      {
+        ex: 12 * 60 * 60
+      }
+    );
+  } catch (redisError) {
+    console.error(
+      `Failed to catch up ${requestedSport} completion in Redis:`,
+      redisError
+    );
+  }
+}
 
 await upsertCompletedGames(
   completedGames,
