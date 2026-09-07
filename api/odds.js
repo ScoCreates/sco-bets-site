@@ -203,7 +203,7 @@ export default async function handler(req, res) {
   sport === 'americanfootball_ncaaf'
     ? ['americanfootball_ncaaf', 'americanfootball_ncaaf_fcs']
     : sport === 'americanfootball_nfl'
-    ? ['americanfootball_nfl_preseason']
+    ? ['americanfootball_nfl']
     : [sport];
 
 let data = [];
