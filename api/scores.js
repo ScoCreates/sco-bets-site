@@ -24,10 +24,31 @@ export default async function handler(req, res) {
     const espnSportPath = mapSportToEspn(sport);
 
     const requestedDate = req.query.date;
-    const dateParam = requestedDate ? `?dates=${requestedDate}` : '';
+
+    let effectiveDate = requestedDate;
+
+    if (!effectiveDate && sport === 'americanfootball_ncaaf') {
+      const now = new Date();
+
+      const easternDate = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/New_York',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).format(now);
+
+      effectiveDate = easternDate.replace(/-/g, '');
+    }
+
+    const dateParam = effectiveDate ? `?dates=${effectiveDate}` : '';
     const url = `https://site.api.espn.com/apis/site/v2/sports/${espnSportPath}/scoreboard${dateParam}`;
 
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
+    });
 
     if (!response.ok) {
       const text = await response.text();
@@ -39,7 +60,165 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    const games = (data.events || []).map(event => {
+const mlsClockAnchors = {};
+const footballLatestPlays = {};
+
+if (sport === 'soccer_usa_mls') {
+  const liveMlsEvents = (data.events || []).filter(
+    event => event.status?.type?.state === 'in'
+  );
+
+  await Promise.all(
+    liveMlsEvents.map(async event => {
+      try {
+        const summaryUrl =
+          `https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/summary?event=${event.id}`;
+
+        const summaryResponse = await fetch(summaryUrl, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        });
+
+        if (!summaryResponse.ok) return;
+
+        const summaryData = await summaryResponse.json();
+
+        const latestWithWallclock = [...(summaryData.commentary || [])]
+          .reverse()
+          .find(item =>
+            item?.play?.wallclock &&
+            Number.isFinite(
+              Number(item?.play?.clock?.value ?? item?.time?.value)
+            )
+          );
+
+        if (!latestWithWallclock) return;
+
+        mlsClockAnchors[event.id] = {
+          clockSeconds: Number(
+            latestWithWallclock.play?.clock?.value ??
+            latestWithWallclock.time?.value
+          ),
+          wallclock: latestWithWallclock.play.wallclock
+        };
+      } catch (err) {
+        // Keep normal ESPN scoreboard data if a summary lookup fails.
+      }
+    })
+  );
+}
+
+const wnbaLatestPlays = {};
+
+const liveWnbaEvents =
+  sport === 'basketball_wnba'
+    ? (data.events || []).filter(
+        event => event.status?.type?.state === 'in'
+      )
+    : [];
+
+await Promise.all(
+  liveWnbaEvents.map(async event => {
+    try {
+      const summaryUrl =
+        `https://site.api.espn.com/apis/site/v2/sports/${espnSportPath}/summary?event=${event.id}`;
+
+      const summaryResponse = await fetch(summaryUrl, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
+
+      if (!summaryResponse.ok) return;
+
+      const summaryData = await summaryResponse.json();
+
+      const plays =
+        Array.isArray(summaryData.plays)
+          ? summaryData.plays
+          : [];
+
+      const latestPlay = plays[plays.length - 1];
+
+      if (!latestPlay) return;
+
+      wnbaLatestPlays[event.id] = {
+        typeId: latestPlay.type?.id ?? null,
+        typeText: latestPlay.type?.text ?? null,
+        text: latestPlay.text ?? null,
+        clock: latestPlay.clock?.displayValue ?? null,
+        period: latestPlay.period?.number ?? null,
+        teamId: latestPlay.team?.id ?? null
+      };
+    } catch (err) {
+      // Keep normal ESPN scoreboard data if a summary lookup fails.
+    }
+  })
+);
+
+
+const liveFootballEvents =
+  sport.startsWith('americanfootball')
+    ? (data.events || []).filter(
+        event => event.status?.type?.state === 'in'
+      )
+    : [];
+
+await Promise.all(
+  liveFootballEvents.map(async event => {
+    try {
+      const summaryUrl =
+        `https://site.api.espn.com/apis/site/v2/sports/${espnSportPath}/summary?event=${event.id}`;
+
+      const summaryResponse = await fetch(summaryUrl, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
+
+      if (!summaryResponse.ok) return;
+
+      const summaryData = await summaryResponse.json();
+
+      const previousDrives =
+        Array.isArray(summaryData.drives?.previous)
+          ? summaryData.drives.previous
+          : [];
+
+      const currentDrives =
+        Array.isArray(summaryData.drives?.current)
+          ? summaryData.drives.current
+          : summaryData.drives?.current
+          ? [summaryData.drives.current]
+          : [];
+
+      const plays = [...previousDrives, ...currentDrives].flatMap(
+        drive => Array.isArray(drive?.plays) ? drive.plays : []
+      );
+
+      const latestPlay = plays[plays.length - 1];
+
+      if (!latestPlay) return;
+
+      footballLatestPlays[event.id] = {
+        typeId: latestPlay.type?.id ?? null,
+        typeText: latestPlay.type?.text ?? null,
+        text: latestPlay.text ?? null,
+        clock: latestPlay.clock?.displayValue ?? null,
+        period: latestPlay.period?.number ?? null
+      };
+    } catch (err) {
+      // Keep normal ESPN scoreboard data if a summary lookup fails.
+    }
+  })
+);
+
+
+const games = (data.events || []).map(event => {
       const competition = event.competitions?.[0];
       const competitors = competition?.competitors || [];
 
@@ -59,8 +238,81 @@ export default async function handler(req, res) {
         statusState: type.state || null,
         statusDescription: type.description || null,
         statusDetail: type.detail || null,
+		competitionTypeId: competition?.type?.id || null,
+        competitionTypeAbbreviation: competition?.type?.abbreviation || null,
         period: status.period || null,
         clock: status.displayClock || null,
+		
+	wnbaLatestPlayTypeId:
+      sport === 'basketball_wnba'
+        ? wnbaLatestPlays[event.id]?.typeId ?? null
+        : null,
+
+    wnbaLatestPlayTypeText:
+      sport === 'basketball_wnba'
+        ? wnbaLatestPlays[event.id]?.typeText ?? null
+        : null,
+
+    wnbaLatestPlayText:
+      sport === 'basketball_wnba'
+        ? wnbaLatestPlays[event.id]?.text ?? null
+        : null,
+
+    wnbaLatestPlayClock:
+      sport === 'basketball_wnba'
+        ? wnbaLatestPlays[event.id]?.clock ?? null
+        : null,
+
+    wnbaLatestPlayPeriod:
+      sport === 'basketball_wnba'
+        ? wnbaLatestPlays[event.id]?.period ?? null
+        : null,
+
+    wnbaLatestPlayTeamId:
+      sport === 'basketball_wnba'
+        ? wnbaLatestPlays[event.id]?.teamId ?? null
+        : null,
+	
+		
+	footballLatestPlayTypeId:
+      sport.startsWith('americanfootball')
+        ? footballLatestPlays[event.id]?.typeId ?? null
+        : null,
+
+    footballLatestPlayTypeText:
+      sport.startsWith('americanfootball')
+        ? footballLatestPlays[event.id]?.typeText ?? null
+        : null,
+
+    footballLatestPlayText:
+      sport.startsWith('americanfootball')
+        ? footballLatestPlays[event.id]?.text ?? null
+        : null,
+
+    footballLatestPlayClock:
+      sport.startsWith('americanfootball')
+        ? footballLatestPlays[event.id]?.clock ?? null
+        : null,
+
+    footballLatestPlayPeriod:
+      sport.startsWith('americanfootball')
+        ? footballLatestPlays[event.id]?.period ?? null
+        : null,	
+		
+        clockSeconds:
+          sport === 'soccer_usa_mls'
+            ? status.clock ?? null
+            : null,
+
+        mlsClockAnchorSeconds:
+          sport === 'soccer_usa_mls'
+            ? mlsClockAnchors[event.id]?.clockSeconds ?? null
+            : null,
+
+        mlsClockAnchorWallclock:
+          sport === 'soccer_usa_mls'
+            ? mlsClockAnchors[event.id]?.wallclock ?? null
+            : null,
 		
 		balls:
           sport === 'baseball_mlb'
@@ -76,6 +328,46 @@ export default async function handler(req, res) {
           sport === 'baseball_mlb'
             ? situation.outs ?? null
             : null,
+			
+		        possessionText:
+          sport.startsWith('americanfootball')
+            ? situation.possessionText ?? null
+            : null,
+
+        possessionTeamId:
+          sport.startsWith('americanfootball')
+            ? situation.possession ?? null
+            : null,
+
+        down:
+          sport.startsWith('americanfootball')
+            ? situation.down ?? null
+            : null,
+
+        distance:
+          sport.startsWith('americanfootball')
+            ? situation.distance ?? null
+            : null,
+
+        downDistanceText:
+          sport.startsWith('americanfootball')
+            ? situation.downDistanceText ?? null
+            : null,
+
+        shortDownDistanceText:
+          sport.startsWith('americanfootball')
+            ? situation.shortDownDistanceText ?? null
+            : null,
+
+        homeTimeouts:
+          sport.startsWith('americanfootball')
+            ? situation.homeTimeouts ?? null
+            : null,
+
+        awayTimeouts:
+          sport.startsWith('americanfootball')
+            ? situation.awayTimeouts ?? null
+            : null,	
 
         onFirst:
           sport === 'baseball_mlb'
@@ -94,6 +386,8 @@ export default async function handler(req, res) {
 		
         homeTeam: home?.team?.displayName || null,
         awayTeam: away?.team?.displayName || null,
+        homeTeamId: home?.id ?? home?.team?.id ?? null,
+        awayTeamId: away?.id ?? away?.team?.id ?? null,
         homeShort: home?.team?.abbreviation || null,
         awayShort: away?.team?.abbreviation || null,
         homeRecord:

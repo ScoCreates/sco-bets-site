@@ -578,6 +578,10 @@ button:active {
     line-height: 1.15;
     overflow-wrap: normal;
   }
+  
+.dashboard-title-break {
+  display: block;
+}  
 
 
   .banner-right {
@@ -589,9 +593,10 @@ button:active {
   }
 
   .nav {
-    flex-direction: column;
+    flex-direction: row;
     gap: 10px;
-    align-items: flex-start;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .stats-row {
@@ -1200,6 +1205,16 @@ button:active {
   font-size: 21px;
   font-weight: 900;
   text-shadow: 0 0 8px rgba(0, 255, 136, 0.30);
+  position: relative;
+}
+
+.football-possession {
+  position: absolute;
+  left: calc(100% + 6px);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  line-height: 1;
 }
 
 @media (max-width: 700px) {
@@ -1793,13 +1808,30 @@ window.addEventListener("DOMContentLoaded", checkAccess);
   <div class="logo">SCO Bets AI</div>
   <div>
     <a href="index.html" id="nav-home-button">Home</a>
+    <button
+      id="nav-logout-button"
+      onclick="logoutMember()"
+      style="
+        margin-left:10px;
+        padding:8px 14px;
+        border-radius:10px;
+        background:rgba(255,255,255,0.08);
+        color:#f9fafb;
+        font-weight:700;
+        font-size:13px;
+        border:1px solid rgba(255,255,255,0.14);
+        cursor:pointer;
+      "
+    >
+      Logout
+    </button>
   </div>
 </div>
 
 <div class="container">
   <div class="dashboard-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:0px;">
     <div>
-      <h1>Sports Betting Intelligence Dashboard</h1>
+      <h1>Sports Betting <span class="dashboard-title-break">Intelligence Dashboard</span></h1>
       
       <p class="premium-trust-line" style="margin: 6px 0 14px 0;">
         Compare odds, track market movement, and identify value before placing a bet.
@@ -2119,26 +2151,45 @@ window.addEventListener("DOMContentLoaded", checkAccess);
         <h3>Member Tools</h3>
         <div class="muted">Manage your membership and billing information.</div>
 
-        <div style="text-align:center; margin-top:32px;">
+        <div style="text-align:center; margin-top:32px;"> 
+          <button 
+            id="manage-subscription-btn" 
+            onclick="openCustomerPortal()" 
+            style=" 
+              display:inline-block; 
+              padding:12px 22px; 
+              border-radius:12px; 
+              background:#00ff88; 
+              color:#04110a; 
+              font-weight:700; 
+              text-decoration:none; 
+              font-size:14px; 
+              box-shadow:0 6px 16px rgba(0,255,136,0.25); 
+              transition: all 0.2s ease; 
+              border:none; 
+              cursor:pointer; 
+            " 
+          > 
+            Manage Subscription 
+          </button>
+
           <button
-            id="manage-subscription-btn"
-            onclick="openCustomerPortal()"
+            id="logout-btn"
+            onclick="logoutMember()"
             style="
               display:inline-block;
+              margin-left:10px;
               padding:12px 22px;
               border-radius:12px;
-              background:#00ff88;
-              color:#04110a;
+              background:rgba(255,255,255,0.08);
+              color:#f9fafb;
               font-weight:700;
-              text-decoration:none;
               font-size:14px;
-              box-shadow:0 6px 16px rgba(0,255,136,0.25);
-              transition: all 0.2s ease;
-              border:none;
+              border:1px solid rgba(255,255,255,0.14);
               cursor:pointer;
             "
           >
-            Manage Subscription
+            Logout
           </button>
         </div>
 
@@ -3474,6 +3525,35 @@ async function openCustomerPortal() {
   }
 }
 
+async function logoutMember() {
+  const btn = document.getElementById('logout-btn');
+
+  try {
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Logging out...';
+    }
+
+    const supabaseAuth = await getScoSupabaseAuthClient();
+
+    const { error } = await supabaseAuth.auth.signOut();
+
+    if (error) {
+      throw error;
+    }
+
+    window.location.href = '/index.html';
+  } catch (err) {
+    console.error('Logout error:', err);
+    alert('Could not log out right now. Please try again.');
+
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Logout';
+    }
+  }
+}
+
 /* ==========================================================
    LIVE-SCORE EXTRACTION AND CHANGE TRACKING
    ========================================================== */
@@ -3925,21 +4005,6 @@ const liveText = espn && espn.statusState === 'in'
 function buildMiniScoreboard(game) {
      const espn = game?.freshEspnStatus || game?.espnStatus;
 	 
-if (
-  String(game?.away || '').includes('Cardinals') &&
-  String(game?.home || '').includes('Phillies')
-) {
-  console.log('CARDINALS SCOREBOARD SOURCE:', {
-    hasFreshEspnStatus: Boolean(game?.freshEspnStatus),
-    freshStatusName: game?.freshEspnStatus?.statusName,
-    freshStatusDetail: game?.freshEspnStatus?.statusDetail,
-    embeddedStatusName: game?.espnStatus?.statusName,
-    embeddedStatusDetail: game?.espnStatus?.statusDetail,
-    chosenStatusName: espn?.statusName,
-    chosenStatusDetail: espn?.statusDetail
-  });
-}	 
-	 
 window.scoPregameStatusCache =
   window.scoPregameStatusCache || {};	 
  // console.log('SCOREBOARD ESPN OBJECT:', espn);
@@ -4293,9 +4358,96 @@ const footballPeriodLabel =
 if (liveStatusText.includes('halftime')) {
   statusLabel = 'HALFTIME';
   context = '';
-} else if (liveStatusText.includes('intermission')) {
-  statusLabel = 'INTERMISSION';
-  context = '';
+
+  const halftimeGameKey = getGameKey(game);
+
+  const halftimeStartedAt =
+  window.scoHalftimeStartedAt?.[halftimeGameKey];
+
+  const halftimeDurationMinutes =
+    selectedSport === 'americanfootball_nfl'
+      ? 13
+      : selectedSport === 'americanfootball_ncaaf'
+        ? 20
+        : selectedSport === 'soccer_usa_mls'
+          ? 15
+          : selectedSport === 'basketball_wnba'
+            ? 15
+            : 0;
+
+  if (halftimeStartedAt && halftimeDurationMinutes) {
+    const estimatedReturnAt =
+      halftimeStartedAt + halftimeDurationMinutes * 60 * 1000;
+
+    game.scoEstimatedHalftimeReturnAt = estimatedReturnAt;
+  }
+  } else if (liveStatusText.includes('intermission')) {
+    statusLabel = 'INTERMISSION';
+    context = '';
+  
+  } else if (
+    selectedSport.startsWith('americanfootball') &&
+    (
+    String(espn.footballLatestPlayTypeText || '')
+      .toLowerCase()
+      .includes('two-minute warning') ||
+    String(espn.footballLatestPlayText || '')
+      .toLowerCase()
+      .includes('two-minute warning')
+  )
+) {
+  statusLabel = 'TWO-MINUTE WARNING';
+
+  const warningPeriod =
+    Number(espn.footballLatestPlayPeriod) || Number(espn.period) || 0;
+
+  const warningPeriodLabel =
+    warningPeriod > 4
+      ? `OT${warningPeriod - 4}`
+      : `Q${warningPeriod}`;
+
+  const warningClock =
+    espn.footballLatestPlayClock || espn.clock || '';
+
+  context =
+    warningPeriod && warningClock
+      ? `• ${warningPeriodLabel}<span style="display:inline-block; margin-left:8px;">${warningClock}</span>`
+      : '';  
+  
+} else if (
+  selectedSport.startsWith('americanfootball') &&
+  String(espn.footballLatestPlayTypeId) === '21'
+) {
+  statusLabel = 'TIMEOUT';
+
+  const timeoutPeriod = Number(espn.period) || 0;
+
+  const timeoutPeriodLabel =
+    timeoutPeriod > 4
+      ? `OT${timeoutPeriod - 4}`
+      : `Q${timeoutPeriod}`;
+
+  context =
+    timeoutPeriod && espn.clock
+      ? `• ${timeoutPeriodLabel}<span style="display:inline-block; margin-left:8px;">${espn.clock}</span>`
+      : '';
+} else if (
+  selectedSport === 'basketball_wnba' &&
+  String(espn.wnbaLatestPlayTypeId) === '16'
+) {
+  statusLabel = 'TIMEOUT';
+
+  const timeoutPeriod = Number(espn.wnbaLatestPlayPeriod) || 0;
+
+  const timeoutPeriodLabel =
+    timeoutPeriod > 4
+      ? `OT${timeoutPeriod - 4}`
+      : `Q${timeoutPeriod}`;
+
+  context =
+    timeoutPeriod && espn.wnbaLatestPlayClock
+      ? `• ${timeoutPeriodLabel}<span style="display:inline-block; margin-left:8px;">${espn.wnbaLatestPlayClock}</span>`
+      : '';
 } else if (
   selectedSport.startsWith('baseball')
 ) {
@@ -4411,7 +4563,46 @@ if (liveStatusText.includes('halftime')) {
       ''
     ).trim();
 
+  let runningSoccerClock = null;
+
   if (
+    espn.statusState === 'in' &&
+    Number.isFinite(Number(espn.mlsClockAnchorSeconds)) &&
+    espn.mlsClockAnchorWallclock
+  ) {
+    const elapsedSinceAnchor = Math.max(
+      0,
+      Math.floor(
+        (Date.now() - new Date(espn.mlsClockAnchorWallclock).getTime()) / 1000
+      )
+    );
+
+    const projectedSeconds =
+      Number(espn.mlsClockAnchorSeconds) +
+      elapsedSinceAnchor;
+
+    const minutes =
+      Math.floor(projectedSeconds / 60);
+
+    const seconds =
+      projectedSeconds % 60;
+
+    runningSoccerClock =
+      `${minutes}:${String(seconds).padStart(2, '0')}`;
+  }
+
+  if (runningSoccerClock) {
+    context = `
+      <span
+        class="mls-running-clock"
+        data-anchor-seconds="${espn.mlsClockAnchorSeconds}"
+        data-anchor-wallclock="${espn.mlsClockAnchorWallclock}"
+        style="display:inline-block; margin-left:6px;"
+      >
+        ${runningSoccerClock}
+      </span>
+    `;
+  } else if (
     soccerClock &&
     soccerClock.includes(':')
   ) {
@@ -4435,7 +4626,7 @@ if (liveStatusText.includes('halftime')) {
           : `${baseMinute} MIN`;
 
       context = `<span style="display:inline-block; margin-left:6px;">${soccerMinuteText}</span>`;
-    } else {
+            } else {
       context = soccerDetail;
     }
   }
@@ -4468,9 +4659,10 @@ if (liveStatusText.includes('halftime')) {
   espn.clock &&
   footballPeriod
 ) {
-context = `• ${footballPeriodLabel}<span style="display:inline-block; margin-left:8px;">${espn.clock}</span>`;
+  context = `• ${footballPeriodLabel}<span style="display:inline-block; margin-left:8px;">${espn.clock}</span>`;
 }
-  } else if (!isNaN(gameDate.getTime())) {
+}
+else if (!isNaN(gameDate.getTime())) {
   const now = new Date();
 
   const minutesUntilStart =
@@ -4584,7 +4776,27 @@ return `
         ${context ? `
         <span class="game-summary-status-context">${context}</span>
         ` : ''}
-        </div>
+               </div>
+
+        ${
+          statusLabel === 'HALFTIME' &&
+          game.scoEstimatedHalftimeReturnAt
+            ? `
+              <div style="margin-top:4px; text-align:center;">
+                <div
+                  class="football-halftime-countdown"
+                  data-return-at="${game.scoEstimatedHalftimeReturnAt}"
+                  style="font-size:12px; font-weight:700;"
+                >
+                  Estimated return in --
+                </div>
+                <div style="margin-top:2px; font-size:10px; opacity:0.7;">
+                  Approximate — not an official game clock
+                </div>
+              </div>
+            `
+            : ''
+        }
       </div>
 
       ${selectedSport.startsWith('baseball')
@@ -4966,6 +5178,23 @@ const getLabel = (period) => {
 };
 
   const currentPeriod = Number(espn.period) || 0;
+  const showPossession =
+  espn.statusState === 'in' &&
+  !String(
+    `${espn.statusName || ''} ${espn.statusDescription || ''} ${espn.statusDetail || ''}`
+  ).toLowerCase().match(/end of|halftime|intermission/);
+
+const awayHasPossession =
+  showPossession &&
+  Boolean(espn.possessionTeamId) &&
+  Boolean(espn.awayTeamId) &&
+  String(espn.possessionTeamId) === String(espn.awayTeamId);
+
+const homeHasPossession =
+  showPossession &&
+  Boolean(espn.possessionTeamId) &&
+  Boolean(espn.homeTeamId) &&
+  String(espn.possessionTeamId) === String(espn.homeTeamId);
 
 const hasGameStarted =
   espn.statusState === 'in' ||
@@ -5046,7 +5275,10 @@ const getValue = (linescores, period) => {
         </span>
       `).join('')}
 
-      <strong class="football-total">${espn.awayScore ?? '-'}</strong>
+      <strong class="football-total">
+        <span>${espn.awayScore ?? '-'}</span>
+        ${awayHasPossession ? '<span class="football-possession">🏈</span>' : ''}
+      </strong>
 
       <span class="football-team">
                      <span class="football-team-abbr">${espn.homeShort || 'HME'}</span>
@@ -5062,12 +5294,51 @@ const getValue = (linescores, period) => {
         </span>
       `).join('')}
 
-      <strong class="football-total">${espn.homeScore ?? '-'}</strong>
+            <strong class="football-total">
+        <span>${espn.homeScore ?? '-'}</span>
+        ${homeHasPossession ? '<span class="football-possession">🏈</span>' : ''}
+      </strong>
     </div>
+
+    ${
+      espn.statusState === 'in' &&
+      !String(
+        `${espn.statusName || ''} ${espn.statusDescription || ''} ${espn.statusDetail || ''}`
+      ).toLowerCase().match(/end of|halftime|intermission/) &&
+      Number(espn.down) >= 1 &&
+      Number(espn.down) <= 4 &&
+      espn.shortDownDistanceText
+        ? `<div class="football-down-distance">${espn.shortDownDistanceText}</div>`
+        : ''
+    }
   `;
 }
 
 function buildSoccerScoreboard(espn) {
+  let runningClockText = null;
+
+  if (
+    espn.statusState === 'in' &&
+    Number.isFinite(Number(espn.mlsClockAnchorSeconds)) &&
+    espn.mlsClockAnchorWallclock
+  ) {
+    const elapsedSinceAnchor = Math.max(
+      0,
+      Math.floor(
+        (Date.now() - new Date(espn.mlsClockAnchorWallclock).getTime()) / 1000
+      )
+    );
+
+    const projectedSeconds =
+      Number(espn.mlsClockAnchorSeconds) + elapsedSinceAnchor;
+
+    const minutes = Math.floor(projectedSeconds / 60);
+    const seconds = projectedSeconds % 60;
+
+    runningClockText =
+      `${minutes}:${String(seconds).padStart(2, '0')}`;
+  }
+
   return `
     <div class="soccer-scoreboard">
       <div class="soccer-score-row">
@@ -5289,6 +5560,64 @@ const ODDS_POLL_IDLE_MS = 900000;         // 15 minutes
 
 let oddsPollTimer = null;
 let latestPollingGames = [];
+const nextScheduledGameCache = {};
+
+async function getNextScheduledGameDate(sport) {
+  if (nextScheduledGameCache[sport]) {
+    return nextScheduledGameCache[sport];
+  }
+
+  const today = new Date();
+
+  for (let dayOffset = 1; dayOffset <= 14; dayOffset++) {
+    const checkDate = new Date(today);
+    checkDate.setDate(today.getDate() + dayOffset);
+
+    const dateParam =
+      checkDate.getFullYear().toString() +
+      String(checkDate.getMonth() + 1).padStart(2, '0') +
+      String(checkDate.getDate()).padStart(2, '0');
+
+    try {
+      const response = await fetch(
+        `/api/scores?sport=${encodeURIComponent(sport)}&date=${dateParam}`
+      );
+
+      if (!response.ok) {
+        continue;
+      }
+
+      const payload = await response.json();
+      const scheduledGames = Array.isArray(payload.games)
+        ? payload.games.filter(game => {
+            if (game.statusState !== 'pre') {
+              return false;
+            }
+
+        if (
+          sport === 'baseball_mlb' &&
+          game.competitionTypeAbbreviation !== 'STD'
+        ) {
+          return false;
+        }
+
+            return true;
+          })
+        : [];
+
+      if (scheduledGames.length) {
+        const nextDate = scheduledGames[0].date || null;
+        nextScheduledGameCache[sport] = nextDate;
+        return nextDate;
+      }
+    } catch (err) {
+      // Keep checking future dates.
+    }
+  }
+
+  nextScheduledGameCache[sport] = null;
+  return null;
+}
 
 function getOddsPollingInterval(games) {
   const now = Date.now();
@@ -5393,6 +5722,23 @@ function scheduleNextOddsPoll() {
 }
 
 async function refreshIndependentScoreboards() {
+  if (!window.scoHalftimeStartedAt) {
+    try {
+      window.scoHalftimeStartedAt =
+        JSON.parse(
+          localStorage.getItem('scoHalftimeStartedAt') || '{}'
+        ) || {};
+    } catch (error) {
+      window.scoHalftimeStartedAt = {};
+    }
+  }
+
+  const refreshSequence =
+    (window.scoIndependentScoreboardRefreshSequence || 0) + 1;
+
+  window.scoIndependentScoreboardRefreshSequence =
+    refreshSequence;
+
   if (document.hidden) {
     return;
   }
@@ -5415,7 +5761,14 @@ async function refreshIndependentScoreboards() {
 
     const payload = await response.json();
 
-    const freshGames =
+if (
+  refreshSequence !==
+  window.scoIndependentScoreboardRefreshSequence
+) {
+  return;
+}
+
+const freshGames =
       Array.isArray(payload.games)
         ? payload.games
         : [];
@@ -5452,6 +5805,48 @@ latestPollingGames.forEach(game => {
   }
 
   game.freshEspnStatus = freshEspnGame;
+
+  const supportsEstimatedHalftime =
+  sport === 'americanfootball_nfl' ||
+  sport === 'americanfootball_ncaaf' ||
+  sport === 'soccer_usa_mls' ||
+  sport === 'basketball_wnba';
+
+if (supportsEstimatedHalftime) {
+  const halftimeText = String(
+    `${freshEspnGame.statusName || ''} ${freshEspnGame.statusDescription || ''} ${freshEspnGame.statusDetail || ''}`
+  ).toLowerCase();
+
+  const halftimeGameKey = getGameKey(game);
+
+  window.scoHalftimeStartedAt =
+    window.scoHalftimeStartedAt || {};
+
+  if (
+    halftimeText.includes('halftime') &&
+    !window.scoHalftimeStartedAt[halftimeGameKey]
+  ) {
+    window.scoHalftimeStartedAt[halftimeGameKey] =
+      Date.now();
+
+    localStorage.setItem(
+      'scoHalftimeStartedAt',
+      JSON.stringify(window.scoHalftimeStartedAt)
+    );
+  }
+  
+  if (
+    !halftimeText.includes('halftime') &&
+    window.scoHalftimeStartedAt[halftimeGameKey]
+  ) {
+    delete window.scoHalftimeStartedAt[halftimeGameKey];
+
+    localStorage.setItem(
+      'scoHalftimeStartedAt',
+      JSON.stringify(window.scoHalftimeStartedAt)
+    );
+  }  
+}
 
       const gameCard =
         document.getElementById(
@@ -5771,13 +6166,6 @@ try {
 } catch (err) {
   freshEspnGames = [];
 }
-
-console.log(
-  'INDEPENDENT ESPN SCOREBOARD:',
-  sport,
-  freshEspnGames.length,
-  freshEspnGames
-);
 
 latestPollingGames = games;
 
@@ -6291,6 +6679,18 @@ if (statTodayGames) {
     if (!games.length && !hasRetainedFinalTransitions) {
 
       const offseasonSports = {
+        baseball_mlb: {
+          title: '⚾ No MLB games scheduled for today',
+          message: 'Odds will automatically appear here when the next MLB markets are available.',
+          useNextScheduledDate: true,
+          nextGameLabel: 'MLB'
+        },
+        basketball_wnba: {
+          title: '🏀 No WNBA games scheduled for today',
+          message: 'Odds will automatically appear here when the next WNBA markets are available.',
+          useNextScheduledDate: true,
+          nextGameLabel: 'WNBA'
+        },
         basketball_nba: {
           title: '🏀 NBA is currently in the offseason',
           message: 'Regular season odds will automatically appear here once sportsbooks begin posting games.'
@@ -6309,14 +6709,37 @@ if (statTodayGames) {
         },
         americanfootball_nfl: {
           title: '🏈 No NFL games scheduled for today',
-          message: 'Odds will automatically appear here when the next NFL markets are available.'
+          message: 'Odds will automatically appear here when the next NFL markets are available.',
+          useNextScheduledDate: true,
+          nextGameLabel: 'NFL'
         }
 
                 };
 
-               const offseason = offseasonSports[sport];
+      const offseason = offseasonSports[sport];
 
-               if (list) {
+      let offseasonMessage =
+        offseason?.message || '';
+
+      if (offseason?.useNextScheduledDate) {
+        const nextScheduledDate =
+          await getNextScheduledGameDate(sport);
+
+        if (nextScheduledDate) {
+          const formattedNextDate =
+            new Date(nextScheduledDate).toLocaleDateString([], {
+              weekday: 'long',
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric'
+            });
+
+          offseasonMessage =
+            `Next ${offseason.nextGameLabel} games: ${formattedNextDate}. Odds will automatically appear here when sportsbook markets are available.`;
+        }
+      }
+
+      if (list) {
                    list.innerHTML = offseason
                          ? `
                            <div style="text-align:center; padding:28px 20px;">
@@ -6324,7 +6747,7 @@ if (statTodayGames) {
                                       ${offseason.title}
                           </div>
                          <div class="muted" style="max-width:520px; margin:0 auto; line-height:1.6;">
-                               ${offseason.message}
+                               ${offseasonMessage}
                         </div>
                   </div>
                `
@@ -7783,29 +8206,6 @@ if (
 
   const espn = currentEspnStatus;
 
-  if (espn) {
-    console.log(
-      `ESPN STATUS CATALOG | ID: ${espn.id || 'unknown'} | ${espn.gameKey || getGameKey(game)} | ${espn.awayShort || 'AWY'} @ ${espn.homeShort || 'HME'} | ${espn.date || getGameCommenceTime(game) || 'unknown date'}`,
-      {
-        game: `${espn.awayShort || game.away} @ ${espn.homeShort || game.home}`,
-        gameId: espn.id,
-        gameKey: espn.gameKey || getGameKey(game),
-        gameDate: espn.date || getGameCommenceTime(game),
-
-        statusName: espn.statusName,
-        statusDescription: espn.statusDescription,
-        statusDetail: espn.statusDetail,
-        statusState: espn.statusState,
-
-        period: espn.period,
-        clock: espn.clock,
-
-        awayScore: espn.awayScore,
-        homeScore: espn.homeScore
-      }
-    );
-  }
-
   const completedKey = getGameKey(game);
 
     if (completedKey) {
@@ -8102,12 +8502,6 @@ const trustedSharedCompletedGames = sharedCompletedGames.filter(
       game.serverCompletedAt
 );
 
-console.log(
-    'TRUSTED SHARED COMPLETED GAMES:',
-  trustedSharedCompletedGames.length
-);
-
-  
 const mergedCompletedGames = [
   ...trustedSharedCompletedGames
 ];
@@ -8651,6 +9045,44 @@ if (secondsAgo >= warningThreshold) {
 } else {
   lastUpdated.style.color = '#9ca3af';
 }
+}, 1000);
+
+function updateFootballHalftimeCountdown() {
+  document
+    .querySelectorAll('.football-halftime-countdown')
+    .forEach(element => {
+      const rawReturnAt = element.dataset.returnAt;
+
+      const returnAt =
+        Number.isFinite(Number(rawReturnAt))
+          ? Number(rawReturnAt)
+          : new Date(rawReturnAt).getTime();
+
+      if (!Number.isFinite(returnAt)) {
+        return;
+      }
+
+      const remainingSeconds = Math.ceil(
+        (returnAt - Date.now()) / 1000
+      );
+
+      if (remainingSeconds <= 0) {
+        element.textContent = 'Expected to resume shortly';
+        return;
+      }
+
+      const minutes = Math.floor(remainingSeconds / 60);
+      const seconds = remainingSeconds % 60;
+
+      element.textContent =
+        `Estimated return in ${minutes}:${String(seconds).padStart(2, '0')}`;
+    });
+}
+
+updateFootballHalftimeCountdown();
+
+setInterval(() => {
+  updateFootballHalftimeCountdown();
 }, 1000);
 
 </script>

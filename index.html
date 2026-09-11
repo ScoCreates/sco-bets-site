@@ -496,7 +496,7 @@
 }
 
 .existing-user-link {
-  margin: 4px 0 10px;   /* was margin-top: 12px */
+  margin: 12px 0 10px;
   font-size: 0.95rem;
   color: #9ca3af;
 }
@@ -523,6 +523,10 @@
 }
 
 .email-modal.hidden {
+  display: none;
+}
+
+.hidden {
   display: none;
 }
 
@@ -714,7 +718,7 @@
 
   text-align: center;
 
-  padding: 12px 20px 80px;
+  padding: 28px 20px 80px;
 
   height: auto;
   min-height: auto;
@@ -1220,16 +1224,10 @@ and avoid bad bets when the numbers don’t support it.
 
         <div class="hero-buttons">
           <a href="#" class="btn btn-primary start-premium-btn">
-            Get Access — Lock in $9.99/month
+            Start Your 7-Day Free Trial →
           </a>
           <a href="#premium-preview" class="btn btn-secondary">
             Explore the Dashboard
-          </a>
-        </div>
-
-        <div style="margin-top:12px;">
-          <a href="#" class="trial-link direct-checkout-btn">
-            Try it risk-free with a 7-day free trial
           </a>
         </div>
 
@@ -1560,13 +1558,13 @@ and avoid bad bets when the numbers don’t support it.
     <div class="email-modal-subtext">
       We’ll verify your membership and open your dashboard.
     </div>
-
-    <div id="subscriber-login-trial-link" class="email-modal-subtext hidden">
+	
+    <div id="subscriber-login-trial-link" class="email-modal-subtext">
       Not a member yet?
       <a href="#" id="subscriber-login-trial-cta" style="color:#00ff88; font-weight:600;">
         Start your 7-day free trial →
       </a>
-    </div>
+    </div>	
 
     <div id="subscriber-login-code-step" class="hidden" style="display:none;">
             <p class="email-modal-text">
@@ -1587,7 +1585,7 @@ and avoid bad bets when the numbers don’t support it.
       />
 
       <div id="subscriber-login-code-message" class="email-modal-message"></div>
-
+	  
       <button id="subscriber-login-verify-btn" class="btn btn-primary email-modal-btn">
         Verify &amp; Open Dashboard
       </button>
@@ -1601,7 +1599,11 @@ and avoid bad bets when the numbers don’t support it.
 
     <h2>Join SCO Bets AI</h2>
 
-    <p class="checkout-price">$9.99/month</p>
+    <p class="checkout-price">7-day free trial</p>
+
+    <p style="margin-top:-6px; margin-bottom:18px; font-size:16px; color:#cbd5e1;">
+      Then $9.99/month
+    </p>
 
     <div class="checkout-benefits">
       <p>✔ Instant access</p>
@@ -1796,6 +1798,7 @@ and avoid bad bets when the numbers don’t support it.
     const accessPremiumLink = document.getElementById("access-premium-link");
     const subscriberLoginModal = document.getElementById("subscriber-login-modal");
     const subscriberLoginClose = document.getElementById("subscriber-login-close");
+	let subscriberLoginRequestId = 0;
     const subscriberLoginBtn = document.getElementById("subscriber-login-btn");
     const subscriberLoginEmail = document.getElementById("subscriber-login-email");
     const subscriberLoginMessage = document.getElementById("subscriber-login-message");
@@ -1897,15 +1900,13 @@ and avoid bad bets when the numbers don’t support it.
     function openSubscriberLoginModal() {
       if (!subscriberLoginModal) return;
 
+      subscriberLoginRequestId++;
+
       showHiddenModal(subscriberLoginModal);
 
       if (subscriberLoginMessage) {
         subscriberLoginMessage.textContent = "";
         subscriberLoginMessage.style.color = "";
-      }
-
-      if (subscriberLoginTrialLink) {
-        subscriberLoginTrialLink.classList.add("hidden");
       }
 
       if (subscriberLoginEmail) {
@@ -2114,9 +2115,6 @@ directCheckoutButtons.forEach((button) => {
           subscriberLoginMessage.style.color = "";
         }
 
-        if (subscriberLoginTrialLink) {
-          subscriberLoginTrialLink.classList.add("hidden");
-        }
       });
     }
 	
@@ -2132,9 +2130,6 @@ directCheckoutButtons.forEach((button) => {
           subscriberLoginMessage.textContent = "";
           subscriberLoginMessage.style.color = "";
 
-          if (subscriberLoginTrialLink) {
-            subscriberLoginTrialLink.classList.add("hidden");
-          }
         }
       });
     }
@@ -2156,6 +2151,8 @@ directCheckoutButtons.forEach((button) => {
     subscriberLoginBtn.disabled = true;
     subscriberLoginBtn.textContent = "Sending code...";
 
+    const requestId = ++subscriberLoginRequestId;
+
     if (subscriberLoginMessage) {
       subscriberLoginMessage.textContent = "";
     }
@@ -2170,6 +2167,10 @@ directCheckoutButtons.forEach((button) => {
       });
 
       const data = await res.json();
+	  
+	  if (requestId !== subscriberLoginRequestId) {
+        return;
+      }
 
       if (!res.ok) {
         throw new Error(data.error || "Unable to send verification code.");
@@ -2185,10 +2186,6 @@ directCheckoutButtons.forEach((button) => {
         subscriberLoginCodeStep.style.display = "block";
       }
 
-      if (subscriberLoginTrialLink) {
-        subscriberLoginTrialLink.classList.add("hidden");
-      }
-
       if (subscriberLoginCode) {
         subscriberLoginCode.value = "";
         subscriberLoginCode.focus();
@@ -2196,24 +2193,32 @@ directCheckoutButtons.forEach((button) => {
     } catch (err) {
       console.error(err);
 
+      if (requestId !== subscriberLoginRequestId) {
+        return;
+      }
+
       if (subscriberLoginMessage) {
         subscriberLoginMessage.style.color = "#f87171";
         subscriberLoginMessage.textContent =
           "Unable to send a verification code. Please try again.";
       }
         } finally {
-      subscriberLoginBtn.disabled = false;
+          if (requestId !== subscriberLoginRequestId) {
+            return;
+          }
 
-      const codeStepIsVisible =
-        subscriberLoginCodeStep &&
-        subscriberLoginCodeStep.style.display === "block";
+          subscriberLoginBtn.disabled = false;
 
-      subscriberLoginBtn.textContent = codeStepIsVisible
-        ? "Send a new code"
-        : "Send Verification Code";
+          const codeStepIsVisible =
+            subscriberLoginCodeStep &&
+            subscriberLoginCodeStep.style.display === "block";
+
+          subscriberLoginBtn.textContent = codeStepIsVisible
+            ? "Send a new code"
+            : "Send Verification Code";
+        }
+        });
     }
-    });
-}
 
 if (subscriberLoginCode) {
   subscriberLoginCode.addEventListener("click", function () {
@@ -2306,6 +2311,10 @@ if (subscriberLoginVerifyBtn) {
         subscriberLoginCodeMessage.textContent =
           "That code is invalid or has expired. Please try again.";
       }
+
+      if (subscriberLoginTrialLink) {
+        subscriberLoginTrialLink.classList.remove("hidden");
+      }
     } finally {
       subscriberLoginVerifyBtn.disabled = false;
       subscriberLoginVerifyBtn.textContent = "Verify & Open Dashboard";
@@ -2325,14 +2334,33 @@ if (subscriberLoginVerifyBtn) {
       });
     }
 	
-        if (subscriberLoginTrialCta) {
-          subscriberLoginTrialCta.addEventListener("click", function (e) {
-            e.preventDefault();
+    if (subscriberLoginTrialCta) {
+      subscriberLoginTrialCta.addEventListener("click", async function (e) {
+        e.preventDefault();
 
-            closeSubscriberLoginModal();
-            openCheckoutModal();
+        try {
+          const response = await fetch("/api/create-checkout-session", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({})
           });
-        }	
+
+          const data = await response.json();
+
+          if (!response.ok || !data.url) {
+            throw new Error(data.error || "Unable to start checkout.");
+          }
+
+          sessionStorage.setItem("stripe_checkout_started", "1");
+          window.location.href = data.url;
+        } catch (error) {
+          console.error(error);
+          alert("Unable to start checkout.");
+        }
+      });
+    }	
 
     if (teaserModal) {
       hideElement(teaserModal);
