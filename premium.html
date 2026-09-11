@@ -5874,7 +5874,29 @@ setInterval(() => {
 }, 15 * 1000);
 
 async function loadOdds() {
-     const teamSelectReset = document.getElementById('team-select');
+  const visibleGameAnchor = (() => {
+    const cards = [...document.querySelectorAll('.game-card')];
+
+    const visibleCard = cards.find(card => {
+      const rect = card.getBoundingClientRect();
+
+      return (
+        rect.bottom > 0 &&
+        rect.top < window.innerHeight
+      );
+    });
+
+    if (!visibleCard?.id) {
+      return null;
+    }
+
+    return {
+      id: visibleCard.id,
+      top: visibleCard.getBoundingClientRect().top
+    };
+  })();
+  
+  const teamSelectReset = document.getElementById('team-select');
 
   if (teamSelectReset) {
     teamSelectReset.innerHTML = '<option value="">All Teams</option>';
@@ -8346,9 +8368,24 @@ ${gameSignal ? `
 
           </div>
         `;
-      }).join('');
+        }).join('');
 
-      renderBiggestMoversCard();
+        if (visibleGameAnchor) {
+          const restoredGameCard =
+            document.getElementById(visibleGameAnchor.id);
+
+          if (restoredGameCard) {
+            const newTop =
+              restoredGameCard.getBoundingClientRect().top;
+
+            window.scrollBy({
+              top: newTop - visibleGameAnchor.top,
+              behavior: 'auto'
+            });
+          }
+        }
+
+        renderBiggestMoversCard();
     }
 
 } catch (err) {
