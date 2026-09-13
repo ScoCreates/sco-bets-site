@@ -7,6 +7,10 @@ function getGameObservationKey(gameKey) {
   return `game_observation:${gameKey}`;
 }
 
+function getCompletedGamePersistedKey(gameKey) {
+  return `completed_game_persisted:${gameKey}`;
+}
+
 const sportMap = {
   baseball_mlb: {
     group: 'baseball',
@@ -104,13 +108,63 @@ async function upsertCompletedGames(completedGames, sport) {
     return;
   }
   
-  const completedGameKeys = completedGames
-  .map(game => game.gameKey)
-  .filter(Boolean);
+  const validCompletedGames =
+  completedGames.filter(
+    game => Boolean(game.gameKey)
+  );
+
+const completedGameKeys =
+  validCompletedGames.map(
+    game => game.gameKey
+  );
 
 if (completedGameKeys.length === 0) {
   return;
 }
+
+const persistedKeys = completedGameKeys.map(
+  gameKey =>
+    getCompletedGamePersistedKey(gameKey)
+);
+
+const persistedResults =
+  await redis.mget(...persistedKeys);
+
+const gamesNeedingDatabaseCheck =
+  validCompletedGames.filter((game, index) => {
+    const persisted =
+      persistedResults[index];
+
+    if (!persisted) {
+      return true;
+    }
+
+    const awayScore = Number.isFinite(
+      Number(game.awayScore)
+    )
+      ? Number(game.awayScore)
+      : null;
+
+    const homeScore = Number.isFinite(
+      Number(game.homeScore)
+    )
+      ? Number(game.homeScore)
+      : null;
+
+    return (
+      Number(persisted.away_score) !== awayScore ||
+      Number(persisted.home_score) !== homeScore
+    );
+  });
+
+if (gamesNeedingDatabaseCheck.length === 0) {
+  return;
+}
+
+const databaseCheckKeys =
+  gamesNeedingDatabaseCheck
+    .map(game => game.gameKey)
+    .filter(Boolean);
 
 const {
   data: existingCompletedGames,
@@ -118,7 +172,7 @@ const {
 } = await supabase
   .from('completed_games')
   .select('game_key, away_score, home_score')
-  .in('game_key', completedGameKeys);
+  .in('game_key', databaseCheckKeys);
 
 if (existingCompletedGamesError) {
   throw new Error(
@@ -134,7 +188,7 @@ const existingCompletedGameMap = new Map(
   ])
 );
 
-  const rows = completedGames
+  const rows = gamesNeedingDatabaseCheck
   .filter(game => {
     if (!game.gameKey) {
       return false;
@@ -210,26 +264,92 @@ const existingCompletedGameMap = new Map(
 console.log('COMPLETED GAMES WRITE CHECK:', {
   sport,
   completedGamesFound: completedGames.length,
+  databaseChecks:
+    gamesNeedingDatabaseCheck.length,
   rowsToWrite: rows.length
-});	
+});
 
-  if (rows.length === 0) {
-    return;
-  }
+const rowsToWriteKeys =
+  new Set(rows.map(row => row.game_key));
+
+const alreadyCurrentGames =
+  gamesNeedingDatabaseCheck.filter(
+    game =>
+      game.gameKey &&
+      !rowsToWriteKeys.has(game.gameKey)
+  );
+
+if (alreadyCurrentGames.length > 0) {
+  await Promise.all(
+    alreadyCurrentGames.map(game =>
+      redis.set(
+        getCompletedGamePersistedKey(
+          game.gameKey
+        ),
+        {
+          away_score: Number.isFinite(
+            Number(game.awayScore)
+          )
+            ? Number(game.awayScore)
+            : null,
+
+          home_score: Number.isFinite(
+            Number(game.homeScore)
+          )
+            ? Number(game.homeScore)
+            : null
+        },
+        {
+          ex: 48 * 60 * 60
+        }
+      )
+    )
+  );
+}
+
+if (rows.length === 0) {
+  return;
+}
 
   const { error } = await supabase
-    .from('completed_games')
-    .upsert(rows, {
-      onConflict: 'game_key',
-      ignoreDuplicates: false
-    });
+  .from('completed_games')
+  .upsert(rows, {
+    onConflict: 'game_key',
+    ignoreDuplicates: false
+  });
 
-  if (error) {
-    throw new Error(
-      `Failed to store completed ${sport} games: ` +
-      error.message
-    );
-  }
+if (error) {
+  throw new Error(
+    `Failed to store completed ${sport} games: ` +
+    error.message
+  );
+}
+
+await Promise.all(
+  gamesNeedingDatabaseCheck.map(game =>
+    redis.set(
+      getCompletedGamePersistedKey(
+        game.gameKey
+      ),
+      {
+        away_score: Number.isFinite(
+          Number(game.awayScore)
+        )
+          ? Number(game.awayScore)
+          : null,
+
+        home_score: Number.isFinite(
+          Number(game.homeScore)
+        )
+          ? Number(game.homeScore)
+          : null
+      },
+      {
+        ex: 48 * 60 * 60
+      }
+    )
+  )
+);
 }
 
 async function fetchEspnGames(requestedSport, date) {
