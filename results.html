@@ -858,6 +858,11 @@ function renderResults() {
 
     const awayWon = Number(awayScore) > Number(homeScore);
     const homeWon = Number(homeScore) > Number(awayScore);
+	
+	const hideDuplicateFinalScore =
+      game.sport === 'baseball_mlb' ||
+      game.sport === 'americanfootball_nfl' ||
+      game.sport === 'americanfootball_ncaaf';
 
     const historicalScoreboard =
       buildHistoricalMlbScoreboard(game) ||
@@ -921,9 +926,11 @@ function renderResults() {
               ${away}
             </span>
 
-            <strong style="text-align:right; ${awayWon ? 'color:#00ff88;font-weight:700;' : ''}">
-              ${awayScore}
-            </strong>
+        ${hideDuplicateFinalScore ? '' : `
+          <strong style="text-align:right; ${awayWon ? 'color:#00ff88;font-weight:700;' : ''}">
+            ${awayScore}
+          </strong>
+        `}
           </div>
 
           <div style="
@@ -937,9 +944,11 @@ function renderResults() {
               ${home}
             </span>
 
-            <strong style="text-align:right; ${homeWon ? 'color:#00ff88;font-weight:700;' : ''}">
-              ${homeScore}
-            </strong>
+        ${hideDuplicateFinalScore ? '' : `
+          <strong style="text-align:right; ${homeWon ? 'color:#00ff88;font-weight:700;' : ''}">
+            ${homeScore}
+          </strong>
+        `}
           </div>
 
         </div>
@@ -948,6 +957,7 @@ function renderResults() {
           <div style="
             overflow-x:auto;
             max-width:100%;
+            margin-left:${hideDuplicateFinalScore ? '-72px' : '0'};
           ">
             ${historicalScoreboard}
           </div>
