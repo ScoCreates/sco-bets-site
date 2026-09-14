@@ -38,39 +38,7 @@ module.exports = async (req, res) => {
       });
     }
 
-const gameKeys = (data || [])
-  .map(game => game.game_key)
-  .filter(Boolean);
-
-let observations = [];
-
-if (gameKeys.length > 0) {
-  const {
-    data: observationData,
-    error: observationError
-  } = await supabase
-    .from("game_observations")
-    .select("game_key, completed_observed_at")
-    .in("game_key", gameKeys);
-
-  if (observationError) {
-    console.error(
-      "game_observations read error:",
-      observationError.message
-    );
-  } else {
-    observations = observationData || [];
-  }
-}
-
-const observationMap = Object.fromEntries(
-  observations.map(observation => [
-    observation.game_key,
-    observation.completed_observed_at || null
-  ])
-);
-
-    const completedGames = (data || []).map(game => ({
+const completedGames = (data || []).map(game => ({
   id: `cached-${game.game_key}`,
   gameKey: game.game_key,
 
@@ -82,8 +50,7 @@ const observationMap = Object.fromEntries(
   cachedFinal: true,
 
   cachedAt: game.cached_at,
-  completedObservedAt:
-    observationMap[game.game_key] || null,
+  completedObservedAt: null,
   serverCompletedAt: game.completed_at,
 
   espnStatus: game.espn_status
