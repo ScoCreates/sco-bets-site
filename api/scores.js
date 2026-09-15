@@ -209,7 +209,8 @@ await Promise.all(
         typeText: latestPlay.type?.text ?? null,
         text: latestPlay.text ?? null,
         clock: latestPlay.clock?.displayValue ?? null,
-        period: latestPlay.period?.number ?? null
+        period: latestPlay.period?.number ?? null,
+        wallclock: latestPlay.wallclock ?? null
       };
     } catch (err) {
       // Keep normal ESPN scoreboard data if a summary lookup fails.
@@ -297,6 +298,11 @@ const games = (data.events || []).map(event => {
     footballLatestPlayPeriod:
       sport.startsWith('americanfootball')
         ? footballLatestPlays[event.id]?.period ?? null
+        : null,
+
+    footballLatestPlayWallclock:
+      sport.startsWith('americanfootball')
+        ? footballLatestPlays[event.id]?.wallclock ?? null
         : null,	
 		
         clockSeconds:

@@ -1,5 +1,8 @@
 import { buildOddsPayload } from '../lib/build-odds-payload.js';
-import redis, { getOddsSnapshotKey } from '../lib/redis.js';
+import redis, {
+  getOddsSnapshotKey,
+  getCurrentEspnStatusKey
+} from '../lib/redis.js';
 
 const DEBUG_SNAPSHOT = true;
 
@@ -8,7 +11,10 @@ const SNAPSHOT_SPORTS = [
   'basketball_wnba',
   'soccer_usa_mls',
   'americanfootball_nfl',
-  'americanfootball_ncaaf'
+  'americanfootball_ncaaf',
+  'basketball_ncaab',
+  'basketball_wncaab',
+  'basketball_nba'
 ];
 
 const SNAPSHOT_POLLING_MODE = 'conservative';
@@ -26,11 +32,16 @@ const AGGRESSIVE_POLLING = {
 };
 
 const CONSERVATIVE_POLLING = {
-  live: 60 * 1000,
-  startingSoon: 60 * 1000,
-  within3Hours: 5 * 60 * 1000,
-  within12Hours: 10 * 60 * 1000,
-  within24Hours: 30 * 60 * 1000,
+  live: 2 * 60 * 1000,
+  delayed: 5 * 60 * 1000,
+  suspended: 15 * 60 * 1000,
+  within10Minutes: 2 * 60 * 1000,
+  within60Minutes: 5 * 60 * 1000,
+  within3Hours: 10 * 60 * 1000,
+  within6Hours: 15 * 60 * 1000,
+  within12Hours: 20 * 60 * 1000,
+  within18Hours: 30 * 60 * 1000,
+  within24Hours: 45 * 60 * 1000,
   within72Hours: 60 * 60 * 1000,
   within7Days: 4 * 60 * 60 * 1000,
   farFuture: 8 * 60 * 60 * 1000,
@@ -42,7 +53,11 @@ const SNAPSHOT_POLLING =
     ? AGGRESSIVE_POLLING
     : CONSERVATIVE_POLLING;
 
-function getSnapshotPollingInterval(payload) {
+function getSnapshotPollingInterval(
+  payload,
+  ignoreSnapshotCurrentStatus = false,
+  postponedGameIds = new Set()
+) {
   const games = Array.isArray(payload?.games)
     ? payload.games
     : [];
@@ -62,39 +77,73 @@ function getSnapshotPollingInterval(payload) {
     );
   });
 
-  if (hasLiveGame) {
+    if (
+    !ignoreSnapshotCurrentStatus &&
+    hasLiveGame
+  ) {
     return SNAPSHOT_POLLING.live;
   }
 
-  const hasStartingSoonGame = games.some(game => {
-    const startTime = new Date(
-      game.commence_time ||
-      game.commenceTime ||
-      game.startTime
-    ).getTime();
+      const minutesUntilNextGame = games.reduce(
+        (closest, game) => {
+          const espnGameId =
+            String(game?.espnStatus?.id || '');
 
-    if (!Number.isFinite(startTime)) {
-      return false;
-    }
+          if (
+            espnGameId &&
+            postponedGameIds.has(espnGameId)
+          ) {
+            return closest;
+          }
 
-    const minutesUntilStart =
-      (startTime - now) / 60000;
+          const startTime = new Date(
+            game.commence_time ||
+            game.commenceTime ||
+            game.startTime
+          ).getTime();
 
-    return (
-      minutesUntilStart > 0 &&
-      minutesUntilStart <= 120
-    );
-  });
+      if (
+        !Number.isFinite(startTime) ||
+        startTime <= now
+      ) {
+        return closest;
+      }
 
-  if (hasStartingSoonGame) {
-  return SNAPSHOT_POLLING.startingSoon;
-}
+      const minutesUntilStart =
+        (startTime - now) / 60000;
+
+      return Math.min(
+        closest,
+        minutesUntilStart
+      );
+    },
+    Infinity
+  );
+
+  if (minutesUntilNextGame <= 10) {
+    return SNAPSHOT_POLLING.within10Minutes;
+  }
+
+  if (minutesUntilNextGame <= 60) {
+    return SNAPSHOT_POLLING.within60Minutes;
+  }
 
 const hasPastStartPregame = games.some(game => {
   const espn = game?.espnStatus;
 
   const espnState =
     String(espn?.statusState || '').toLowerCase();
+
+  const espnStatusText = String(
+    `${espn?.statusName || ''} ` +
+    `${espn?.statusDescription || ''} ` +
+    `${espn?.statusDetail || ''}`
+  ).toLowerCase();
+
+  const hasExceptionalStatus =
+    espnStatusText.includes('delay') ||
+    espnStatusText.includes('suspend') ||
+    espnStatusText.includes('postpon');
 
   const startTime = new Date(
     game.commence_time ||
@@ -104,6 +153,7 @@ const hasPastStartPregame = games.some(game => {
 
   if (
     espnState !== 'pre' ||
+    hasExceptionalStatus ||
     !Number.isFinite(startTime)
   ) {
     return false;
@@ -114,16 +164,29 @@ const hasPastStartPregame = games.some(game => {
 
   return (
     minutesSinceStart >= 0 &&
-    minutesSinceStart <= 360
+    minutesSinceStart <= 15
   );
 });
 
-if (hasPastStartPregame) {
+if (
+  !ignoreSnapshotCurrentStatus &&
+  hasPastStartPregame
+) {
   return SNAPSHOT_POLLING.live;
 }
 
-  const hoursUntilNextGame = games.reduce(
+    const hoursUntilNextGame = games.reduce(
     (closest, game) => {
+      const espnGameId =
+        String(game?.espnStatus?.id || '');
+
+      if (
+        espnGameId &&
+        postponedGameIds.has(espnGameId)
+      ) {
+        return closest;
+      }
+
       const startTime = new Date(
         game.commence_time ||
         game.commenceTime ||
@@ -169,8 +232,16 @@ if (hoursUntilNextGame <= 3) {
   return SNAPSHOT_POLLING.within3Hours;
 }
 
+if (hoursUntilNextGame <= 6) {
+  return SNAPSHOT_POLLING.within6Hours;
+}
+
 if (hoursUntilNextGame <= 12) {
   return SNAPSHOT_POLLING.within12Hours;
+}
+
+if (hoursUntilNextGame <= 18) {
+  return SNAPSHOT_POLLING.within18Hours;
 }
 
 if (hoursUntilNextGame <= 24) {
@@ -192,7 +263,10 @@ if (Number.isFinite(hoursUntilNextGame)) {
 return SNAPSHOT_POLLING.idle;
 }
 
-function isSnapshotDue(snapshotRow) {
+function isSnapshotDue(
+  snapshotRow,
+  currentEspnStatus = null
+) {
   if (!snapshotRow) {
     return true;
   }
@@ -212,8 +286,111 @@ function isSnapshotDue(snapshotRow) {
     return true;
   }
 
-  const pollInterval =
-    getSnapshotPollingInterval(payload);
+      const currentEspnUpdatedAt =
+    new Date(
+      currentEspnStatus?.updatedAt || 0
+    ).getTime();
+
+  const hasFreshCurrentEspnStatus =
+    Number.isFinite(currentEspnUpdatedAt) &&
+    currentEspnUpdatedAt > 0 &&
+    Date.now() - currentEspnUpdatedAt <=
+      5 * 60 * 1000;
+
+  const currentEspnGames =
+    hasFreshCurrentEspnStatus &&
+    Array.isArray(currentEspnStatus?.games)
+      ? currentEspnStatus.games
+      : [];
+
+    const hasCurrentLiveGame =
+    currentEspnGames.some(game => {
+      const state = String(
+        game?.statusState || ''
+      ).toLowerCase();
+
+      const name = String(
+        game?.statusName || ''
+      ).toLowerCase();
+
+      const description = String(
+        game?.statusDescription || ''
+      ).toLowerCase();
+
+      const detail = String(
+        game?.statusDetail || ''
+      ).toLowerCase();
+
+      const statusText =
+        `${name} ${description} ${detail}`;
+
+      const isDelayed =
+        statusText.includes('delay');
+
+      const isSuspended =
+        statusText.includes('suspend');
+
+      const isPostponed =
+        statusText.includes('postpon');
+
+      return (
+        state === 'in' &&
+        !isDelayed &&
+        !isSuspended &&
+        !isPostponed
+      );
+        });
+
+    const hasCurrentDelayedGame =
+    currentEspnGames.some(game => {
+      const statusText = String(
+        `${game?.statusName || ''} ` +
+        `${game?.statusDescription || ''} ` +
+        `${game?.statusDetail || ''}`
+      ).toLowerCase();
+
+      return statusText.includes('delay');
+    });
+
+    const hasCurrentSuspendedGame =
+    currentEspnGames.some(game => {
+      const statusText = String(
+        `${game?.statusName || ''} ` +
+        `${game?.statusDescription || ''} ` +
+        `${game?.statusDetail || ''}`
+      ).toLowerCase();
+
+      return statusText.includes('suspend');
+    });
+
+  const currentPostponedGameIds =
+    new Set(
+      currentEspnGames
+        .filter(game => {
+          const statusText = String(
+            `${game?.statusName || ''} ` +
+            `${game?.statusDescription || ''} ` +
+            `${game?.statusDetail || ''}`
+          ).toLowerCase();
+
+          return statusText.includes('postpon');
+        })
+        .map(game => String(game?.id || ''))
+        .filter(Boolean)
+    );
+
+    const pollInterval =
+    hasCurrentLiveGame
+      ? SNAPSHOT_POLLING.live
+      : hasCurrentDelayedGame
+      ? SNAPSHOT_POLLING.delayed
+            : hasCurrentSuspendedGame
+      ? SNAPSHOT_POLLING.suspended
+         : getSnapshotPollingInterval(
+          payload,
+          hasFreshCurrentEspnStatus,
+          currentPostponedGameIds
+        );
 
   return (
     Date.now() - fetchedAt >= pollInterval
@@ -248,17 +425,44 @@ async function getStoredSnapshotRow(sport) {
     throw redisError;
   }
 
-  return null;
+    return null;
+}
+
+async function getCurrentEspnStatus(sport) {
+  try {
+    return (
+      await redis.get(
+        getCurrentEspnStatusKey(sport)
+      )
+    ) || null;
+  } catch (redisError) {
+    console.error(
+      'REDIS ESPN STATUS READ FAILED:',
+      sport,
+      redisError
+    );
+
+    return null;
+  }
 }
 
 async function getDueSnapshotSports() {
   const dueSports = [];
 
-  for (const sport of SNAPSHOT_SPORTS) {
+    for (const sport of SNAPSHOT_SPORTS) {
     const snapshotRow =
       await getStoredSnapshotRow(sport);
 
-    if (isSnapshotDue(snapshotRow)) {
+    const currentEspnStatus =
+      await getCurrentEspnStatus(sport);
+
+        const snapshotDue =
+      isSnapshotDue(
+        snapshotRow,
+        currentEspnStatus
+      );
+
+    if (snapshotDue) {
       dueSports.push(sport);
     }
   }
@@ -270,12 +474,18 @@ async function prepareSportSnapshot(
   sport,
   forceRefresh = false
 ) {
-  const previousSnapshot =
+    const previousSnapshot =
     await getStoredSnapshotRow(sport);
 
-  if (
+  const currentEspnStatus =
+    await getCurrentEspnStatus(sport);
+
+    if (
     !forceRefresh &&
-    !isSnapshotDue(previousSnapshot)
+    !isSnapshotDue(
+      previousSnapshot,
+      currentEspnStatus
+    )
   ) {
     return {
       skipped: true,

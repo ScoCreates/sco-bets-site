@@ -11,6 +11,10 @@ function getCompletedGamePersistedKey(gameKey) {
   return `completed_game_persisted:${gameKey}`;
 }
 
+function getCurrentEspnStatusKey(sport) {
+  return `current_espn_status:${sport}`;
+}
+
 const sportMap = {
   baseball_mlb: {
     group: 'baseball',
@@ -20,22 +24,30 @@ const sportMap = {
     group: 'basketball',
     league: 'wnba'
   },
-  basketball_nba: {
+    basketball_nba: {
     group: 'basketball',
     league: 'nba'
   },
+  basketball_ncaab: {
+    group: 'basketball',
+    league: 'mens-college-basketball'
+  },
+  basketball_wncaab: {
+    group: 'basketball',
+    league: 'womens-college-basketball'
+  },
   soccer_usa_mls: {
-  group: 'soccer',
-  league: 'usa.1'
-},
-americanfootball_nfl: {
-  group: 'football',
-  league: 'nfl'
-},
-americanfootball_ncaaf: {
-  group: 'football',
-  league: 'college-football'
-}
+    group: 'soccer',
+    league: 'usa.1'
+  },
+  americanfootball_nfl: {
+    group: 'football',
+    league: 'nfl'
+  },
+  americanfootball_ncaaf: {
+    group: 'football',
+    league: 'college-football'
+  }
   
 };
 
@@ -43,6 +55,8 @@ const defaultSports = [
   'baseball_mlb',
   'basketball_wnba',
   'basketball_nba',
+  'basketball_ncaab',
+  'basketball_wncaab',
   'soccer_usa_mls',
   'americanfootball_nfl',
   'americanfootball_ncaaf'
@@ -494,8 +508,20 @@ async function processSport(requestedSport, dates) {
       }
     });
 
-  const games = Array.from(
+    const games = Array.from(
     gamesByKey.values()
+  );
+
+  await redis.set(
+    getCurrentEspnStatusKey(requestedSport),
+    {
+      sport: requestedSport,
+      updatedAt: new Date().toISOString(),
+      games
+    },
+    {
+      ex: 10 * 60
+    }
   );
 
   const gameKeys = games

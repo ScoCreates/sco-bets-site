@@ -1219,12 +1219,30 @@ button:active {
 
 @media (max-width: 700px) {
   .football-linescore {
-	margin-bottom: 8px;
+    margin-bottom: 0;
     max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 3px;
-    scrollbar-width: thin;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  .football-possession {
+    position: absolute;
+    left: calc(100% + 5px);
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .football-total {
+    padding-right: 0;
+  }
+
+  .football-down-distance {
+    margin-top: 3px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    line-height: 1.15;
   }
 }
 
@@ -5184,14 +5202,23 @@ const getLabel = (period) => {
     `${espn.statusName || ''} ${espn.statusDescription || ''} ${espn.statusDetail || ''}`
   ).toLowerCase().match(/end of|halftime|intermission/);
 
+const isDelayedFootball =
+  String(
+    `${espn.statusName || ''} ${espn.statusDescription || ''} ${espn.statusDetail || ''}`
+  )
+    .toLowerCase()
+    .includes('delay');
+
 const awayHasPossession =
   showPossession &&
+  !isDelayedFootball &&
   Boolean(espn.possessionTeamId) &&
   Boolean(espn.awayTeamId) &&
   String(espn.possessionTeamId) === String(espn.awayTeamId);
 
 const homeHasPossession =
   showPossession &&
+  !isDelayedFootball &&
   Boolean(espn.possessionTeamId) &&
   Boolean(espn.homeTeamId) &&
   String(espn.possessionTeamId) === String(espn.homeTeamId);
@@ -5304,7 +5331,7 @@ const getValue = (linescores, period) => {
       espn.statusState === 'in' &&
       !String(
         `${espn.statusName || ''} ${espn.statusDescription || ''} ${espn.statusDetail || ''}`
-      ).toLowerCase().match(/end of|halftime|intermission/) &&
+      ).toLowerCase().match(/end of|halftime|intermission|delay/) &&
       Number(espn.down) >= 1 &&
       Number(espn.down) <= 4 &&
       espn.shortDownDistanceText
@@ -5826,26 +5853,21 @@ if (supportsEstimatedHalftime) {
     halftimeText.includes('halftime') &&
     !window.scoHalftimeStartedAt[halftimeGameKey]
   ) {
+    const sourceHalftimeStartedAt =
+      new Date(
+        freshEspnGame.footballLatestPlayWallclock || ''
+      ).getTime();
+
     window.scoHalftimeStartedAt[halftimeGameKey] =
-      Date.now();
+      Number.isFinite(sourceHalftimeStartedAt)
+        ? sourceHalftimeStartedAt
+        : Date.now();
 
     localStorage.setItem(
       'scoHalftimeStartedAt',
       JSON.stringify(window.scoHalftimeStartedAt)
     );
   }
-  
-  if (
-    !halftimeText.includes('halftime') &&
-    window.scoHalftimeStartedAt[halftimeGameKey]
-  ) {
-    delete window.scoHalftimeStartedAt[halftimeGameKey];
-
-    localStorage.setItem(
-      'scoHalftimeStartedAt',
-      JSON.stringify(window.scoHalftimeStartedAt)
-    );
-  }  
 }
 
       const gameCard =
@@ -6137,7 +6159,10 @@ window.getExpectedMarketVerificationInterval =
       sport === 'basketball_wnba' ||
       sport === 'soccer_usa_mls' ||
       sport === 'americanfootball_nfl' ||
-      sport === 'americanfootball_ncaaf';
+      sport === 'americanfootball_ncaaf' ||
+      sport === 'basketball_ncaab' ||
+      sport === 'basketball_wncaab' ||
+      sport === 'basketball_nba';
 
     const oddsEndpoint =
       useSharedSnapshot
@@ -8370,21 +8395,6 @@ ${gameSignal ? `
         `;
         }).join('');
 
-        if (visibleGameAnchor) {
-          const restoredGameCard =
-            document.getElementById(visibleGameAnchor.id);
-
-          if (restoredGameCard) {
-            const newTop =
-              restoredGameCard.getBoundingClientRect().top;
-
-            window.scrollBy({
-              top: newTop - visibleGameAnchor.top,
-              behavior: 'auto'
-            });
-          }
-        }
-
         renderBiggestMoversCard();
     }
 
@@ -8773,9 +8783,24 @@ const completedGames = Object.values(completedGamesByKey)
     `scoBiggestMovers_${sport}`,
     JSON.stringify(window.biggestMovers)
   );
-} catch (err) {
-  // If browser storage fails, line movement still works for this session.
-}
+  } catch (err) {
+    // If browser storage fails, line movement still works for this session.
+  }
+
+  if (visibleGameAnchor) {
+    const restoredGameCard =
+      document.getElementById(visibleGameAnchor.id);
+
+    if (restoredGameCard) {
+      const newTop =
+        restoredGameCard.getBoundingClientRect().top;
+
+      window.scrollBy({
+        top: newTop - visibleGameAnchor.top,
+        behavior: 'auto'
+      });
+    }
+  }
 }
 
 }
