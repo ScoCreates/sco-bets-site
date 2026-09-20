@@ -1,7 +1,8 @@
 import { buildOddsPayload } from '../lib/build-odds-payload.js';
 import redis, {
   getOddsSnapshotKey,
-  getCurrentEspnStatusKey
+  getCurrentEspnStatusKey,
+  getOddsSnapshotScheduleKey
 } from '../lib/redis.js';
 
 const DEBUG_SNAPSHOT = true;
@@ -18,6 +19,9 @@ const SNAPSHOT_SPORTS = [
 ];
 
 const SNAPSHOT_POLLING_MODE = 'conservative';
+
+const SNAPSHOT_SCHEDULE_STALE_MS =
+  24 * 60 * 60 * 1000;
 
 const AGGRESSIVE_POLLING = {
   live: 60 * 1000,
@@ -263,6 +267,144 @@ if (Number.isFinite(hoursUntilNextGame)) {
 return SNAPSHOT_POLLING.idle;
 }
 
+function getCurrentEspnPollingState(
+  currentEspnStatus = null
+) {
+  const currentEspnUpdatedAt =
+    new Date(
+      currentEspnStatus?.updatedAt || 0
+    ).getTime();
+
+  const hasFreshCurrentEspnStatus =
+    Number.isFinite(currentEspnUpdatedAt) &&
+    currentEspnUpdatedAt > 0 &&
+    Date.now() - currentEspnUpdatedAt <=
+      5 * 60 * 1000;
+
+  const currentEspnGames =
+    hasFreshCurrentEspnStatus &&
+    Array.isArray(currentEspnStatus?.games)
+      ? currentEspnStatus.games
+      : [];
+
+  const hasCurrentLiveGame =
+    currentEspnGames.some(game => {
+      const state = String(
+        game?.statusState || ''
+      ).toLowerCase();
+
+      const statusText = String(
+        `${game?.statusName || ''} ` +
+        `${game?.statusDescription || ''} ` +
+        `${game?.statusDetail || ''}`
+      ).toLowerCase();
+
+      return (
+        state === 'in' &&
+        !statusText.includes('delay') &&
+        !statusText.includes('suspend') &&
+        !statusText.includes('postpon')
+      );
+    });
+
+  const hasCurrentDelayedGame =
+    currentEspnGames.some(game => {
+      const statusText = String(
+        `${game?.statusName || ''} ` +
+        `${game?.statusDescription || ''} ` +
+        `${game?.statusDetail || ''}`
+      ).toLowerCase();
+
+      return statusText.includes('delay');
+    });
+
+  const hasCurrentSuspendedGame =
+    currentEspnGames.some(game => {
+      const statusText = String(
+        `${game?.statusName || ''} ` +
+        `${game?.statusDescription || ''} ` +
+        `${game?.statusDetail || ''}`
+      ).toLowerCase();
+
+      return statusText.includes('suspend');
+    });
+
+  const currentPostponedGameIds =
+    new Set(
+      currentEspnGames
+        .filter(game => {
+          const statusText = String(
+            `${game?.statusName || ''} ` +
+            `${game?.statusDescription || ''} ` +
+            `${game?.statusDetail || ''}`
+          ).toLowerCase();
+
+          return statusText.includes('postpon');
+        })
+        .map(game =>
+          String(game?.id || '')
+        )
+        .filter(Boolean)
+    );
+
+  return {
+    hasFreshCurrentEspnStatus,
+    hasCurrentLiveGame,
+    hasCurrentDelayedGame,
+    hasCurrentSuspendedGame,
+    currentPostponedGameIds
+  };
+}
+
+function getSnapshotNextDueAt(
+  snapshotRow,
+  currentEspnStatus = null
+) {
+  if (!snapshotRow) {
+    return Date.now();
+  }
+
+  const payload = snapshotRow.payload || null;
+
+  const fetchedAt = new Date(
+    snapshotRow.fetched_at ||
+    snapshotRow.last_success_at ||
+    0
+  ).getTime();
+
+  if (
+    !Number.isFinite(fetchedAt) ||
+    fetchedAt <= 0
+  ) {
+    return Date.now();
+  }
+
+  const {
+    hasFreshCurrentEspnStatus,
+    hasCurrentLiveGame,
+    hasCurrentDelayedGame,
+    hasCurrentSuspendedGame,
+    currentPostponedGameIds
+  } = getCurrentEspnPollingState(
+    currentEspnStatus
+  );
+
+  const pollInterval =
+    hasCurrentLiveGame
+      ? SNAPSHOT_POLLING.live
+      : hasCurrentDelayedGame
+      ? SNAPSHOT_POLLING.delayed
+      : hasCurrentSuspendedGame
+      ? SNAPSHOT_POLLING.suspended
+      : getSnapshotPollingInterval(
+          payload,
+          hasFreshCurrentEspnStatus,
+          currentPostponedGameIds
+        );
+
+  return fetchedAt + pollInterval;
+}
+
 function isSnapshotDue(
   snapshotRow,
   currentEspnStatus = null
@@ -286,98 +428,15 @@ function isSnapshotDue(
     return true;
   }
 
-      const currentEspnUpdatedAt =
-    new Date(
-      currentEspnStatus?.updatedAt || 0
-    ).getTime();
-
-  const hasFreshCurrentEspnStatus =
-    Number.isFinite(currentEspnUpdatedAt) &&
-    currentEspnUpdatedAt > 0 &&
-    Date.now() - currentEspnUpdatedAt <=
-      5 * 60 * 1000;
-
-  const currentEspnGames =
-    hasFreshCurrentEspnStatus &&
-    Array.isArray(currentEspnStatus?.games)
-      ? currentEspnStatus.games
-      : [];
-
-    const hasCurrentLiveGame =
-    currentEspnGames.some(game => {
-      const state = String(
-        game?.statusState || ''
-      ).toLowerCase();
-
-      const name = String(
-        game?.statusName || ''
-      ).toLowerCase();
-
-      const description = String(
-        game?.statusDescription || ''
-      ).toLowerCase();
-
-      const detail = String(
-        game?.statusDetail || ''
-      ).toLowerCase();
-
-      const statusText =
-        `${name} ${description} ${detail}`;
-
-      const isDelayed =
-        statusText.includes('delay');
-
-      const isSuspended =
-        statusText.includes('suspend');
-
-      const isPostponed =
-        statusText.includes('postpon');
-
-      return (
-        state === 'in' &&
-        !isDelayed &&
-        !isSuspended &&
-        !isPostponed
-      );
-        });
-
-    const hasCurrentDelayedGame =
-    currentEspnGames.some(game => {
-      const statusText = String(
-        `${game?.statusName || ''} ` +
-        `${game?.statusDescription || ''} ` +
-        `${game?.statusDetail || ''}`
-      ).toLowerCase();
-
-      return statusText.includes('delay');
-    });
-
-    const hasCurrentSuspendedGame =
-    currentEspnGames.some(game => {
-      const statusText = String(
-        `${game?.statusName || ''} ` +
-        `${game?.statusDescription || ''} ` +
-        `${game?.statusDetail || ''}`
-      ).toLowerCase();
-
-      return statusText.includes('suspend');
-    });
-
-  const currentPostponedGameIds =
-    new Set(
-      currentEspnGames
-        .filter(game => {
-          const statusText = String(
-            `${game?.statusName || ''} ` +
-            `${game?.statusDescription || ''} ` +
-            `${game?.statusDetail || ''}`
-          ).toLowerCase();
-
-          return statusText.includes('postpon');
-        })
-        .map(game => String(game?.id || ''))
-        .filter(Boolean)
-    );
+  const {
+    hasFreshCurrentEspnStatus,
+    hasCurrentLiveGame,
+    hasCurrentDelayedGame,
+    hasCurrentSuspendedGame,
+    currentPostponedGameIds
+  } = getCurrentEspnPollingState(
+    currentEspnStatus
+  );
 
     const pollInterval =
     hasCurrentLiveGame
@@ -396,6 +455,40 @@ function isSnapshotDue(
     Date.now() - fetchedAt >= pollInterval
   );
 }
+
+async function getOddsSnapshotSchedule() {
+  try {
+    return (
+      await redis.get(
+        getOddsSnapshotScheduleKey()
+      )
+    ) || null;
+  } catch (redisError) {
+    console.error(
+      'REDIS ODDS SNAPSHOT SCHEDULE READ FAILED:',
+      redisError
+    );
+
+    return null;
+  }
+}
+
+async function setOddsSnapshotSchedule(schedule) {
+  try {
+    await redis.set(
+      getOddsSnapshotScheduleKey(),
+      schedule
+    );
+  } catch (redisError) {
+    console.error(
+      'REDIS ODDS SNAPSHOT SCHEDULE WRITE FAILED:',
+      redisError
+    );
+
+    throw redisError;
+  }
+}
+
 
 async function getStoredSnapshotRow(sport) {
   try {
@@ -449,23 +542,79 @@ async function getCurrentEspnStatus(sport) {
 async function getDueSnapshotSports() {
   const dueSports = [];
 
-    for (const sport of SNAPSHOT_SPORTS) {
+  const storedSchedule =
+    await getOddsSnapshotSchedule();
+
+  const schedule =
+    storedSchedule &&
+    typeof storedSchedule === 'object'
+      ? { ...storedSchedule }
+      : {};
+
+  const hasCompleteSchedule =
+    storedSchedule &&
+    typeof storedSchedule === 'object' &&
+    SNAPSHOT_SPORTS.every(sport => {
+            const nextDueAt =
+        Number(storedSchedule[sport]);
+
+      return (
+        Number.isFinite(nextDueAt) &&
+        nextDueAt > 0 &&
+        nextDueAt >=
+          Date.now() -
+            SNAPSHOT_SCHEDULE_STALE_MS
+      );
+    });
+
+    console.log(
+    'ODDS SNAPSHOT SCHEDULE CHECK:',
+    {
+      hasCompleteSchedule
+    }
+  );
+
+  const sportsToCheck =
+    hasCompleteSchedule
+      ? SNAPSHOT_SPORTS.filter(
+          sport =>
+            Number(storedSchedule[sport]) <=
+            Date.now()
+        )
+      : SNAPSHOT_SPORTS;
+
+  console.log(
+    'ODDS SNAPSHOT SPORTS TO CHECK:',
+    sportsToCheck
+  );
+
+  for (const sport of sportsToCheck) {
     const snapshotRow =
       await getStoredSnapshotRow(sport);
 
     const currentEspnStatus =
       await getCurrentEspnStatus(sport);
 
-        const snapshotDue =
+    const snapshotDue =
       isSnapshotDue(
         snapshotRow,
         currentEspnStatus
       );
 
+    schedule[sport] =
+      getSnapshotNextDueAt(
+        snapshotRow,
+        currentEspnStatus
+      );
+
     if (snapshotDue) {
-      dueSports.push(sport);
+          dueSports.push(sport);
+      }
     }
-  }
+
+if (sportsToCheck.length > 0) {
+    await setOddsSnapshotSchedule(schedule);
+}
 
   return dueSports;
 }

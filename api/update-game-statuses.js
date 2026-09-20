@@ -15,6 +15,49 @@ function getCurrentEspnStatusKey(sport) {
   return `current_espn_status:${sport}`;
 }
 
+function getOddsSnapshotScheduleKey() {
+  return 'odds_snapshot_schedule';
+}
+
+async function wakeOddsSnapshotSport(
+  sport,
+  wakeAt
+) {
+  await redis.eval(
+    `
+      local raw =
+        redis.call('GET', KEYS[1])
+
+      local schedule = {}
+
+      if raw then
+        schedule = cjson.decode(raw)
+      end
+
+      schedule[ARGV[1]] =
+        tonumber(ARGV[2])
+
+      redis.call(
+        'SET',
+        KEYS[1],
+        cjson.encode(schedule)
+      )
+
+      return 1
+    `,
+    [getOddsSnapshotScheduleKey()],
+    [sport, String(wakeAt)]
+  );
+
+  console.log(
+    'ODDS SNAPSHOT SCHEDULE WOKEN:',
+    {
+      sport,
+      wakeAt
+    }
+  );
+}
+
 const sportMap = {
   baseball_mlb: {
     group: 'baseball',
@@ -537,6 +580,163 @@ async function processSport(requestedSport, dates) {
 
     return game.gameKey && state === 'in';
   });
+
+  const hasActiveLiveGame =
+    liveGames.some(game => {
+        const statusText =
+        `${game.statusName || ''} ` +
+        `${game.statusDescription || ''} ` +
+        `${game.statusDetail || ''}`;
+
+      const normalizedStatusText =
+        statusText.toLowerCase();
+
+        return (
+          !normalizedStatusText.includes('delay') &&
+          !normalizedStatusText.includes('suspend') &&
+          !normalizedStatusText.includes('postpon')
+        );
+      });
+
+	 const hasDelayedLiveGame =
+       liveGames.some(game => {
+         const statusText =
+           `${game.statusDescription || ''} ` +
+           `${game.statusDetail || ''}`;
+
+         return statusText
+           .toLowerCase()
+           .includes('delay');
+       });
+
+	const hasSuspendedLiveGame =
+      liveGames.some(game => {
+        const statusText =
+        `${game.statusName || ''} ` +
+        `${game.statusDescription || ''} ` +
+        `${game.statusDetail || ''}`;
+
+      return statusText
+        .toLowerCase()
+        .includes('suspend');
+    });
+
+	if (hasDelayedLiveGame) {
+      const oddsSnapshotSchedule =
+        await redis.get(
+          getOddsSnapshotScheduleKey()
+        );
+
+      const scheduledAt = Number(
+        oddsSnapshotSchedule?.[
+          requestedSport
+        ] || 0
+      );
+
+      const delayedWakeAt =
+        Date.now() + 5 * 60 * 1000;
+
+      const shouldWakeOddsSnapshot =
+        !Number.isFinite(scheduledAt) ||
+        scheduledAt <= 0 ||
+        scheduledAt > delayedWakeAt;
+
+	    console.log(
+          'ODDS SNAPSHOT DELAYED WAKE CHECK:',
+          {
+            sport: requestedSport,
+            scheduledAt:
+              scheduledAt || null,
+            delayedWakeAt,
+            shouldWakeOddsSnapshot
+          }
+        );
+
+      if (shouldWakeOddsSnapshot) {
+        await wakeOddsSnapshotSport(
+          requestedSport,
+          delayedWakeAt
+        );
+      }
+    }
+
+  if (hasSuspendedLiveGame) {
+    const oddsSnapshotSchedule =
+      await redis.get(
+        getOddsSnapshotScheduleKey()
+      );
+
+    const scheduledAt = Number(
+      oddsSnapshotSchedule?.[
+        requestedSport
+      ] || 0
+    );
+
+    const suspendedWakeAt =
+      Date.now() + 15 * 60 * 1000;
+
+    const shouldWakeOddsSnapshot =
+      !Number.isFinite(scheduledAt) ||
+      scheduledAt <= 0 ||
+      scheduledAt > suspendedWakeAt;
+
+	console.log(
+      'ODDS SNAPSHOT SUSPENDED WAKE CHECK:',
+      {
+        sport: requestedSport,
+        scheduledAt:
+          scheduledAt || null,
+        suspendedWakeAt,
+        shouldWakeOddsSnapshot
+      }
+    );
+
+    if (shouldWakeOddsSnapshot) {
+      await wakeOddsSnapshotSport(
+        requestedSport,
+        suspendedWakeAt
+      );
+    }
+  }
+
+    if (hasActiveLiveGame) {
+      const oddsSnapshotSchedule =
+        await redis.get(
+          getOddsSnapshotScheduleKey()
+      );
+
+    const scheduledAt = Number(
+      oddsSnapshotSchedule?.[
+        requestedSport
+      ] || 0
+    );
+
+    const liveWakeAt =
+      Date.now() + 2 * 60 * 1000;
+
+    const shouldWakeOddsSnapshot =
+      !Number.isFinite(scheduledAt) ||
+      scheduledAt <= 0 ||
+      scheduledAt > liveWakeAt;
+
+    console.log(
+      'ODDS SNAPSHOT LIVE WAKE CHECK:',
+      {
+        sport: requestedSport,
+        scheduledAt:
+          scheduledAt || null,
+        liveWakeAt,
+        shouldWakeOddsSnapshot
+      }
+    );
+
+	if (shouldWakeOddsSnapshot){
+      await wakeOddsSnapshotSport(
+        requestedSport,
+        liveWakeAt
+      );
+    }
+  }
 
   const liveObservationRows = liveGames.map(
     game => ({
