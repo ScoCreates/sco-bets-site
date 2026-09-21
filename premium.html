@@ -4932,7 +4932,7 @@ const gridColumns =
   `${teamColumnWidth}px repeat(${periods.length}, ${inningColumnWidth}px) ${totalColumnWidth}px`;
 
 const gridColumnGap =
-  isExtraInnings ? 3 : 6;
+  isExtraInnings ? 3 : 4;
   
  const awayScore = Number(espn.awayScore) || 0;
  const homeScore = Number(espn.homeScore) || 0;
@@ -5578,12 +5578,12 @@ function toggleWhy(contentId, el) {
    MAIN ODDS LOADING AND DASHBOARD UPDATE WORKFLOW
    ========================================================== */
    
-const ODDS_POLL_LIVE_MS = 60000;          // 1 minute
-const ODDS_POLL_STARTING_SOON_MS = 60000; // 1 minute
-const ODDS_POLL_UPCOMING_MS = 120000;     // 2 minutes
-const ODDS_POLL_MIDRANGE_MS = 300000;     // 5 minutes
-const ODDS_POLL_FAR_FUTURE_MS = 900000;   // 15 minutes
-const ODDS_POLL_IDLE_MS = 900000;         // 15 minutes
+const ODDS_POLL_LIVE_MS = 2 * 60 * 1000;          // 2 minutes
+const ODDS_POLL_STARTING_SOON_MS = 2 * 60 * 1000; // 2 minutes
+const ODDS_POLL_UPCOMING_MS = 5 * 60 * 1000;      // 5 minutes
+const ODDS_POLL_MIDRANGE_MS = 60 * 60 * 1000;     // 60 minutes
+const ODDS_POLL_FAR_FUTURE_MS = 4 * 60 * 60 * 1000; // 4 hours
+const ODDS_POLL_IDLE_MS = 8 * 60 * 60 * 1000;     // 8 hours
 
 let oddsPollTimer = null;
 let latestPollingGames = [];
@@ -5682,7 +5682,7 @@ function getOddsPollingInterval(games) {
 
     return (
       minutesUntilStart > 0 &&
-      minutesUntilStart <= 60
+      minutesUntilStart <= 10
     );
   });
 
@@ -5716,19 +5716,43 @@ function getOddsPollingInterval(games) {
     Infinity
   );
 
-  if (hoursUntilNextGame <= 72) {
-    return ODDS_POLL_UPCOMING_MS;
-  }
+  if (hoursUntilNextGame <= (10 / 60)) {
+  return 2 * 60 * 1000;
+}
 
-  if (hoursUntilNextGame <= 168) {
-    return ODDS_POLL_MIDRANGE_MS;
-  }
+if (hoursUntilNextGame <= 1) {
+  return 5 * 60 * 1000;
+}
 
-  if (Number.isFinite(hoursUntilNextGame)) {
-    return ODDS_POLL_FAR_FUTURE_MS;
-  }
+if (hoursUntilNextGame <= 3) {
+  return 10 * 60 * 1000;
+}
 
-  return ODDS_POLL_IDLE_MS;
+if (hoursUntilNextGame <= 6) {
+  return 15 * 60 * 1000;
+}
+
+if (hoursUntilNextGame <= 12) {
+  return 20 * 60 * 1000;
+}
+
+if (hoursUntilNextGame <= 18) {
+  return 30 * 60 * 1000;
+}
+
+if (hoursUntilNextGame <= 24) {
+  return 45 * 60 * 1000;
+}
+
+if (hoursUntilNextGame <= 72) {
+  return ODDS_POLL_MIDRANGE_MS;
+}
+
+if (hoursUntilNextGame <= 168) {
+  return ODDS_POLL_FAR_FUTURE_MS;
+}
+
+return ODDS_POLL_IDLE_MS;
 } 
 
 function scheduleNextOddsPoll() {
@@ -5893,7 +5917,7 @@ if (supportsEstimatedHalftime) {
 
 setInterval(() => {
   refreshIndependentScoreboards();
-}, 15 * 1000);
+}, 10 * 1000);
 
 async function loadOdds() {
   const visibleGameAnchor = (() => {
@@ -5985,9 +6009,9 @@ function getExpectedMarketVerificationInterval(games = []) {
     );
   });
 
-  if (hasLiveGame) {
-    return 60 * 1000;
-  }
+    if (hasLiveGame) {
+      return 2 * 60 * 1000;
+    }
 
   const futureStartTimes = games
     .map(game =>
@@ -6007,23 +6031,35 @@ function getExpectedMarketVerificationInterval(games = []) {
       ? (Math.min(...futureStartTimes) - now) / 60000
       : Infinity;
 
-  if (minutesUntilNextGame <= 120) {
-    return 60 * 1000;
+    if (minutesUntilNextGame <= 10) {
+    return 2 * 60 * 1000;
+  }
+
+  if (minutesUntilNextGame <= 60) {
+    return 5 * 60 * 1000;
   }
 
   const hoursUntilNextGame =
     minutesUntilNextGame / 60;
 
   if (hoursUntilNextGame <= 3) {
-    return 5 * 60 * 1000;
-  }
-
-  if (hoursUntilNextGame <= 12) {
     return 10 * 60 * 1000;
   }
 
-  if (hoursUntilNextGame <= 24) {
+  if (hoursUntilNextGame <= 6) {
+    return 15 * 60 * 1000;
+  }
+
+  if (hoursUntilNextGame <= 12) {
+    return 20 * 60 * 1000;
+  }
+
+  if (hoursUntilNextGame <= 18) {
     return 30 * 60 * 1000;
+  }
+
+  if (hoursUntilNextGame <= 24) {
+    return 45 * 60 * 1000;
   }
 
   if (hoursUntilNextGame <= 72) {
@@ -6233,19 +6269,32 @@ const freshEspnByMatchup = new Map(
 );
 
 games.forEach(game => {
-  const gameDate =
-    String(
-      game.commence_time ||
-      game.commenceTime ||
-      game.startTime ||
-      ''
-    ).slice(0, 10);
+  const existingEspnId =
+    String(game?.espnStatus?.id || '');
 
-  const matchupKey =
-    `${normalizeScoreboardTeamName(game.away)}_${normalizeScoreboardTeamName(game.home)}_${gameDate}`;
+  let freshEspnGame = null;
 
-  const freshEspnGame =
-    freshEspnByMatchup.get(matchupKey);
+  if (existingEspnId) {
+    freshEspnGame =
+      freshEspnGames.find(espnGame =>
+        String(espnGame?.id || '') ===
+        existingEspnId
+      ) || null;
+  } else {
+    const gameDate =
+      String(
+        game.commence_time ||
+        game.commenceTime ||
+        game.startTime ||
+        ''
+      ).slice(0, 10);
+
+    const matchupKey =
+      `${normalizeScoreboardTeamName(game.away)}_${normalizeScoreboardTeamName(game.home)}_${gameDate}`;
+
+    freshEspnGame =
+      freshEspnByMatchup.get(matchupKey) || null;
+  }
 
   if (freshEspnGame) {
     game.freshEspnStatus = freshEspnGame;
@@ -8396,6 +8445,21 @@ ${gameSignal ? `
         }).join('');
 
         renderBiggestMoversCard();
+
+        if (visibleGameAnchor) {
+          const restoredGameCard =
+            document.getElementById(visibleGameAnchor.id);
+
+          if (restoredGameCard) {
+            const newTop =
+              restoredGameCard.getBoundingClientRect().top;
+
+            window.scrollBy({
+              top: newTop - visibleGameAnchor.top,
+              behavior: 'auto'
+            });
+          }
+        }
     }
 
 } catch (err) {
@@ -8991,7 +9055,10 @@ if (sportSelect) {
     window.history.replaceState({}, '', url);
 
     loadOddsHistoryStateForSport(selectedSport);
-    loadOdds();
+
+    loadOdds().finally(() => {
+      scheduleNextOddsPoll();
+    });
   });
 }
 

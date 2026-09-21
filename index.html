@@ -1807,6 +1807,7 @@ and avoid bad bets when the numbers don’t support it.
     const subscriberLoginCodeStep = document.getElementById("subscriber-login-code-step");
     const subscriberLoginCode = document.getElementById("subscriber-login-code");
     const subscriberLoginCodeMessage = document.getElementById("subscriber-login-code-message");
+	let subscriberLoginCooldownTimer = null;
     const subscriberLoginVerifyBtn = document.getElementById("subscriber-login-verify-btn");
     const teaserModal = document.getElementById("teaser-modal");
     const teaserUnlockBtn = document.getElementById("teaser-unlock-btn");
@@ -2148,6 +2149,10 @@ directCheckoutButtons.forEach((button) => {
       return;
     }
 
+    const isResendingCode =
+      subscriberLoginCodeStep &&
+      subscriberLoginCodeStep.style.display === "block";
+
     subscriberLoginBtn.disabled = true;
     subscriberLoginBtn.textContent = "Sending code...";
 
@@ -2172,15 +2177,22 @@ directCheckoutButtons.forEach((button) => {
         return;
       }
 
-      if (!res.ok) {
+        if (!res.ok) {
+          if (res.status === 429 && data.retryAfter) {
+            throw new Error(
+              `Please wait ${data.retryAfter} seconds before requesting another verification code.`
+            );
+          }
+
         throw new Error(data.error || "Unable to send verification code.");
       }
 
-      if (subscriberLoginMessage) {
-        subscriberLoginMessage.style.color = "#22c55e";
-        subscriberLoginMessage.textContent =
-          "Verification code sent. Check your email. Delivery can occasionally take a minute or two.";
-      }
+        if (subscriberLoginMessage) {
+          subscriberLoginMessage.style.color = "#22c55e";
+          subscriberLoginMessage.textContent = isResendingCode
+            ? "New verification code sent. Check your email and use the newest code."
+            : "Verification code sent. Check your email. Delivery can occasionally take a minute or two.";
+        }
 
       if (subscriberLoginCodeStep) {
         subscriberLoginCodeStep.style.display = "block";
@@ -2197,25 +2209,89 @@ directCheckoutButtons.forEach((button) => {
         return;
       }
 
-      if (subscriberLoginMessage) {
+            if (subscriberLoginMessage) {
         subscriberLoginMessage.style.color = "#f87171";
-        subscriberLoginMessage.textContent =
-          "Unable to send a verification code. Please try again.";
+
+        const cooldownMatch =
+          err.message &&
+          err.message.match(/^Please wait (\d+) seconds/);
+
+        if (cooldownMatch) {
+          let secondsRemaining = Number(cooldownMatch[1]);
+
+          if (subscriberLoginCooldownTimer) {
+            clearInterval(subscriberLoginCooldownTimer);
+          }
+
+          const updateCooldownMessage = () => {
+            if (secondsRemaining <= 0) {
+              clearInterval(subscriberLoginCooldownTimer);
+              subscriberLoginCooldownTimer = null;
+              subscriberLoginMessage.textContent = "";
+              return;
+            }
+
+            subscriberLoginMessage.textContent =
+              `Please wait ${secondsRemaining} second${secondsRemaining === 1 ? "" : "s"} before requesting another verification code.`;
+
+            secondsRemaining -= 1;
+          };
+
+          updateCooldownMessage();
+
+          subscriberLoginCooldownTimer =
+            setInterval(updateCooldownMessage, 1000);
+        } else {
+          subscriberLoginMessage.textContent =
+            "Unable to send a verification code. Please try again.";
+        }
       }
         } finally {
           if (requestId !== subscriberLoginRequestId) {
             return;
           }
 
-          subscriberLoginBtn.disabled = false;
-
           const codeStepIsVisible =
-            subscriberLoginCodeStep &&
-            subscriberLoginCodeStep.style.display === "block";
+  subscriberLoginCodeStep &&
+  subscriberLoginCodeStep.style.display === "block";
 
-          subscriberLoginBtn.textContent = codeStepIsVisible
-            ? "Send a new code"
-            : "Send Verification Code";
+if (codeStepIsVisible) {
+  let secondsRemaining = 60;
+
+  subscriberLoginBtn.disabled = true;
+  subscriberLoginBtn.style.background = "#374151";
+  subscriberLoginBtn.style.color = "#d1d5db";
+
+  const updateResendButton = () => {
+    if (secondsRemaining <= 0) {
+      clearInterval(subscriberLoginCooldownTimer);
+      subscriberLoginCooldownTimer = null;
+
+      subscriberLoginBtn.disabled = false;
+      subscriberLoginBtn.style.background = "";
+      subscriberLoginBtn.style.color = "";
+      subscriberLoginBtn.textContent = "Send a new code";
+      return;
+    }
+
+    subscriberLoginBtn.textContent =
+      `You can request a new code in ${secondsRemaining}s`;
+
+    secondsRemaining -= 1;
+  };
+
+  if (subscriberLoginCooldownTimer) {
+    clearInterval(subscriberLoginCooldownTimer);
+  }
+
+  updateResendButton();
+
+  subscriberLoginCooldownTimer =
+    setInterval(updateResendButton, 1000);
+} else {
+  subscriberLoginBtn.disabled = false;
+  subscriberLoginBtn.textContent = "Send Verification Code";
+}
         }
         });
     }

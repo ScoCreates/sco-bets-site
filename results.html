@@ -104,6 +104,28 @@
       color: #ffffff;
     }
 
+    .back-to-top-btn {
+      position: fixed;
+      right: 28px;
+      bottom: 28px;
+      z-index: 1000;
+      border: 1px solid rgba(0, 229, 255, 0.55);
+      background: rgba(15, 23, 42, 0.95);
+      color: #ffffff;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      display: none;
+    }
+
+    .back-to-top-btn:hover {
+      border-color: #00e5ff;
+      background: #172033;
+    }
+
   </style>
 </head>
 
@@ -137,6 +159,15 @@
       </button>
     </div>
   </div>
+
+     <button
+      id="back-to-top"
+      class="back-to-top-btn"
+      type="button"
+      aria-label="Back to top"
+    >
+      ↑ Back to Top
+    </button>
 
     <div class="results-card" id="results-list">
       Loading recent results...
@@ -985,6 +1016,27 @@ document.querySelectorAll('.filter-pill').forEach(button => {
     renderResults();
   });
 });
+
+const backToTopButton = document.getElementById('back-to-top');
+
+if (backToTopButton) {
+  const updateBackToTopVisibility = () => {
+    backToTopButton.style.display =
+      window.scrollY > 10 ? 'block' : 'none';
+  };
+
+  window.addEventListener('scroll', updateBackToTopVisibility);
+
+  backToTopButton.addEventListener('click', () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+
+  updateBackToTopVisibility();
+}
+
 
 const teamSearch = document.getElementById('team-search');
 const clearSearch = document.getElementById('clear-search');

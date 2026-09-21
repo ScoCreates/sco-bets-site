@@ -110,6 +110,17 @@ module.exports = async (req, res) => {
         otpError.message
       );
 
+      const cooldownMatch = String(otpError.message || "").match(
+        /after\s+(\d+)\s+seconds?/i
+      );
+
+      if (cooldownMatch) {
+        return res.status(429).json({
+          error: "Please wait before requesting another verification code.",
+          retryAfter: Number(cooldownMatch[1])
+        });
+      }
+
       return res.status(500).json({
         error: "Unable to request verification code"
       });
