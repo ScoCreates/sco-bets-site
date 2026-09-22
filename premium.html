@@ -2358,7 +2358,6 @@ function resetArbitrageCalculator() {
    ========================================================== */
 
 function trackOddsRowClick(bookName, gameName, teamName, odds) {
-  console.log(`ODDS ROW CLICK: ${bookName} | ${gameName} | ${teamName} | ${odds}`);
 
   if (window.gtag) {
     gtag('event', 'odds_row_click', {
@@ -4025,27 +4024,6 @@ function buildMiniScoreboard(game) {
 	 
 window.scoPregameStatusCache =
   window.scoPregameStatusCache || {};	 
- // console.log('SCOREBOARD ESPN OBJECT:', espn);
-
- /*
-console.log(
-  `ESPN STATUS CATALOG | ID: ${espn?.id || 'unknown'} | ${espn?.gameKey || 'unknown'} | ${espn?.awayShort || 'AWY'} @ ${espn?.homeShort || 'HME'} | ${espn?.date || 'unknown date'}`,
-  {
-    game: `${espn?.awayShort} @ ${espn?.homeShort}`,
-    gameId: espn?.id,
-    gameKey: espn?.gameKey,
-    gameDate: espn?.date,
-
-    statusName: espn?.statusName,
-    statusDescription: espn?.statusDescription,
-    statusDetail: espn?.statusDetail,
-    statusState: espn?.statusState,
-
-    period: espn?.period,
-    clock: espn?.clock
-  }
-);
-*/
 
   const selectedSport = document.getElementById('sport-select')?.value || '';
   const gameDate = new Date(getGameCommenceTime(game));
@@ -4246,19 +4224,6 @@ const isLive =
   const homeLabel = homeRecord
            ? `${homeAbbr} (${homeRecord})`
            : homeAbbr;
-
-/*
-console.log('SCOREBOARD RECORDS:', {
-  awayAbbr,
-  awayRecord,
-  awayLabel,
-  homeAbbr,
-  homeRecord,
-  homeLabel,
-  espn
-});
-*/
-
 
   const awayScore = espn.awayScore ?? 0;
   const homeScore = espn.homeScore ?? 0;
@@ -6497,24 +6462,24 @@ const isFinalGame =
   }
 
   sportFinalTransitionCache[gameKey] = {
-  ...game,
-  status: 'final',
-  cachedFinal: true,
-  espnStatus: currentEspnStatus,
-  finalObservedAt:
-    existingFinal?.finalObservedAt ||
-    Date.now()
-};
-  
- try {
-  localStorage.setItem(
-    finalTransitionStorageKey,
-    JSON.stringify(sportFinalTransitionCache)
-  );
-} catch (err) {
-  // If storage fails, retention still works for this session.
-} 
-  
+    ...game,
+    status: 'final',
+    cachedFinal: true,
+    espnStatus: currentEspnStatus,
+    finalObservedAt:
+      existingFinal?.finalObservedAt ||
+      Date.now()
+  };
+
+  try {
+    localStorage.setItem(
+      finalTransitionStorageKey,
+      JSON.stringify(sportFinalTransitionCache)
+    );
+  } catch (err) {
+    // If storage fails, retention still works for this session.
+  }
+
 });
 
 completedGames.forEach(espnGame => {
@@ -6578,47 +6543,47 @@ completedGames.forEach(espnGame => {
     return;
   }
 
- const authoritativeCompletedGame =
-  authoritativeCompletedGames.find(completedGame =>
-    completedGame.gameKey === gameKey
-  );
+  const authoritativeCompletedGame =
+    authoritativeCompletedGames.find(completedGame =>
+      completedGame.gameKey === gameKey
+    );
 
-const authoritativeFinalTime = new Date(
-  authoritativeCompletedGame?.completedObservedAt ||
-  authoritativeCompletedGame?.serverCompletedAt ||
-  0
-).getTime();
+  const authoritativeFinalTime = new Date(
+    authoritativeCompletedGame?.completedObservedAt ||
+    authoritativeCompletedGame?.serverCompletedAt ||
+    0
+  ).getTime();
 
-sportFinalTransitionCache[gameKey] = {
-  ...previousFullGame,
-  home:
-    espnGame.homeTeam ||
-    previousFullGame.home,
-  away:
-    espnGame.awayTeam ||
-    previousFullGame.away,
-  sport,
-  status: 'final',
-  cachedFinal: true,
-  espnStatus: espnGame,
-  finalObservedAt:
-    existingFinal?.finalObservedAt ||
-    (
-      Number.isFinite(authoritativeFinalTime) &&
-      authoritativeFinalTime > 0
-        ? authoritativeFinalTime
-        : Date.now()
-    )
-};
-  
+  sportFinalTransitionCache[gameKey] = {
+    ...previousFullGame,
+    home:
+      espnGame.homeTeam ||
+      previousFullGame.home,
+    away:
+      espnGame.awayTeam ||
+      previousFullGame.away,
+    sport,
+    status: 'final',
+    cachedFinal: true,
+    espnStatus: espnGame,
+    finalObservedAt:
+      existingFinal?.finalObservedAt ||
+      (
+        Number.isFinite(authoritativeFinalTime) &&
+        authoritativeFinalTime > 0
+          ? authoritativeFinalTime
+          : Date.now()
+      )
+  };
+
   try {
-  localStorage.setItem(
-    finalTransitionStorageKey,
-    JSON.stringify(sportFinalTransitionCache)
-  );
-} catch (err) {
-  // If storage fails, retention still works for this session.
-}
+    localStorage.setItem(
+      finalTransitionStorageKey,
+      JSON.stringify(sportFinalTransitionCache)
+    );
+  } catch (err) {
+    // If storage fails, retention still works for this session.
+  }
 });
 
 Object.keys(sportFinalTransitionCache).forEach(gameKey => {
@@ -8038,7 +8003,7 @@ const visibleGames = mergedGames.filter(game => {
   );
 });
 	  	  
-    const sortedGames = [...visibleGames].sort((a, b) => {
+  const sortedGames = [...visibleGames].sort((a, b) => {
   const aIsFinalTransition =
     a.isFinalTransitionCard === true ||
     a.isRetainedFinalCard === true;
@@ -8078,27 +8043,15 @@ const visibleGames = mergedGames.filter(game => {
 	    const statusA = formatGameStatus(getGameCommenceTime(a), a);
         const statusB = formatGameStatus(getGameCommenceTime(b), b);
 
-        const getStatusRank = (game, statusInfo) => {
-        const isFinalGame =
-             game.status === 'final' ||
-             game.cachedFinal ||
-             game.espnStatus?.statusState === 'post' ||
-             statusInfo.status === 'final' ||
-             statusInfo.status === 'closed';
+          const getStatusRank = (game, statusInfo) => {
+    const isFinalGame =
+      game.status === 'final' ||
+      game.cachedFinal ||
+      game.espnStatus?.statusState === 'post' ||
+      statusInfo.status === 'final' ||
+      statusInfo.status === 'closed';
 
     if (isFinalGame) {
-        const completedTime = new Date(
-          game.cachedAt ||
-          game.completedAt ||
-          game.espnStatus?.completedAt ||
-        0
-    ).getTime();
-
-        const isFreshFinal =
-          Number.isFinite(completedTime) &&
-          completedTime > 0 &&
-          Date.now() - completedTime <= 5 * 60 * 1000;
-
        return 6;
     }
 
@@ -8443,6 +8396,64 @@ ${gameSignal ? `
           </div>
         `;
         }).join('');
+
+        window.scoFinalCardTimers =
+          window.scoFinalCardTimers || {};
+
+        sortedGames.forEach(game => {
+          const isRetainedFinalCard =
+            game.isFinalTransitionCard === true ||
+            game.isRetainedFinalCard === true ||
+            game.cachedFinal === true;
+
+          if (!isRetainedFinalCard) {
+            return;
+          }
+
+          const finalObservedAt = Number(
+            game.finalObservedAt || 0
+          );
+
+          if (
+            !Number.isFinite(finalObservedAt) ||
+            finalObservedAt <= 0
+          ) {
+            return;
+          }
+
+          const remainingRetentionMs =
+            FINAL_CARD_RETENTION_MS -
+            (Date.now() - finalObservedAt);
+
+          const gameKey = getGameKey(game);
+          const gameCardId = `game-${gameKey}`;
+
+          if (window.scoFinalCardTimers[gameKey]) {
+            clearTimeout(
+              window.scoFinalCardTimers[gameKey]
+            );
+          }
+
+          const removeExpiredFinalCard = () => {
+            const gameCard =
+              document.getElementById(gameCardId);
+
+            if (gameCard) {
+              gameCard.remove();
+            }
+          };
+
+          if (remainingRetentionMs <= 0) {
+            removeExpiredFinalCard();
+            return;
+          }
+
+          window.scoFinalCardTimers[gameKey] =
+            setTimeout(
+              removeExpiredFinalCard,
+              remainingRetentionMs
+            );
+        });
 
         renderBiggestMoversCard();
 
