@@ -105,6 +105,16 @@ const defaultSports = [
   'americanfootball_ncaaf'
 ];
 
+const GAME_STATUS_POLLING = {
+  live: 2 * 60 * 1000,
+  nearGame: 10 * 60 * 1000,
+  gameDay: 30 * 60 * 1000,
+  idle: 4 * 60 * 60 * 1000
+};
+
+const GAME_STATUS_SCHEDULE_STALE_MS =
+  24 * 60 * 60 * 1000;
+
 function getRequestedSports(req) {
   const requestedSport = String(
     req.query.sport || ''
@@ -119,6 +129,45 @@ function getRequestedSports(req) {
   }
 
   return [requestedSport];
+}
+
+function getGameStatusScheduleKey() {
+  return 'game_status_schedule';
+}
+
+async function getGameStatusSchedule() {
+  const schedule =
+    await redis.get(
+      getGameStatusScheduleKey()
+    );
+
+  return schedule || {};
+}
+
+async function setGameStatusSchedule(schedule) {
+  await redis.set(
+    getGameStatusScheduleKey(),
+    schedule
+  );
+}
+
+function getDueGameStatusSports(
+  sports,
+  schedule,
+  now = Date.now()
+) {
+  return sports.filter(sport => {
+    const nextDueAt =
+      Number(schedule?.[sport] || 0);
+
+    return (
+      !Number.isFinite(nextDueAt) ||
+      nextDueAt <= 0 ||
+      nextDueAt <= now ||
+      nextDueAt > now +
+        GAME_STATUS_SCHEDULE_STALE_MS
+    );
+  });
 }
 
 function isCompletedGame(game) {
@@ -928,6 +977,52 @@ await upsertCompletedGames(
   };
 }
 
+function getGameStatusPollingInterval(result) {
+  const games =
+    Array.isArray(result?.games)
+      ? result.games
+      : [];
+
+  const now = Date.now();
+
+  const hasLiveGame =
+    games.some(game =>
+      String(game.statusState || '')
+        .toLowerCase() === 'in'
+    );
+
+  if (hasLiveGame) {
+    return GAME_STATUS_POLLING.live;
+  }
+
+  const futureStarts = games
+    .map(game => new Date(game.date).getTime())
+    .filter(startTime =>
+      Number.isFinite(startTime) &&
+      startTime > now
+    );
+
+  if (futureStarts.length === 0) {
+    return GAME_STATUS_POLLING.idle;
+  }
+
+  const nextStart =
+    Math.min(...futureStarts);
+
+  const minutesUntilStart =
+    (nextStart - now) / (60 * 1000);
+
+  if (minutesUntilStart <= 60) {
+    return GAME_STATUS_POLLING.nearGame;
+  }
+
+  if (minutesUntilStart <= 24 * 60) {
+    return GAME_STATUS_POLLING.gameDay;
+  }
+
+  return GAME_STATUS_POLLING.idle;
+}
+
 module.exports = async (req, res) => {
   try {
     const cronSecret = process.env.CRON_SECRET;
@@ -941,6 +1036,12 @@ module.exports = async (req, res) => {
         error: 'Unauthorized'
       });
     }
+	
+    const hasExplicitSport =
+      Boolean(
+        String(req.query.sport || '').trim()
+      );	
+	
     const requestedSports =
       getRequestedSports(req);
 
@@ -952,8 +1053,8 @@ module.exports = async (req, res) => {
     }
 
     function formatPacificDate(dateValue) {
-  const parts = new Intl.DateTimeFormat(
-    'en-US',
+    const parts = new Intl.DateTimeFormat(
+      'en-US',
     {
       timeZone: 'America/Los_Angeles',
       year: 'numeric',
@@ -982,23 +1083,55 @@ const yesterday = new Date(
   now.getTime() - 24 * 60 * 60 * 1000
 );
 
+const tomorrow = new Date(
+  now.getTime() + 24 * 60 * 60 * 1000
+);
+
 const dates = [
   formatPacificDate(now),
-  formatPacificDate(yesterday)
+  formatPacificDate(yesterday),
+  formatPacificDate(tomorrow)
 ];
+
+const gameStatusSchedule =
+  hasExplicitSport
+    ? {}
+    : await getGameStatusSchedule();
+
+const sportsToProcess =
+  hasExplicitSport
+    ? requestedSports
+    : getDueGameStatusSports(
+        requestedSports,
+        gameStatusSchedule
+      );
 
     const results = [];
 
-    for (const requestedSport of requestedSports) {
+    for (const requestedSport of sportsToProcess) {
       const result = await processSport(
         requestedSport,
         dates
       );
 
       results.push(result);
+
+      if (!hasExplicitSport) {
+        const pollingInterval =
+          getGameStatusPollingInterval(result);
+
+        gameStatusSchedule[requestedSport] =
+          Date.now() + pollingInterval;
+      }
     }
 
-    if (requestedSports.length === 1) {
+    if (!hasExplicitSport) {
+      await setGameStatusSchedule(
+        gameStatusSchedule
+      );
+    }
+
+    if (hasExplicitSport && results.length === 1) {
       return res.status(200).json({
         ok: true,
         ...results[0]
