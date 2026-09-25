@@ -4244,13 +4244,31 @@ const isLive =
   statusLabel = 'RESCHEDULED';
   context = '';
 } else if (isFinal) {
+  const finalObservedAt = Number(
+    game.finalObservedAt ||
+    window.scoFinalTransitionCache?.[selectedSport]?.[
+      scoreboardGameKey
+    ]?.finalObservedAt ||
+    0
+  );
+
+  const finalTimeText =
+    Number.isFinite(finalObservedAt) &&
+    finalObservedAt > 0
+      ? new Date(finalObservedAt).toLocaleTimeString([], {
+          hour: 'numeric',
+          minute: '2-digit',
+          timeZoneName: 'short'
+        })
+      : '';
+
   statusLabel = `
     <strong style="font-weight:700;">FINAL</strong>
     <span style="
       font-weight:400;
       text-transform:none;
       letter-spacing:normal;
-    "> • Market closed</span>
+    ">${finalTimeText ? ` • ${finalTimeText}` : ''} • Market closed</span>
   `;
 } else if (isDelayed) {
   const delayText = (
@@ -5646,7 +5664,7 @@ function getOddsPollingInterval(games) {
       (startTime - now) / 60000;
 
     return (
-      minutesUntilStart > 0 &&
+      minutesUntilStart >= -10 &&
       minutesUntilStart <= 10
     );
   });
@@ -5882,7 +5900,243 @@ if (supportsEstimatedHalftime) {
 
 setInterval(() => {
   refreshIndependentScoreboards();
-}, 10 * 1000);
+}, 5 * 1000);
+
+async function refreshRecentResults(sport) {
+  const completedGamesList =
+    document.getElementById('completed-games-list');
+
+  if (!completedGamesList) {
+    return;
+  }
+
+  let sharedCompletedGames = [];
+
+  try {
+    const sharedResultsResponse = await fetch(
+      `/api/completed-games?sport=${encodeURIComponent(sport)}&hours=6`
+    );
+
+    if (sharedResultsResponse.ok) {
+      const sharedResultsPayload =
+        await sharedResultsResponse.json();
+
+      sharedCompletedGames = Array.isArray(
+        sharedResultsPayload.completedGames
+      )
+        ? sharedResultsPayload.completedGames
+        : [];
+    }
+  } catch (err) {
+    sharedCompletedGames = [];
+  }
+
+  const trustedSharedCompletedGames =
+    sharedCompletedGames.filter(game => {
+      const completedTime = new Date(
+        game.completedObservedAt ||
+        game.serverCompletedAt ||
+        0
+      ).getTime();
+
+      return (
+        Number.isFinite(completedTime) &&
+        completedTime > 0 &&
+        Date.now() - completedTime >=
+          FINAL_CARD_RETENTION_MS
+      );
+    });
+
+  const completedGamesByKey = {};
+
+  trustedSharedCompletedGames.forEach(game => {
+    const gameKey =
+      game.gameKey || getGameKey(game);
+
+    if (!gameKey || completedGamesByKey[gameKey]) {
+      return;
+    }
+
+    completedGamesByKey[gameKey] = game;
+  });
+
+  const completedGames =
+    Object.values(completedGamesByKey)
+      .sort((a, b) => {
+        const aTime = new Date(
+          a.completedObservedAt ||
+          a.serverCompletedAt ||
+          0
+        ).getTime();
+
+        const bTime = new Date(
+          b.completedObservedAt ||
+          b.serverCompletedAt ||
+          0
+        ).getTime();
+
+        return bTime - aTime;
+      })
+      .slice(0, 5);
+
+  if (completedGames.length) {
+    completedGamesList.innerHTML =
+      completedGames
+        .map(game => {
+          const awayName =
+            game.away ||
+            game.espnStatus?.awayTeam ||
+            'Away';
+
+          const homeName =
+            game.home ||
+            game.espnStatus?.homeTeam ||
+            'Home';
+
+          const awayScore =
+            game.espnStatus?.awayScore ?? '';
+
+          const homeScore =
+            game.espnStatus?.homeScore ?? '';
+
+          const awayWon =
+            Number(awayScore) > Number(homeScore);
+
+          const homeWon =
+            Number(homeScore) > Number(awayScore);
+
+          const completedTime =
+            game.completedObservedAt ||
+            game.serverCompletedAt;
+
+          const recentLabel = completedTime
+            ? formatResultTime(completedTime)
+            : '';
+
+          const finalInning = Math.max(
+            Number(game.espnStatus?.period) || 0,
+            ...(
+              game.espnStatus?.awayLinescores || []
+            ).map(
+              ls => Number(ls.period) || 0
+            ),
+            ...(
+              game.espnStatus?.homeLinescores || []
+            ).map(
+              ls => Number(ls.period) || 0
+            )
+          );
+
+          const extraInningsLabel =
+            game.sport === 'baseball_mlb' &&
+            finalInning > 9
+              ? ` (${finalInning})`
+              : '';
+
+          return `
+            <div style="padding:8px 0; border-bottom:2px solid rgba(255,255,255,0.14);">
+              <div style="
+                color:#9ca3af;
+                font-size:11px;
+                font-weight:700;
+                margin-bottom:5px;
+                text-transform:none;
+                letter-spacing:0.04em;
+              ">
+                FINAL${extraInningsLabel}${recentLabel ? ` • ${recentLabel}` : ''}
+              </div>
+
+              <div style="display:flex; justify-content:space-between; gap:12px;">
+                <span style="${awayWon ? 'color:#00ff88;font-weight:700;' : ''}">
+                  ${awayName}
+                </span>
+
+                <strong style="${awayWon ? 'color:#00ff88;font-weight:700;' : ''}">
+                  ${awayScore}
+                </strong>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; gap:12px; margin-top:4px;">
+                <span style="${homeWon ? 'color:#00ff88;font-weight:700;' : ''}">
+                  ${homeName}
+                </span>
+
+                <strong style="${homeWon ? 'color:#00ff88;font-weight:700;' : ''}">
+                  ${homeScore}
+                </strong>
+              </div>
+            </div>
+          `;
+        })
+        .join('') + `
+          <div style="margin-top:14px; text-align:center;">
+            <a
+              href="results.html"
+              onclick="sessionStorage.setItem('scoReturnToDashboard', JSON.stringify({ scrollY: window.scrollY, sport: document.getElementById('sport-select')?.value || 'baseball_mlb', team: document.getElementById('team-select')?.value || '' }));"
+              style="
+                color:#60a5fa;
+                font-size:14px;
+                font-weight:700;
+                text-decoration:none;
+              "
+            >
+              View All Results →
+            </a>
+          </div>
+        `;
+  } else {
+    completedGamesList.innerHTML = `
+      <div style="
+        margin-top:18px;
+        color:#00ff88;
+        font-size:20px;
+        font-weight:700;
+      ">
+        No completed games yet
+      </div>
+
+      <div style="
+        margin-top:16px;
+        color:#d1d5db;
+        font-size:15px;
+        line-height:1.45;
+      ">
+        Completed games will appear here as today's events finish.
+      </div>
+
+      <div class="card-divider"></div>
+
+      <div style="
+        color:#9ca3af;
+        font-size:13px;
+        text-align:center;
+      ">
+        <div style="
+          color:#9ca3af;
+          font-size:13px;
+          text-align:center;
+        ">
+          Recent results update automatically.
+        </div>
+
+        <div style="margin-top:12px; text-align:center;">
+          <a
+            href="results.html"
+            style="
+              color:#60a5fa;
+              font-size:14px;
+              font-weight:700;
+              text-decoration:none;
+            "
+          >
+            View All →
+          </a>
+        </div>
+      </div>
+    `;
+  }
+}
+
 
 async function loadOdds() {
   const visibleGameAnchor = (() => {
@@ -6360,11 +6614,8 @@ authoritativeCompletedGames.forEach(completedGame => {
     return;
   }
 
-  if (sportFinalTransitionCache[gameKey]) {
-    return;
-  }
-
   sportFinalTransitionCache[gameKey] = {
+    ...sportFinalTransitionCache[gameKey],
     ...completedGame,
     sport,
     status: 'final',
@@ -6567,13 +6818,13 @@ completedGames.forEach(espnGame => {
     cachedFinal: true,
     espnStatus: espnGame,
     finalObservedAt:
-      existingFinal?.finalObservedAt ||
-      (
-        Number.isFinite(authoritativeFinalTime) &&
-        authoritativeFinalTime > 0
-          ? authoritativeFinalTime
-          : Date.now()
-      )
+      Number.isFinite(authoritativeFinalTime) &&
+      authoritativeFinalTime > 0
+        ? authoritativeFinalTime
+        : (
+            existingFinal?.finalObservedAt ||
+            Date.now()
+          )
   };
 
   try {
@@ -8441,6 +8692,8 @@ ${gameSignal ? `
             if (gameCard) {
               gameCard.remove();
             }
+
+            refreshRecentResults(sport);
           };
 
           if (remainingRetentionMs <= 0) {
@@ -8598,220 +8851,7 @@ try {
          // If storage fails, completed games still work for this session.
        }
 
-let sharedCompletedGames = [];
-
-try {
-  const sharedResultsResponse = await fetch(
-    `/api/completed-games?sport=${encodeURIComponent(sport)}&hours=6`
-  );
-
-  if (sharedResultsResponse.ok) {
-    const sharedResultsPayload = await sharedResultsResponse.json();
-
-    sharedCompletedGames = Array.isArray(
-      sharedResultsPayload.completedGames
-    )
-      ? sharedResultsPayload.completedGames
-      : [];
-  }
-} catch (err) {
-  sharedCompletedGames = [];
-}
-
-const trustedSharedCompletedGames = sharedCompletedGames.filter(
-    game =>
-      game.completedObservedAt ||
-      game.serverCompletedAt
-);
-
-const mergedCompletedGames = [
-  ...trustedSharedCompletedGames
-];
-
-const completedGamesByKey = {};
-
-mergedCompletedGames.forEach(game => {
-  const gameKey = game.gameKey || getGameKey(game);
-
-  if (!gameKey || completedGamesByKey[gameKey]) {
-    return;
-  }
-
-  completedGamesByKey[gameKey] = game;
-});
-
-const completedGames = Object.values(completedGamesByKey)
-  .sort((a, b) => {
-    const aTime = new Date(
-                a.completedObservedAt ||
-                a.serverCompletedAt ||
-                0
-             ).getTime();
-
-    const bTime = new Date(
-                 b.completedObservedAt ||
-                 b.serverCompletedAt ||
-                 0
-              ).getTime();
-
-    return bTime - aTime;
-  })
-  .slice(0, 5);
-
-    if (completedGames.length) {
-      completedGamesList.innerHTML = completedGames
-        .map(game => {
-          const title = `${game.away} vs ${game.home}`;
-
-         let scoreText = '';
-
-   if (game.espnStatus) {
-            scoreText = `${game.espnStatus.awayShort} ${game.espnStatus.awayScore} - ${game.espnStatus.homeShort} ${game.espnStatus.homeScore}`;
-        } else {
-           const scores = extractScores(game);
-
-           if (scores) {
-               scoreText = Object.entries(scores)
-                  .map(([team, score]) => `${team} ${score}`)
-                 .join(' - ');
-          }
-     }
-
-          const awayName = game.away || game.espnStatus?.awayTeam || 'Away';
-          const homeName = game.home || game.espnStatus?.homeTeam || 'Home';
-
-          const awayScore = game.espnStatus?.awayScore ?? '';
-          const homeScore = game.espnStatus?.homeScore ?? '';
-
-          const awayWon = Number(awayScore) > Number(homeScore);
-          const homeWon = Number(homeScore) > Number(awayScore);
-
-          const completedTime =
-                                game.completedObservedAt ||
-                                game.serverCompletedAt;
-
-          const recentLabel = completedTime
-                                ? formatResultTime(completedTime)
-                                : '';
-								
-		  const finalInning = Math.max(
-            Number(game.espnStatus?.period) || 0,
-            ...((game.espnStatus?.awayLinescores || []).map(
-              ls => Number(ls.period) || 0
-            )),
-            ...((game.espnStatus?.homeLinescores || []).map(
-              ls => Number(ls.period) || 0
-            ))
-          );
-
-         const extraInningsLabel =
-           game.sport === 'baseball_mlb' &&
-           finalInning > 9
-             ? ` (${finalInning})`
-             : '';						
-
-         return `
-               <div style="padding:8px 0; border-bottom:2px solid rgba(255,255,255,0.14);">
-                    <div style="
-                                                                  color:#9ca3af;
-                                                                  font-size:11px;
-                                                                 font-weight:700;
-                                                                 margin-bottom:5px;
-                                                                 text-transform:none;
-                                                                 letter-spacing:0.04em;
-               ">
-                                                                 FINAL${extraInningsLabel}${recentLabel ? ` • ${recentLabel}` : ''}
-                                        </div>
-                    <div style="display:flex; justify-content:space-between; gap:12px;">
-                        <span style="
-                              ${awayWon ? 'color:#00ff88;font-weight:700;' : ''}
-        ">
-                             ${awayName}
-                      </span>
-                       <strong style="${awayWon ? 'color:#00ff88;font-weight:700;' : ''}">
-                              ${awayScore}
-                     </strong>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; gap:12px; margin-top:4px;">
-                         <span style="
-                               ${homeWon ? 'color:#00ff88;font-weight:700;' : ''}
-         ">
-                              ${homeName}
-                       </span>
-                        <strong style="${homeWon ? 'color:#00ff88;font-weight:700;' : ''}">
-                              ${homeScore}
-                       </strong>
-                    </div>
-               </div>
-    `;
-        })
-        .join('') + `
-          <div style="margin-top:14px; text-align:center;">
-                   <a
-                                                        href="results.html"
-                                                        onclick="sessionStorage.setItem('scoReturnToDashboard', JSON.stringify({ scrollY: window.scrollY, sport: document.getElementById('sport-select')?.value || 'baseball_mlb', team: document.getElementById('team-select')?.value || '' }));"
-  style="
-                                                          color:#60a5fa;
-                                                          font-size:14px;
-                                                          font-weight:700;
-                                                          text-decoration:none;
-                                                        "
-                                                >
-                                                        View All Results →
-                                                  </a>
-    </div>
-`;
-   } else {
-      completedGamesList.innerHTML = `
-          <div style="
-                    margin-top:18px;
-                    color:#00ff88;
-                    font-size:20px;
-                   font-weight:700;
-          ">
-               No completed games yet
-       </div>
-
-      <div style="
-                 margin-top:16px;
-                color:#d1d5db;
-                font-size:15px;
-                line-height:1.45;
-      ">
-          Completed games will appear here as today's events finish.
-    </div>
-
-    <div class="card-divider"></div>
-
-    <div style="
-              color:#9ca3af;
-             font-size:13px;
-             text-align:center;
-    ">
-         <div style="
-                   color:#9ca3af;
-                  font-size:13px;
-                  text-align:center;
-    ">
-                 Recent results update automatically.
-        </div>
-
-       <div style="margin-top:12px; text-align:center;">
-                <a
-                           href="results.html"
-                          style="
-                                    color:#60a5fa;
-                                   font-size:14px;
-                                  font-weight:700;
-                                  text-decoration:none;
-                         "
-                >
-                       View All →
-            </a>
- </div>
-    </div>
- `;
-}
+await refreshRecentResults(sport);
 }
 
   if (refreshBtn) {

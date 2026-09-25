@@ -995,6 +995,37 @@ function getGameStatusPollingInterval(result) {
     return GAME_STATUS_POLLING.live;
   }
 
+  const hasUnconfirmedFinal =
+    games.some(game => {
+      const state = String(
+        game.statusState || ''
+      ).toLowerCase();
+
+      const name = String(
+        game.statusName || ''
+      ).toUpperCase();
+
+      const description = String(
+        game.statusDescription || ''
+      ).toLowerCase();
+
+      const looksFinal =
+        state === 'post' ||
+        name.includes('FINAL') ||
+        name.includes('FULL_TIME') ||
+        description.includes('final') ||
+        description.includes('full time');
+
+      return (
+        looksFinal &&
+        game.completed !== true
+      );
+    });
+
+  if (hasUnconfirmedFinal) {
+    return GAME_STATUS_POLLING.live;
+  }
+
   const futureStarts = games
     .map(game => new Date(game.date).getTime())
     .filter(startTime =>
