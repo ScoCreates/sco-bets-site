@@ -6630,7 +6630,9 @@ authoritativeCompletedGames.forEach(completedGame => {
     sport,
     status: 'final',
     cachedFinal: true,
-    finalObservedAt: authoritativeFinalTime
+    finalObservedAt:
+      sportFinalTransitionCache[gameKey]?.finalObservedAt ||
+      authoritativeFinalTime
   };
 });
 
@@ -6828,14 +6830,14 @@ completedGames.forEach(espnGame => {
     cachedFinal: true,
     espnStatus: espnGame,
     finalObservedAt:
-      Number.isFinite(authoritativeFinalTime) &&
-      authoritativeFinalTime > 0
-        ? authoritativeFinalTime
-        : (
-            existingFinal?.finalObservedAt ||
-            Date.now()
-          )
-  };
+      existingFinal?.finalObservedAt ||
+      (
+        Number.isFinite(authoritativeFinalTime) &&
+        authoritativeFinalTime > 0
+          ? authoritativeFinalTime
+          : Date.now()
+      )
+    };
 
   try {
     localStorage.setItem(
