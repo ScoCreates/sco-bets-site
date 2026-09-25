@@ -423,7 +423,9 @@ const games = (data.events || []).map(event => {
             }))
           : [],
 
-        gameKey: `${normalizeTeamName(away?.team?.displayName)}_${normalizeTeamName(home?.team?.displayName)}_${String(event.date || '').slice(0, 10)}`
+        gameKey: event.id
+          ? `espn_${event.id}`
+          : `${normalizeTeamName(away?.team?.displayName)}_${normalizeTeamName(home?.team?.displayName)}_${String(event.date || '').slice(0, 10)}`
       };
     });
 
