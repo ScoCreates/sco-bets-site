@@ -5944,11 +5944,27 @@ async function refreshRecentResults(sport) {
 
   const trustedSharedCompletedGames =
     sharedCompletedGames.filter(game => {
-      const completedTime = new Date(
+      const gameKey =
+        game.gameKey || getGameKey(game);
+
+      const lockedFinalTime = Number(
+        window.scoFinalTransitionCache?.[sport]?.[
+          gameKey
+        ]?.finalObservedAt ||
+        0
+      );
+
+      const serverCompletedTime = new Date(
         game.completedObservedAt ||
         game.serverCompletedAt ||
         0
       ).getTime();
+
+      const completedTime =
+        Number.isFinite(lockedFinalTime) &&
+        lockedFinalTime > 0
+          ? lockedFinalTime
+          : serverCompletedTime;
 
       return (
         Number.isFinite(completedTime) &&
