@@ -3830,6 +3830,13 @@ function formatGameStatus(commenceTime, game = null) {
   }
 
   const now = new Date();
+  
+  const currentEspnStatus =
+    game?.freshEspnStatus ||
+    game?.espnStatus ||
+    {};
+  
+  
   const apiStatus = normalizeStatusText(game?.status);
   const apiCompleted = game?.completed === true;
 
@@ -3844,14 +3851,14 @@ function formatGameStatus(commenceTime, game = null) {
   apiStatus === 'delayed' ||
   apiStatus === 'postponed' ||
   apiStatus === 'suspended' ||
-  game?.espnStatus?.statusName === 'STATUS_DELAYED' ||
-  game?.espnStatus?.statusName === 'STATUS_RAIN_DELAY' ||
-  game?.espnStatus?.statusName === 'STATUS_POSTPONED' ||
-  game?.espnStatus?.statusName === 'STATUS_SUSPENDED'
-) {
+  currentEspnStatus.statusName === 'STATUS_DELAYED' ||
+  currentEspnStatus.statusName === 'STATUS_RAIN_DELAY' ||
+  currentEspnStatus.statusName === 'STATUS_POSTPONED' ||
+  currentEspnStatus.statusName === 'STATUS_SUSPENDED'
+  ) {
   const statusText =
-    game?.espnStatus?.statusDescription ||
-    game?.espnStatus?.statusDetail ||
+    currentEspnStatus.statusDescription ||
+    currentEspnStatus.statusDetail ||
     apiStatus;
 
   return {
@@ -3868,10 +3875,10 @@ function formatGameStatus(commenceTime, game = null) {
    if (
             apiCompleted ||
             apiStatus === 'final' ||
-           apiStatus === 'completed' ||
-           game?.espnStatus?.statusState === 'post' ||
-          game?.espnStatus?.statusName === 'STATUS_FINAL' ||
-         game?.espnStatus?.statusDescription === 'Final'
+            apiStatus === 'completed' ||
+            currentEspnStatus.statusState === 'post' ||
+            currentEspnStatus.statusName === 'STATUS_FINAL' ||
+            currentEspnStatus.statusDescription === 'Final'
      ) {
 
     return {
@@ -3903,10 +3910,10 @@ function formatGameStatus(commenceTime, game = null) {
           apiStatus === 'live' ||
           apiStatus === 'in progress' ||
           apiStatus === 'in_progress' ||
-          game?.espnStatus?.statusState === 'in'
+          currentEspnStatus.statusState === 'in'
        ) {
 
-    const espn = game?.espnStatus;
+    const espn = currentEspnStatus;
 
 const espnScoreText = espn
   ? `${espn.awayShort} ${espn.awayScore} - ${espn.homeShort} ${espn.homeScore}`
@@ -5829,6 +5836,8 @@ const freshGames =
 );
 
 latestPollingGames.forEach(game => {
+  const existingEspnId =
+    String(game?.espnStatus?.id || '');
   const gameDate =
     String(
       game.commence_time ||
@@ -5841,7 +5850,12 @@ latestPollingGames.forEach(game => {
     `${normalizeTeam(game.away)}_${normalizeTeam(game.home)}_${gameDate}`;
 
   const freshEspnGame =
-    freshByMatchup.get(matchupKey);
+    existingEspnId
+      ? freshGames.find(espnGame =>
+          String(espnGame?.id || '') ===
+          existingEspnId
+        ) || null
+      : freshByMatchup.get(matchupKey) || null;
 
   if (!freshEspnGame) {
     return;
@@ -7652,12 +7666,16 @@ if (statTodayGames) {
     let activeArbs = [];
 
     games.forEach(game => {
-               const gameStatusInfo = formatGameStatus(getGameCommenceTime(game), game);
+      const gameStatusInfo =
+        formatGameStatus(
+          getGameCommenceTime(game),
+          game
+        );
 
-const currentEspnStatus =
-  game?.freshEspnStatus ||
-  game?.espnStatus ||
-  {};
+      const currentEspnStatus =
+        game?.freshEspnStatus ||
+        game?.espnStatus ||
+        {};
 
 const isGameClosedForArb =
   game.status === 'final' ||
