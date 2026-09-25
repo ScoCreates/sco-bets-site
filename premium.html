@@ -5961,10 +5961,10 @@ async function refreshRecentResults(sport) {
       ).getTime();
 
       const completedTime =
-        Number.isFinite(lockedFinalTime) &&
-        lockedFinalTime > 0
-          ? lockedFinalTime
-          : serverCompletedTime;
+        Number.isFinite(serverCompletedTime) &&
+        serverCompletedTime > 0
+          ? serverCompletedTime
+          : lockedFinalTime;
 
       return (
         Number.isFinite(completedTime) &&
@@ -6647,7 +6647,6 @@ authoritativeCompletedGames.forEach(completedGame => {
     status: 'final',
     cachedFinal: true,
     finalObservedAt:
-      sportFinalTransitionCache[gameKey]?.finalObservedAt ||
       authoritativeFinalTime
   };
 });
@@ -6846,13 +6845,13 @@ completedGames.forEach(espnGame => {
     cachedFinal: true,
     espnStatus: espnGame,
     finalObservedAt:
-      existingFinal?.finalObservedAt ||
-      (
-        Number.isFinite(authoritativeFinalTime) &&
-        authoritativeFinalTime > 0
-          ? authoritativeFinalTime
-          : Date.now()
-      )
+      Number.isFinite(authoritativeFinalTime) &&
+      authoritativeFinalTime > 0
+        ? authoritativeFinalTime
+        : (
+            existingFinal?.finalObservedAt ||
+            Date.now()
+          )
     };
 
   try {
@@ -8359,8 +8358,8 @@ const bIsFinal = rankB === 6;
 
 if (aIsFinal && bIsFinal) {
   const aCompletedTime = new Date(
-    a.cachedAt ||
     a.completedObservedAt ||
+    a.cachedAt ||
     a.serverCompletedAt ||
     a.completedAt ||
     a.espnStatus?.completedAt ||
@@ -8368,8 +8367,8 @@ if (aIsFinal && bIsFinal) {
   ).getTime();
 
   const bCompletedTime = new Date(
-    b.cachedAt ||
     b.completedObservedAt ||
+    b.cachedAt ||
     b.serverCompletedAt ||
     b.completedAt ||
     b.espnStatus?.completedAt ||
@@ -8713,7 +8712,7 @@ ${gameSignal ? `
             );
           }
 
-          const removeExpiredFinalCard = () => {
+          const removeExpiredFinalCard = async () => {
             const gameCard =
               document.getElementById(gameCardId);
 
@@ -8721,7 +8720,14 @@ ${gameSignal ? `
               gameCard.remove();
             }
 
-            refreshRecentResults(sport);
+            try {
+              await refreshRecentResults(sport);
+            } catch (err) {
+              console.error(
+                'Failed to refresh Recent Results after Final card expired:',
+                err
+              );
+            }
           };
 
           if (remainingRetentionMs <= 0) {

@@ -206,7 +206,11 @@ function isCompletedGame(game) {
   return isFinal && !isPostponed && !isCanceled;
 }
 
-async function upsertCompletedGames(completedGames, sport) {
+async function upsertCompletedGames(
+  completedGames,
+  sport,
+  observationMap
+) {
   if (
     !Array.isArray(completedGames) ||
     completedGames.length === 0
@@ -277,7 +281,7 @@ const {
   error: existingCompletedGamesError
 } = await supabase
   .from('completed_games')
-  .select('game_key, away_score, home_score')
+  .select('game_key, away_score, home_score, completed_observed_at')
   .in('game_key', databaseCheckKeys);
 
 if (existingCompletedGamesError) {
@@ -344,7 +348,11 @@ const existingCompletedGameMap = new Map(
       homeScore !== existingHomeScore
     );
   })
-  .map(game => ({
+  .map(game => {
+    const existingGame =
+      existingCompletedGameMap.get(game.gameKey);
+
+    return {
       game_key: game.gameKey,
       sport,
       espn_game_id: game.id || null,
@@ -364,8 +372,14 @@ const existingCompletedGameMap = new Map(
         : null,
 
       espn_status: game,
+      completed_observed_at:
+        existingGame?.completed_observed_at ||
+        observationMap?.get(game.gameKey)
+          ?.completed_observed_at ||
+        null,
       updated_at: new Date().toISOString()
-    }));
+    };
+  });
 	
 console.log('COMPLETED GAMES WRITE CHECK:', {
   sport,
@@ -930,35 +944,46 @@ if (possibleFinalGames.length > 0) {
     });
 
     for (const game of gamesNeedingCompletion) {
-    const completedAt =
-      new Date().toISOString();
+      const completedAt =
+        new Date().toISOString();
 
-    const redisKey =
-      getGameObservationKey(game.gameKey);
+      const redisKey =
+        getGameObservationKey(game.gameKey);
 
-    const redisObservation =
-      await redis.get(redisKey);
+      const redisObservation =
+        await redis.get(redisKey);
 
-    if (!redisObservation) {
-      continue;
-    }
+      if (!redisObservation) {
+        continue;
+      }
 
-    await redis.set(
-      redisKey,
-      {
+      const completedObservation = {
         ...redisObservation,
         completed_observed_at: completedAt,
         last_status: 'final'
-      },
-      {
-        ex: 12 * 60 * 60
-      }
-    );
-  }
+      };
+
+      await redis.set(
+        redisKey,
+        completedObservation,
+        {
+          ex: 12 * 60 * 60
+        }
+      );
+
+      observationMap.set(
+        game.gameKey,
+        {
+          game_key: game.gameKey,
+          ...completedObservation
+        }
+      );
+    }
 
 await upsertCompletedGames(
   completedGames,
-  requestedSport
+  requestedSport,
+  observationMap
 );
 
   return {

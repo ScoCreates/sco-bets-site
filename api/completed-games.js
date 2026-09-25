@@ -50,7 +50,7 @@ const completedGames = (data || []).map(game => ({
   cachedFinal: true,
 
   cachedAt: game.cached_at,
-  completedObservedAt: null,
+  completedObservedAt: game.completed_observed_at || null,
   serverCompletedAt: game.completed_at,
 
   espnStatus: game.espn_status
