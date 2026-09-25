@@ -4020,7 +4020,16 @@ const liveText = espn && espn.statusState === 'in'
    ========================================================== */
 
 function buildMiniScoreboard(game) {
-     const espn = game?.freshEspnStatus || game?.espnStatus;
+  const confirmedFinal =
+    game?.status === 'final' ||
+    game?.cachedFinal === true ||
+    game?.espnStatus?.statusState === 'post' ||
+    game?.espnStatus?.statusName === 'STATUS_FINAL';
+
+  const espn =
+    confirmedFinal
+      ? game?.espnStatus
+      : (game?.freshEspnStatus || game?.espnStatus);
 	 
 window.scoPregameStatusCache =
   window.scoPregameStatusCache || {};	 
@@ -5902,6 +5911,8 @@ setInterval(() => {
   refreshIndependentScoreboards();
 }, 5 * 1000);
 
+const FINAL_CARD_RETENTION_MS = 10 * 60 * 1000;
+
 async function refreshRecentResults(sport) {
   const completedGamesList =
     document.getElementById('completed-games-list');
@@ -6570,7 +6581,6 @@ try {
   // Ignore storage errors.
 }
 
-const FINAL_CARD_RETENTION_MS = 10 * 60 * 1000;
 const finalTransitionStorageKey =
   `scoFinalTransitionCache_${sport}`;
 
