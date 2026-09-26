@@ -4260,18 +4260,18 @@ const isLive =
   statusLabel = 'RESCHEDULED';
   context = '';
 } else if (isFinal) {
-  const finalObservedAt = Number(
-    game.finalObservedAt ||
+  const authoritativeFinalTime = new Date(
+    game.completedObservedAt ||
     window.scoFinalTransitionCache?.[selectedSport]?.[
       scoreboardGameKey
-    ]?.finalObservedAt ||
+    ]?.completedObservedAt ||
     0
-  );
+  ).getTime();
 
   const finalTimeText =
-    Number.isFinite(finalObservedAt) &&
-    finalObservedAt > 0
-      ? new Date(finalObservedAt).toLocaleTimeString([], {
+    Number.isFinite(authoritativeFinalTime) &&
+    authoritativeFinalTime > 0
+      ? new Date(authoritativeFinalTime).toLocaleTimeString([], {
           hour: 'numeric',
           minute: '2-digit',
           timeZoneName: 'short'
