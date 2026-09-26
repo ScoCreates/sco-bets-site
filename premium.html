@@ -5861,6 +5861,27 @@ latestPollingGames.forEach(game => {
     return;
   }
 
+  const gameKey = getGameKey(game);
+
+  const cachedFinalGame =
+    window.scoFinalTransitionCache?.[sport]?.[
+      gameKey
+    ];
+
+  const freshEspnIsFinal =
+    freshEspnGame.statusState === 'post' ||
+    freshEspnGame.statusName === 'STATUS_FINAL' ||
+    String(
+      freshEspnGame.statusDescription || ''
+    ).toLowerCase() === 'final';
+
+  if (
+    cachedFinalGame?.cachedFinal === true &&
+    !freshEspnIsFinal
+  ) {
+    return;
+  }
+
   game.freshEspnStatus = freshEspnGame;
 
   const supportsEstimatedHalftime =
