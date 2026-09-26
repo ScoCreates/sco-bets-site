@@ -5038,6 +5038,15 @@ else {
       ${periods.map(period => {
         const value = getValue(homeLinescores, period);
 
+        const showDidNotBat =
+          isFinal &&
+          period === currentPeriod &&
+          value === '' &&
+          homeScore > awayScore;
+
+        const displayValue =
+          showDidNotBat ? 'X' : value;
+
         const isActive =
           hasActualPlayStarted &&
           !isFinal &&
@@ -5046,7 +5055,7 @@ else {
 
         return `
           <span class="mlb-run ${isActive ? 'current-inning-run' : ''}">
-            ${isActive && value === '0' ? '' : value}
+            ${isActive && displayValue === '0' ? '' : displayValue}
           </span>
         `;
       }).join('')}
@@ -6595,7 +6604,7 @@ try {
   const completedGamesTimeout =
     setTimeout(() => {
       completedGamesController.abort();
-    }, 2000);
+    }, 5000);
 
   try {
     const authoritativeResponse = await fetch(
@@ -6775,10 +6784,15 @@ const isFinalGame =
   }
 
   sportFinalTransitionCache[gameKey] = {
+    ...(existingFinal || {}),
     ...game,
     status: 'final',
     cachedFinal: true,
     espnStatus: currentEspnStatus,
+    completedObservedAt:
+      existingFinal?.completedObservedAt ||
+      game?.completedObservedAt ||
+      null,
     finalObservedAt:
       existingFinal?.finalObservedAt ||
       Date.now()
@@ -6868,7 +6882,13 @@ completedGames.forEach(espnGame => {
   ).getTime();
 
   sportFinalTransitionCache[gameKey] = {
+    ...(existingFinal || {}),
     ...previousFullGame,
+    completedObservedAt:
+      authoritativeCompletedGame?.completedObservedAt ||
+      existingFinal?.completedObservedAt ||
+      previousFullGame?.completedObservedAt ||
+      null,
     home:
       espnGame.homeTeam ||
       previousFullGame.home,
