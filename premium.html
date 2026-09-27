@@ -6231,8 +6231,12 @@ async function refreshRecentResults(sport) {
   }
 }
 
-
 async function loadOdds() {
+  const loadOddsSequence =
+    (window.scoLoadOddsSequence || 0) + 1;
+
+  window.scoLoadOddsSequence = loadOddsSequence;
+
   const visibleGameAnchor = (() => {
     const cards = [...document.querySelectorAll('.game-card')];
 
@@ -8803,7 +8807,12 @@ ${gameSignal ? `
             }
 
             try {
-              await refreshRecentResults(sport);
+              const currentlySelectedSport =
+                document.getElementById('sport-select')?.value;
+
+              if (currentlySelectedSport === sport) {
+                await refreshRecentResults(sport);
+              }
             } catch (err) {
               console.error(
                 'Failed to refresh Recent Results after Final card expired:',
@@ -8966,6 +8975,13 @@ try {
        } catch (err) {
          // If storage fails, completed games still work for this session.
        }
+
+if (
+  loadOddsSequence !==
+  window.scoLoadOddsSequence
+) {
+  return;
+}
 
 await refreshRecentResults(sport);
 }
