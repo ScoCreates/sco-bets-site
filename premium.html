@@ -4060,7 +4060,11 @@ function buildMiniScoreboard(game) {
     confirmedFinal
       ? game?.espnStatus
       : (game?.freshEspnStatus || game?.espnStatus);
-	 
+
+  const isPostseason =
+    Number(espn?.seasonType) === 3 ||
+    String(espn?.seasonSlug || '').toLowerCase() === 'post-season';
+
 window.scoPregameStatusCache =
   window.scoPregameStatusCache || {};	 
 
@@ -4775,10 +4779,13 @@ const isStartingSoon =
   statusLabel = 'STARTING SOON';
   context = `• ${timeText}`;
 } else {
-  statusLabel = 'STARTS';
-  context = dateText
-    ? `• <span style="display:inline-block; margin:0 5px;">${dateText}</span> • <span style="display:inline-block; margin-left:5px;">${timeText}</span>`
-    : `• <span style="display:inline-block; margin-left:5px;">${timeText}</span>`;
+    statusLabel = isPostseason
+      ? '<span style="font-weight:500;">POSTSEASON</span> &bull; STARTS'
+      : 'STARTS';
+
+    context = dateText
+    ? `<span style="color:#d1d5db;">&bull; <span style="display:inline-block; margin:0 5px;">${dateText}</span> &bull; <span style="display:inline-block; margin-left:5px;">${timeText}</span></span>`
+    : `<span style="color:#d1d5db;">&bull; <span style="display:inline-block; margin-left:5px;">${timeText}</span></span>`;
 }
 }
 

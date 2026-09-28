@@ -241,6 +241,8 @@ const games = (data.events || []).map(event => {
         statusDetail: type.detail || null,
 		competitionTypeId: competition?.type?.id || null,
         competitionTypeAbbreviation: competition?.type?.abbreviation || null,
+        seasonType: event.season?.type ?? null,
+        seasonSlug: event.season?.slug || null,
         period: status.period || null,
         clock: status.displayClock || null,
 		
