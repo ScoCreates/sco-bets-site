@@ -258,6 +258,8 @@ console.log(
       sport === 'americanfootball_ncaaf'
     ) {
       windowEnd.setDate(windowEnd.getDate() + 14);
+    } else if (sport === 'baseball_mlb') {
+      windowEnd.setDate(windowEnd.getDate() + 7);
     } else {
       windowEnd.setDate(windowEnd.getDate() + 2);
     }

@@ -1720,7 +1720,7 @@ button:active {
 
 .back-to-top-btn {
   position: fixed;
-  right: 28px;
+  right: 60px;
   bottom: 28px;
   z-index: 1000;
   border: 1px solid rgba(0, 229, 255, 0.55);
@@ -5627,7 +5627,7 @@ async function getNextScheduledGameDate(sport) {
 
   const today = new Date();
 
-  for (let dayOffset = 1; dayOffset <= 14; dayOffset++) {
+  for (let dayOffset = 0; dayOffset <= 14; dayOffset++) {
     const checkDate = new Date(today);
     checkDate.setDate(today.getDate() + dayOffset);
 
@@ -5654,7 +5654,7 @@ async function getNextScheduledGameDate(sport) {
 
         if (
           sport === 'baseball_mlb' &&
-          game.competitionTypeAbbreviation !== 'STD'
+          !['STD', 'RD16'].includes(game.competitionTypeAbbreviation)
         ) {
           return false;
         }
@@ -7097,7 +7097,30 @@ if (statTodayGames) {
       );
     });
 
-    if (!games.length && !hasRetainedFinalTransitions) {
+    if (
+      !games.some(game => {
+        const status = String(game.status || '').toLowerCase();
+
+        const currentEspnStatus =
+          game?.freshEspnStatus ||
+          game?.espnStatus ||
+          {};
+
+        const espnStatusName =
+          String(currentEspnStatus.statusName || '').toUpperCase();
+
+        const espnStatusState =
+          String(currentEspnStatus.statusState || '').toLowerCase();
+
+        return !(
+          status === 'final' ||
+          status === 'completed' ||
+          espnStatusName === 'STATUS_FINAL' ||
+          espnStatusState === 'post'
+        );
+      }) &&
+      !hasRetainedFinalTransitions
+    ) {
 
       const offseasonSports = {
         baseball_mlb: {
@@ -9048,6 +9071,7 @@ await refreshRecentResults(sport);
       });
     }
   }
+
 }
 
 }
@@ -9402,9 +9426,19 @@ window.addEventListener('DOMContentLoaded', () => {
 
 if (backToTopButton) {
   const updateBackToTopVisibility = () => {
-    backToTopButton.style.display =
-      window.scrollY > 10 ? 'block' : 'none';
-  };
+  const oddsHeading =
+    document.getElementById('odds-heading');
+
+  if (!oddsHeading) {
+    backToTopButton.style.display = 'none';
+    return;
+  }
+
+  backToTopButton.style.display =
+    oddsHeading.getBoundingClientRect().top <= 0
+      ? 'block'
+      : 'none';
+};
 
   window.addEventListener('scroll', updateBackToTopVisibility);
 
