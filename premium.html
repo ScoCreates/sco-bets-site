@@ -4591,7 +4591,16 @@ if (liveStatusText.includes('halftime')) {
       ${outsText}
     </span>
   `;
-} else {
+} else if (
+    String(espn.mlbLatestPlayTypeId) === '58' &&
+    Number(espn.mlbLatestPlayPeriod) === 7 &&
+    String(espn.mlbLatestPlayText || '')
+      .toLowerCase()
+      .startsWith('middle of the 7th inning')
+  ) {
+    statusLabel = '7TH INNING STRETCH';
+    context = '';
+  } else {
     context = baseballDetail;
   }
 } else if (
@@ -5106,6 +5115,21 @@ function buildBasketballLinescore(espn) {
 
   const periods = Array.from({ length: maxPeriod }, (_, i) => i + 1);
 
+  const isWnbaTimeout =
+    String(espn.wnbaLatestPlayTypeId) === '16';
+
+  const awayCalledTimeout =
+    isWnbaTimeout &&
+    Boolean(espn.wnbaLatestPlayTeamId) &&
+    Boolean(espn.awayTeamId) &&
+    String(espn.wnbaLatestPlayTeamId) === String(espn.awayTeamId);
+
+  const homeCalledTimeout =
+    isWnbaTimeout &&
+    Boolean(espn.wnbaLatestPlayTeamId) &&
+    Boolean(espn.homeTeamId) &&
+    String(espn.wnbaLatestPlayTeamId) === String(espn.homeTeamId);
+
   const getLabel = (period) => {
     return period <= 4 ? period : `OT${period - 4}`;
   };
@@ -5185,7 +5209,7 @@ function buildBasketballLinescore(espn) {
              </span>
          `;
      }).join('')}
-      <strong class="basketball-total">${espn.awayScore ?? '-'}</strong>
+      <strong class="basketball-total">${espn.awayScore ?? '-'}${awayCalledTimeout ? ' ←' : ''}</strong>
 
       <span class="basketball-team">
                      <span class="basketball-team-abbr">${espn.homeShort || 'HME'}</span>
@@ -5209,7 +5233,7 @@ function buildBasketballLinescore(espn) {
                     </span>
                `;
            }).join('')}
-      <strong class="basketball-total">${espn.homeScore ?? '-'}</strong>
+      <strong class="basketball-total">${espn.homeScore ?? '-'}${homeCalledTimeout ? ' ←' : ''}</strong>
     </div>
   `;
 }

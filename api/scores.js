@@ -110,6 +110,55 @@ if (sport === 'soccer_usa_mls') {
   );
 }
 
+const mlbLatestPlays = {};
+
+const liveMlbEvents =
+  sport === 'baseball_mlb'
+    ? (data.events || []).filter(
+        event => event.status?.type?.state === 'in'
+      )
+    : [];
+
+await Promise.all(
+  liveMlbEvents.map(async event => {
+    try {
+      const summaryUrl =
+        `https://site.api.espn.com/apis/site/v2/sports/${espnSportPath}/summary?event=${event.id}`;
+
+      const summaryResponse = await fetch(summaryUrl, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
+
+      if (!summaryResponse.ok) return;
+
+      const summaryData = await summaryResponse.json();
+
+      const plays =
+        Array.isArray(summaryData.plays)
+          ? summaryData.plays
+          : [];
+
+      const latestPlay = plays[plays.length - 1];
+
+      if (!latestPlay) return;
+
+      mlbLatestPlays[event.id] = {
+        typeId: latestPlay.type?.id ?? null,
+        typeText: latestPlay.type?.text ?? null,
+        text: latestPlay.text ?? null,
+        period: latestPlay.period?.number ?? null,
+        wallclock: latestPlay.wallclock ?? null
+      };
+    } catch (err) {
+      // Keep normal ESPN scoreboard data if a summary lookup fails.
+    }
+  })
+);
+
+
 const wnbaLatestPlays = {};
 
 const liveWnbaEvents =
@@ -245,6 +294,32 @@ const games = (data.events || []).map(event => {
         seasonSlug: event.season?.slug || null,
         period: status.period || null,
         clock: status.displayClock || null,
+
+        mlbLatestPlayTypeId:
+          sport === 'baseball_mlb'
+            ? mlbLatestPlays[event.id]?.typeId ?? null
+            : null,
+
+        mlbLatestPlayTypeText:
+          sport === 'baseball_mlb'
+            ? mlbLatestPlays[event.id]?.typeText ?? null
+            : null,
+
+        mlbLatestPlayText:
+          sport === 'baseball_mlb'
+            ? mlbLatestPlays[event.id]?.text ?? null
+            : null,
+
+        mlbLatestPlayPeriod:
+          sport === 'baseball_mlb'
+            ? mlbLatestPlays[event.id]?.period ?? null
+            : null,
+
+        mlbLatestPlayWallclock:
+          sport === 'baseball_mlb'
+            ? mlbLatestPlays[event.id]?.wallclock ?? null
+            : null,
+
 		
 	wnbaLatestPlayTypeId:
       sport === 'basketball_wnba'

@@ -88,7 +88,20 @@
       background:
         linear-gradient(rgba(7, 10, 20, 0.35), rgba(7, 10, 20, 0.6)),
         url('images/background.png') center/cover no-repeat;
-      opacity: 0.36;
+      opacity: 0.24;
+    }
+
+    .hero-overlay::after {
+      content: "";
+      position: absolute;
+      width: min(88vw, 1100px);
+      aspect-ratio: 1672 / 941;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      border: 1px solid rgba(34, 197, 94, 0.28);
+      border-radius: 18px;
+      box-sizing: border-box;
     }
 
     .hero h1 {
@@ -114,7 +127,7 @@
 
     .hero-subtext {
       max-width: 900px;   /* was 720px */
-      margin: 0 0 8px;
+      margin: 0 0 18px;
       font-size: 1.05rem; /* was 1.15rem */
       line-height: 1.35;
     }
@@ -714,14 +727,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;  /* ← KEY CHANGE */
+  justify-content: center;
 
   text-align: center;
 
-  padding: 28px 20px 80px;
+  padding: 40px 20px;
 
-  height: auto;
-  min-height: auto;
+  min-height: 100vh;
 
   overflow: hidden;
 }
@@ -784,6 +796,31 @@
   transform: translateY(-50%);
   color: #22c55e;
   font-size: 0.85rem;
+}
+
+@media (max-width: 640px) {
+  .hero-content {
+    transform: translateY(-18px);
+  }
+
+  .trust-strip {
+    grid-template-columns: 1fr;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .trust-item {
+    width: 100%;
+    white-space: normal;
+  }
+
+  .hero-trust strong {
+    white-space: nowrap;
+  }
+
+  .homepage-trust-strip {
+    margin-top: 0;
+  }
 }
 
 .trust-link-section {
@@ -1216,12 +1253,6 @@
 and avoid bad bets when the numbers don’t support it.
       </p> 
         
-        <div class="value-stack">
-          <p>✔ Compare live odds across major sportsbooks</p>
-          <p>✔ Spot value opportunities before placing a bet</p>
-          <p>✔ Make smarter, more disciplined betting decisions</p>
-        </div>
-
         <div class="hero-buttons">
           <a href="#" class="btn btn-primary start-premium-btn">
             Start Your 7-Day Free Trial →
@@ -1241,9 +1272,9 @@ and avoid bad bets when the numbers don’t support it.
        </p>
 
         <p class="hero-trust">
-         ✔ <strong>No hype picks</strong> &nbsp;&nbsp;
-         ✔ <strong>No guarantees</strong> &nbsp;&nbsp;
-         ✔ <strong>No forced bets</strong>
+          <span class="hero-trust-item">&#10004; <strong>No hype picks</strong></span>
+          <span class="hero-trust-item">&#10004; <strong>No guarantees</strong></span>
+          <span class="hero-trust-item">&#10004; <strong>No forced bets</strong></span>
         </p>
 
         <p style="font-size:13px; color:#94a3b8; margin-top:8px;">
