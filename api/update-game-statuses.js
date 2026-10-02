@@ -1051,6 +1051,27 @@ function getGameStatusPollingInterval(result) {
     return GAME_STATUS_POLLING.live;
   }
 
+  const recentlyStartedPregame =
+    games.some(game => {
+      const state = String(
+        game.statusState || ''
+      ).toLowerCase();
+
+      const startTime =
+        new Date(game.date).getTime();
+
+      return (
+        state === 'pre' &&
+        Number.isFinite(startTime) &&
+        startTime <= now &&
+        startTime > now - 60 * 60 * 1000
+      );
+    });
+
+  if (recentlyStartedPregame) {
+    return GAME_STATUS_POLLING.nearGame;
+  }
+
   const futureStarts = games
     .map(game => new Date(game.date).getTime())
     .filter(startTime =>
