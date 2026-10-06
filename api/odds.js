@@ -200,11 +200,13 @@ export default async function handler(req, res) {
       : 'basketball_nba';
 
     const oddsApiSports =
-  sport === 'americanfootball_ncaaf'
-    ? ['americanfootball_ncaaf', 'americanfootball_ncaaf_fcs']
-    : sport === 'americanfootball_nfl'
-    ? ['americanfootball_nfl']
-    : [sport];
+      sport === 'americanfootball_ncaaf'
+        ? ['americanfootball_ncaaf', 'americanfootball_ncaaf_fcs']
+        : sport === 'americanfootball_nfl'
+        ? ['americanfootball_nfl']
+        : sport === 'basketball_nba'
+        ? ['basketball_nba_preseason', 'basketball_nba']
+        : [sport];
 
 let data = [];
 
