@@ -1122,14 +1122,36 @@ button:active {
 }
 
 .basketball-team {
+  position: relative;
   color: #00ff88;
   font-weight: 900;
   text-align: left !important;
 }
 
+.basketball-foul-arrow {
+  position: absolute;
+  right: 100%;
+  margin-right: 4px;
+  color: #ff4d4d;
+  font-size: 13px;
+  font-weight: 900;
+}
+
 .basketball-team-abbr {
   color: #00ff88;
   font-weight: 900;
+}
+
+.basketball-bonus {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 1px;
+  color: #ffb347;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  line-height: 10px;
 }
 
 .scoreboard-team-record {
@@ -1145,10 +1167,21 @@ button:active {
 }
 
 .basketball-total {
+  position: relative;
   color: #00ff88;
   font-size: 21px;
   font-weight: 900;
   text-shadow: 0 0 8px rgba(0, 255, 136, 0.30);
+}
+
+.basketball-timeout-arrow {
+  position: absolute;
+  left: 100%;
+  margin-left: 4px;
+  color: #00ff88;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 21px;
 }
 
 .football-linescore {
@@ -1500,7 +1533,7 @@ button:active {
   font-weight: 900;
   color: #ffffff;
   line-height: 1.2;
-  margin-bottom: 20px;
+  margin-bottom: 6px;
 }
 
 .game-summary-right {
@@ -1515,9 +1548,23 @@ button:active {
   top: 10px;
 }
 
+.game-summary-title:not(:has(+ .game-series-context)) {
+  margin-bottom: 31px;
+}
+
+.game-series-context {
+  margin-top: 1px;
+  margin-bottom: 25px;
+  font-size: 12px;
+  color: #b8c4d6;
+  font-weight: 500;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
 .game-market-signal {
   margin-top: 0;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   font-size: 14px;
   color: #b8c4d6;
   font-weight: 700;
@@ -1886,14 +1933,14 @@ window.addEventListener("DOMContentLoaded", checkAccess);
           <option value="basketball_wnba">🏀 WNBA</option>
           <option value="soccer_usa_mls">⚽ MLS</option>
           <option value="americanfootball_nfl">🏈 NFL</option>
-		  <option value="americanfootball_ncaaf">🏈 NCAA Football</option>
+          <option value="americanfootball_ncaaf">🏈 NCAA Football</option>
+          <option value="basketball_nba">🏀 NBA — PRESEASON</option>
 
           <option disabled>────────────</option>
           <option disabled>Off Season</option>
 
           <option value="basketball_ncaab">🏀 NCAA (M)</option>
           <option value="basketball_wncaab">🏀 NCAA (W)</option>
-          <option value="basketball_nba">🏀 NBA</option>
         </select>
       </div>
 
@@ -3853,7 +3900,10 @@ function formatGameStatus(commenceTime, game = null) {
   }
 
   const now = new Date();
-  
+
+  window.scoMlbHomeRunCache =
+    window.scoMlbHomeRunCache || {};
+
   const currentEspnStatus =
     game?.freshEspnStatus ||
     game?.espnStatus ||
@@ -3936,7 +3986,50 @@ function formatGameStatus(commenceTime, game = null) {
           currentEspnStatus.statusState === 'in'
        ) {
 
-    const espn = currentEspnStatus;
+      const espn = currentEspnStatus;
+
+      if (selectedSport === 'baseball_mlb') {
+        const mlbGameKey = getGameKey(game);
+
+        const isHomeRunPlay =
+        String(espn.mlbLatestPlayTypeId) === '28' ||
+        (
+          String(espn.mlbLatestPlayTypeId) === '57' &&
+          String(espn.mlbLatestPlayText || '')
+            .toLowerCase()
+            .includes('homered')
+        );
+
+        if (
+          mlbGameKey &&
+          espn.mlbLatestHomeRunWallclock &&
+          espn.mlbLatestHomeRunBatterId
+        ) {
+          const homeRunWallclock =
+            espn.mlbLatestHomeRunWallclock || null;
+
+          const cachedHomeRun =
+            window.scoMlbHomeRunCache[mlbGameKey];
+
+                    const homeRunAgeMs =
+            Date.now() - new Date(homeRunWallclock).getTime();
+
+          if (
+            homeRunAgeMs >= 0 &&
+            homeRunAgeMs <= 60 * 1000 &&
+            (
+              !cachedHomeRun ||
+              cachedHomeRun.wallclock !== homeRunWallclock
+            )
+          ) {
+            window.scoMlbHomeRunCache[mlbGameKey] = {
+              wallclock: homeRunWallclock,
+              batterId: espn.mlbLatestHomeRunBatterId || null,
+              detectedAt: Date.now()
+            };
+          }
+        }
+      }
 
 const espnScoreText = espn
   ? `${espn.awayShort} ${espn.awayScore} - ${espn.homeShort} ${espn.homeScore}`
@@ -4044,6 +4137,98 @@ const liveText = espn && espn.statusState === 'in'
              cssClass: 'upcoming'
           };
      }
+
+function formatMlbSeriesContext(game) {
+  const hasSeriesData = source =>
+    source?.mlbSeriesRecordSource === 'S' &&
+    source?.mlbSeriesDescription &&
+    source?.mlbSeriesGameNumber != null;
+
+  const espn =
+    (hasSeriesData(game?.mlbSeriesInfo) && game.mlbSeriesInfo) ||
+    (hasSeriesData(game?.freshEspnStatus) && game.freshEspnStatus) ||
+    (hasSeriesData(game?.espnStatus) && game.espnStatus);
+
+  if (!espn) return '';
+
+  const seriesDescription =
+    espn.mlbSeriesDescription;
+
+  const seriesGameNumber =
+    Number(espn.mlbSeriesGameNumber);
+
+  const awayWins =
+    Number(espn.mlbSeriesAwayWins);
+
+  const awayLosses =
+    Number(espn.mlbSeriesAwayLosses);
+
+  const homeWins =
+    Number(espn.mlbSeriesHomeWins);
+
+  const homeLosses =
+    Number(espn.mlbSeriesHomeLosses);
+
+  if (
+    !seriesDescription ||
+    espn.mlbSeriesRecordSource !== 'S' ||
+    !Number.isFinite(seriesGameNumber) ||
+    !Number.isFinite(awayWins) ||
+    !Number.isFinite(awayLosses) ||
+    !Number.isFinite(homeWins) ||
+    !Number.isFinite(homeLosses)
+  ) {
+    return '';
+  }
+
+  const awayAbbr =
+    espn.awayShort ||
+    String(
+      espn.awayTeam ||
+      game.away ||
+      'AWY'
+    )
+      .split(/\s+/)
+      .map(word => word[0])
+      .join('')
+      .toUpperCase();
+
+  const homeAbbr =
+    espn.homeShort ||
+    String(
+      espn.homeTeam ||
+      game.home ||
+      'HME'
+    )
+      .split(/\s+/)
+      .map(word => word[0])
+      .join('')
+      .toUpperCase();
+
+  const shortSeriesName =
+    seriesDescription
+      .replace('AL Division Series', 'ALDS')
+      .replace('NL Division Series', 'NLDS')
+      .replace('AL Championship Series', 'ALCS')
+      .replace('NL Championship Series', 'NLCS')
+      .replace('Wild Card Series', 'Wild Card');
+
+  let seriesStatus = '';
+
+  if (awayWins > homeWins) {
+    seriesStatus =
+      `${awayAbbr} leads series ${awayWins}-${homeWins}`;
+  } else if (homeWins > awayWins) {
+    seriesStatus =
+      `${homeAbbr} leads series ${homeWins}-${awayWins}`;
+  } else {
+    seriesStatus =
+      `Series tied ${awayWins}-${homeWins}`;
+  }
+
+  return `${shortSeriesName} Game ${seriesGameNumber} &middot; ${seriesStatus}`;
+}
+
 
 /* ==========================================================
    MINI-SCOREBOARD STATUS AND RENDERING
@@ -4415,7 +4600,8 @@ if (liveStatusText.includes('halftime')) {
         ? 20
         : selectedSport === 'soccer_usa_mls'
           ? 15
-          : selectedSport === 'basketball_wnba'
+          : selectedSport === 'basketball_wnba' ||
+            selectedSport === 'basketball_nba'
             ? 15
             : 0;
 
@@ -4509,7 +4695,42 @@ if (liveStatusText.includes('halftime')) {
     baseballDetailLower.includes('top') ||
     baseballDetailLower.includes('bottom');
 
-  if (isActiveHalfInning) {
+  const mlbGameKey = getGameKey(game);
+
+  const cachedHomeRun =
+    mlbGameKey
+      ? window.scoMlbHomeRunCache?.[mlbGameKey]
+      : null;
+
+  const currentBatterId =
+    espn.mlbBatterId != null
+      ? String(espn.mlbBatterId)
+      : null;
+
+  const homeRunBatterId =
+    cachedHomeRun?.batterId != null
+      ? String(cachedHomeRun.batterId)
+      : null;
+
+  const homeRunAgeMs =
+    cachedHomeRun
+      ? Date.now() - cachedHomeRun.detectedAt
+      : Infinity;
+
+  const showHomeRun =
+    cachedHomeRun &&
+    homeRunAgeMs <= 45 * 1000 &&
+    (
+      !currentBatterId ||
+      !homeRunBatterId ||
+      currentBatterId === homeRunBatterId
+    );
+
+  if (showHomeRun) {
+    statusLabel = 'HOME RUN';
+    context = '';
+  } else if (isActiveHalfInning) {
+
   const balls = Number(espn.balls ?? 0);
   const strikes = Number(espn.strikes ?? 0);
   const outs = Number(espn.outs ?? 0);
@@ -5101,8 +5322,31 @@ else {
 
             <strong class="mlb-total">${homeTotalDisplay}</strong>
 
-      
     </div>
+
+    ${
+      espn.mlbPitcherName || espn.mlbBatterName
+        ? `
+          <div
+            style="
+              margin-top:2px;
+              margin-left:6px;
+              font-size:12px;
+              color:#cbd5e1;
+              white-space:nowrap;
+            "
+          >
+            ${espn.mlbPitcherName ? `P: ${espn.mlbPitcherName}` : ''}
+            ${
+              espn.mlbPitcherName && espn.mlbBatterName
+                ? ' &bull; '
+                : ''
+            }
+            ${espn.mlbBatterName ? `AB: ${espn.mlbBatterName}` : ''}
+          </div>
+        `
+        : ''
+    }
   `;
 }
 
@@ -5114,6 +5358,35 @@ function buildBasketballLinescore(espn) {
   );
 
   const periods = Array.from({ length: maxPeriod }, (_, i) => i + 1);
+
+  const foulCache =
+    window.scoBasketballFoulCache?.[
+      `espn_${espn.id}`
+    ];
+
+  const showRecentFoul =
+    foulCache &&
+    Date.now() - foulCache.detectedAt <= 10 * 1000;
+
+  const awayCommittedFoul =
+    showRecentFoul &&
+    Boolean(espn.awayTeamId) &&
+    String(foulCache.teamId) ===
+      String(espn.awayTeamId);
+
+  const homeCommittedFoul =
+    showRecentFoul &&
+    Boolean(espn.homeTeamId) &&
+    String(foulCache.teamId) ===
+      String(espn.homeTeamId);
+
+  const awayInBonus =
+    espn.wnbaAwayBonusState &&
+    espn.wnbaAwayBonusState !== 'NONE';
+
+  const homeInBonus =
+    espn.wnbaHomeBonusState &&
+    espn.wnbaHomeBonusState !== 'NONE';
 
   const isWnbaTimeout =
     String(espn.wnbaLatestPlayTypeId) === '16';
@@ -5188,7 +5461,9 @@ function buildBasketballLinescore(espn) {
       <strong class="basketball-total-label">T</strong>
 
       <span class="basketball-team">
+                    ${awayCommittedFoul ? '<span class="basketball-foul-arrow">&rarr;</span>' : ''}
                     <span class="basketball-team-abbr">${espn.awayShort || 'AWY'}</span>
+${awayInBonus ? '<span class="basketball-bonus">BONUS</span>' : ''}
                      ${espn.awayRecord
                           ? `<span class="scoreboard-team-record">(${espn.awayRecord})</span>`
                           : ''}
@@ -5209,10 +5484,12 @@ function buildBasketballLinescore(espn) {
              </span>
          `;
      }).join('')}
-      <strong class="basketball-total">${espn.awayScore ?? '-'}${awayCalledTimeout ? ' ←' : ''}</strong>
+      <strong class="basketball-total">${espn.awayScore ?? '-'}${awayCalledTimeout ? '<span class="basketball-timeout-arrow">&larr;</span>' : ''}</strong>
 
       <span class="basketball-team">
+                     ${homeCommittedFoul ? '<span class="basketball-foul-arrow">&rarr;</span>' : ''}
                      <span class="basketball-team-abbr">${espn.homeShort || 'HME'}</span>
+${homeInBonus ? '<span class="basketball-bonus">BONUS</span>' : ''}
                      ${espn.homeRecord
                           ? `<span class="scoreboard-team-record">(${espn.homeRecord})</span>`
                           : ''}
@@ -5233,7 +5510,7 @@ function buildBasketballLinescore(espn) {
                     </span>
                `;
            }).join('')}
-      <strong class="basketball-total">${espn.homeScore ?? '-'}${homeCalledTimeout ? ' ←' : ''}</strong>
+      <strong class="basketball-total">${espn.homeScore ?? '-'}${homeCalledTimeout ? '<span class="basketball-timeout-arrow">&larr;</span>' : ''}</strong>
     </div>
   `;
 }
@@ -5822,8 +6099,29 @@ function scheduleNextOddsPoll() {
     clearTimeout(oddsPollTimer);
   }
 
-  const delay =
-    getOddsPollingInterval(latestPollingGames);
+  const selectedSport =
+    document.getElementById('sport-select')?.value ||
+    'baseball_mlb';
+
+  const recentFinals = Object.values(
+    window.scoFinalTransitionCache?.[selectedSport] ||
+    {}
+  );
+
+  const hasRecentFinal = recentFinals.some(finalGame => {
+    const finalObservedAt =
+      Number(finalGame?.finalObservedAt) || 0;
+
+    return (
+      finalObservedAt > 0 &&
+      Date.now() - finalObservedAt <=
+        15 * 60 * 1000
+    );
+  });
+
+  const delay = hasRecentFinal
+    ? ODDS_POLL_LIVE_MS
+    : getOddsPollingInterval(latestPollingGames);
 
   oddsPollTimer = setTimeout(async () => {
     if (!document.hidden) {
@@ -5945,13 +6243,119 @@ latestPollingGames.forEach(game => {
     return;
   }
 
+  if (
+    freshEspnIsFinal &&
+    cachedFinalGame?.cachedFinal !== true
+  ) {
+    window.scoFinalTransitionCache =
+      window.scoFinalTransitionCache || {};
+
+    window.scoFinalTransitionCache[sport] =
+      window.scoFinalTransitionCache[sport] || {};
+
+    window.scoFinalTransitionCache[sport][gameKey] = {
+      ...game,
+      sport,
+      status: 'final',
+      cachedFinal: true,
+      espnStatus: freshEspnGame,
+      completedObservedAt:
+        game?.completedObservedAt || null,
+      finalObservedAt: Date.now()
+    };
+
+    try {
+      localStorage.setItem(
+        `scoFinalTransitionCache_${sport}`,
+        JSON.stringify(
+          window.scoFinalTransitionCache[sport]
+        )
+      );
+    } catch (err) {
+      // If storage fails, retention still works for this session.
+    }
+  }
+
+  if (
+    sport === 'baseball_mlb' &&
+    freshEspnGame.mlbLatestHomeRunWallclock &&
+    freshEspnGame.mlbLatestHomeRunBatterId
+  ) {
+    window.scoMlbHomeRunCache =
+      window.scoMlbHomeRunCache || {};
+
+    const homeRunWallclock =
+      freshEspnGame.mlbLatestHomeRunWallclock;
+
+    const cachedHomeRun =
+      window.scoMlbHomeRunCache[gameKey];
+
+    const homeRunAgeMs =
+      Date.now() - new Date(homeRunWallclock).getTime();
+
+    if (
+      homeRunAgeMs >= 0 &&
+      homeRunAgeMs <= 60 * 1000 &&
+      (
+        !cachedHomeRun ||
+        cachedHomeRun.wallclock !== homeRunWallclock
+      )
+    ) {
+      window.scoMlbHomeRunCache[gameKey] = {
+        wallclock: homeRunWallclock,
+        batterId:
+          freshEspnGame.mlbLatestHomeRunBatterId,
+        detectedAt: Date.now()
+      };
+    }
+  }
+
+
+  if (sport === 'basketball_wnba') {
+    const foulTypeText =
+      String(
+        freshEspnGame.wnbaLatestPlayTypeText || ''
+      ).toLowerCase();
+
+    const isFoulPlay =
+      foulTypeText.includes('foul') &&
+      foulTypeText !== 'no foul';
+
+    if (
+      isFoulPlay &&
+      freshEspnGame.wnbaLatestPlayTeamId
+    ) {
+      window.scoBasketballFoulCache =
+        window.scoBasketballFoulCache || {};
+
+      const foulKey =
+        `${freshEspnGame.wnbaLatestPlayPeriod || ''}|` +
+        `${freshEspnGame.wnbaLatestPlayClock || ''}|` +
+        `${freshEspnGame.wnbaLatestPlayTypeId || ''}|` +
+        `${freshEspnGame.wnbaLatestPlayTeamId}`;
+
+      const cachedFoul =
+        window.scoBasketballFoulCache[gameKey];
+
+      if (cachedFoul?.foulKey !== foulKey) {
+        window.scoBasketballFoulCache[gameKey] = {
+          foulKey,
+          teamId:
+            String(freshEspnGame.wnbaLatestPlayTeamId),
+          detectedAt: Date.now()
+        };
+      }
+    }
+  }
+
   game.freshEspnStatus = freshEspnGame;
 
   const supportsEstimatedHalftime =
   sport === 'americanfootball_nfl' ||
   sport === 'americanfootball_ncaaf' ||
   sport === 'soccer_usa_mls' ||
-  sport === 'basketball_wnba';
+  sport === 'basketball_wnba' ||
+  sport === 'basketball_nba';
 
 if (supportsEstimatedHalftime) {
   const halftimeText = String(
@@ -6598,6 +7002,24 @@ try {
   freshEspnGames = [];
 }
 
+let mlbSeriesGames = [];
+
+if (sport === 'baseball_mlb') {
+  try {
+    const seriesResponse = await fetch('/api/mlb-series-schedule');
+
+    if (seriesResponse.ok) {
+      const seriesPayload = await seriesResponse.json();
+
+      mlbSeriesGames = Array.isArray(seriesPayload.games)
+        ? seriesPayload.games
+        : [];
+    }
+  } catch (error) {
+    console.warn('MLB series schedule unavailable:', error);
+  }
+}
+
 latestPollingGames = games;
 
 const completedGames = Array.isArray(payload.completedGames)
@@ -6644,8 +7066,50 @@ games.forEach(game => {
       freshEspnByMatchup.get(matchupKey) || null;
   }
 
-  if (freshEspnGame) {
+    if (freshEspnGame) {
     game.freshEspnStatus = freshEspnGame;
+  }
+
+  if (sport === 'baseball_mlb' && mlbSeriesGames.length) {
+    const gameDate = String(
+      game.commence_time ||
+      game.commenceTime ||
+      game.startTime ||
+      ''
+    );
+
+    const matchingSeriesGames = mlbSeriesGames.filter(seriesGame => {
+      const sameTeams =
+        normalizeScoreboardTeamName(seriesGame.awayTeam) ===
+          normalizeScoreboardTeamName(game.away) &&
+        normalizeScoreboardTeamName(seriesGame.homeTeam) ===
+          normalizeScoreboardTeamName(game.home);
+
+        const pacificDate = value => {
+        const date = new Date(value);
+
+        if (!Number.isFinite(date.getTime())) {
+          return '';
+        }
+
+        return date.toLocaleDateString('en-CA', {
+          timeZone: 'America/Los_Angeles',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        });
+      };
+
+      const sameGameDate =
+        pacificDate(seriesGame.gameDate) !== '' &&
+        pacificDate(seriesGame.gameDate) === pacificDate(gameDate);
+
+      return sameTeams && sameGameDate;
+    });
+
+    if (matchingSeriesGames.length === 1) {
+      game.mlbSeriesInfo = matchingSeriesGames[0];
+    }
   }
 }); 
 
@@ -7167,8 +7631,10 @@ if (statTodayGames) {
           nextGameLabel: 'WNBA'
         },
         basketball_nba: {
-          title: '🏀 NBA is currently in the offseason',
-          message: 'Regular season odds will automatically appear here once sportsbooks begin posting games.'
+          title: '🏀 No NBA preseason games scheduled for today',
+          message: 'Preseason odds will automatically appear here when sportsbook markets are available.',
+          useNextScheduledDate: true,
+          nextGameLabel: 'NBA'
         },
         basketball_ncaab: {
           title: '🏀 NCAA Men\'s Basketball is currently in the offseason',
@@ -8782,6 +9248,12 @@ if (isFinalStatus) {
           <div class="game-summary-header">
                                 <div class="game-summary-left">
                                      <div class="game-summary-title">${title}</div>
+
+                                    ${formatMlbSeriesContext(game) ? `
+                                      <div class="game-series-context">
+                                        ${formatMlbSeriesContext(game)}
+                                      </div>
+                                    ` : ''}
 
                                     ${!hasArbitrage ? `
                                       <div class="game-market-signal">

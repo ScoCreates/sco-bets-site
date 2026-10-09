@@ -143,14 +143,77 @@ await Promise.all(
 
       const latestPlay = plays[plays.length - 1];
 
+      const latestHomeRunPlay =
+        [...plays]
+          .reverse()
+          .find(play =>
+            String(play?.type?.id) === '28' ||
+            (
+              String(play?.type?.id) === '57' &&
+              String(play?.text || '')
+                .toLowerCase()
+                .includes('homered')
+            )
+          ) || null;
+
       if (!latestPlay) return;
+
+      const latestHomeRunBatterId =
+        latestHomeRunPlay?.participants?.find(
+          participant => participant?.type === 'batter'
+        )?.athlete?.id ?? null;
+
+      const latestHomeRunWallclock =
+        latestHomeRunPlay?.wallclock ?? null;
+
+      const pitcherId =
+        latestPlay.participants?.find(
+          participant => participant?.type === 'pitcher'
+        )?.athlete?.id ?? null;
+
+      const batterId =
+        latestPlay.participants?.find(
+          participant => participant?.type === 'batter'
+        )?.athlete?.id ?? null;
+
+      const boxscoreAthletes =
+        (summaryData.boxscore?.players || [])
+          .flatMap(team => team.statistics || [])
+          .flatMap(group => group.athletes || []);
+
+      const rosterAthletes =
+        (summaryData.rosters || [])
+          .flatMap(team => team.roster || []);
+
+      const pitcher =
+        boxscoreAthletes.find(
+          player => String(player?.athlete?.id) === String(pitcherId)
+        )?.athlete ?? null;
+
+      const batter =
+        rosterAthletes.find(
+          player => String(player?.athlete?.id) === String(batterId)
+        )?.athlete ??
+        boxscoreAthletes.find(
+          player => String(player?.athlete?.id) === String(batterId)
+        )?.athlete ??
+        null;
 
       mlbLatestPlays[event.id] = {
         typeId: latestPlay.type?.id ?? null,
         typeText: latestPlay.type?.text ?? null,
         text: latestPlay.text ?? null,
         period: latestPlay.period?.number ?? null,
-        wallclock: latestPlay.wallclock ?? null
+        wallclock: latestPlay.wallclock ?? null,
+        latestHomeRunWallclock,
+        latestHomeRunBatterId,
+        pitcherName:
+          pitcher?.lastName ??
+          pitcher?.shortName?.replace(/^[A-Z]\.\s*/, '') ??
+          pitcher?.displayName ??
+          null,
+        batterId: batterId ?? null,
+        batterName: batter?.lastName ?? batter?.displayName ?? null
       };
     } catch (err) {
       // Keep normal ESPN scoreboard data if a summary lookup fails.
@@ -158,6 +221,282 @@ await Promise.all(
   })
 );
 
+const mlbSeriesData = {};
+
+if (sport === 'baseball_mlb') {
+  try {
+    const mlbSeriesScheduleUrl =
+      'https://statsapi.mlb.com/api/v1/schedule?sportId=1';
+
+    const mlbSeriesScheduleResponse =
+      await fetch(mlbSeriesScheduleUrl, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
+
+    if (mlbSeriesScheduleResponse.ok) {
+      const mlbSeriesScheduleData =
+        await mlbSeriesScheduleResponse.json();
+
+      const mlbSeriesScheduleGames =
+        (mlbSeriesScheduleData.dates || [])
+          .flatMap(date => date.games || []);
+
+      for (const event of data.events || []) {
+        const competition =
+          event.competitions?.[0];
+
+        const competitors =
+          competition?.competitors || [];
+
+        const home =
+          competitors.find(
+            competitor =>
+              competitor.homeAway === 'home'
+          );
+
+        const away =
+          competitors.find(
+            competitor =>
+              competitor.homeAway === 'away'
+          );
+
+        const espnHomeName =
+          normalizeTeamName(
+            home?.team?.displayName
+          );
+
+        const espnAwayName =
+          normalizeTeamName(
+            away?.team?.displayName
+          );
+
+        const espnStartMs =
+          new Date(event.date).getTime();
+
+        const mlbGame =
+          mlbSeriesScheduleGames.find(game => {
+            const mlbHomeName =
+              normalizeTeamName(
+                game?.teams?.home?.team?.name
+              );
+
+            const mlbAwayName =
+              normalizeTeamName(
+                game?.teams?.away?.team?.name
+              );
+
+            const mlbStartMs =
+              new Date(game?.gameDate).getTime();
+
+            return (
+              mlbHomeName === espnHomeName &&
+              mlbAwayName === espnAwayName &&
+              Number.isFinite(espnStartMs) &&
+              Number.isFinite(mlbStartMs) &&
+              Math.abs(
+                mlbStartMs - espnStartMs
+              ) <= 60 * 60 * 1000
+            );
+          });
+
+        if (!mlbGame) continue;
+
+        mlbSeriesData[event.id] = {
+          seriesDescription:
+            mlbGame.seriesDescription ?? null,
+
+          seriesGameNumber:
+            mlbGame.seriesGameNumber ?? null,
+
+          gamesInSeries:
+            mlbGame.gamesInSeries ?? null,
+
+          recordSource:
+            mlbGame.recordSource ?? null,
+
+          awayWins:
+            mlbGame.teams?.away
+              ?.leagueRecord?.wins ?? null,
+
+          awayLosses:
+            mlbGame.teams?.away
+              ?.leagueRecord?.losses ?? null,
+
+          homeWins:
+            mlbGame.teams?.home
+              ?.leagueRecord?.wins ?? null,
+
+          homeLosses:
+            mlbGame.teams?.home
+              ?.leagueRecord?.losses ?? null
+        };
+      }
+    }
+  } catch (err) {
+    // Keep normal ESPN data if MLB series lookup fails.
+  }
+}
+
+const mlbLiveData = {};
+
+if (sport === 'baseball_mlb' && liveMlbEvents.length > 0) {
+  try {
+    const mlbScheduleUrl =
+      'https://statsapi.mlb.com/api/v1/schedule?sportId=1';
+
+    const mlbScheduleResponse = await fetch(mlbScheduleUrl, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
+    });
+
+    if (mlbScheduleResponse.ok) {
+      const mlbScheduleData =
+        await mlbScheduleResponse.json();
+
+      const mlbScheduleGames =
+        (mlbScheduleData.dates || [])
+          .flatMap(date => date.games || []);
+
+      await Promise.all(
+        liveMlbEvents.map(async event => {
+          try {
+            const competition =
+              event.competitions?.[0];
+
+            const competitors =
+              competition?.competitors || [];
+
+            const home =
+              competitors.find(
+                competitor =>
+                  competitor.homeAway === 'home'
+              );
+
+            const away =
+              competitors.find(
+                competitor =>
+                  competitor.homeAway === 'away'
+              );
+
+            const espnHomeName =
+              normalizeTeamName(
+                home?.team?.displayName
+              );
+
+            const espnAwayName =
+              normalizeTeamName(
+                away?.team?.displayName
+              );
+
+            const espnStartMs =
+              new Date(event.date).getTime();
+
+            const mlbGame =
+              mlbScheduleGames.find(game => {
+                const mlbHomeName =
+                  normalizeTeamName(
+                    game?.teams?.home?.team?.name
+                  );
+
+                const mlbAwayName =
+                  normalizeTeamName(
+                    game?.teams?.away?.team?.name
+                  );
+
+                const mlbStartMs =
+                  new Date(game?.gameDate).getTime();
+
+                return (
+                  mlbHomeName === espnHomeName &&
+                  mlbAwayName === espnAwayName &&
+                  Number.isFinite(espnStartMs) &&
+                  Number.isFinite(mlbStartMs) &&
+                  Math.abs(
+                    mlbStartMs - espnStartMs
+                  ) <= 60 * 60 * 1000
+                );
+              });
+
+            if (!mlbGame?.gamePk) return;
+
+            const mlbFeedUrl =
+              `https://statsapi.mlb.com/api/v1.1/game/${mlbGame.gamePk}/feed/live`;
+
+            const mlbFeedResponse =
+              await fetch(mlbFeedUrl, {
+                cache: 'no-store',
+                headers: {
+                  'Cache-Control': 'no-cache'
+                }
+              });
+
+            if (!mlbFeedResponse.ok) return;
+
+            const mlbFeedData =
+              await mlbFeedResponse.json();
+
+            const currentPlay =
+              mlbFeedData.liveData?.plays
+                ?.currentPlay;
+
+            const linescore =
+              mlbFeedData.liveData?.linescore;
+
+            if (!currentPlay || !linescore) return;
+
+            mlbLiveData[event.id] = {
+              gamePk: mlbGame.gamePk,
+
+              inning:
+                linescore.currentInning ?? null,
+
+              inningState:
+                linescore.inningState ?? null,
+
+              balls:
+                currentPlay.count?.balls ?? null,
+
+              strikes:
+                currentPlay.count?.strikes ?? null,
+
+              outs:
+                currentPlay.count?.outs ?? null,
+
+              awayScore:
+                linescore.teams?.away?.runs ?? null,
+
+              homeScore:
+                linescore.teams?.home?.runs ?? null,
+
+              batterId:
+                currentPlay.matchup?.batter?.id ??
+                null,
+
+              batterName:
+                currentPlay.matchup?.batter
+                  ?.fullName ?? null,
+
+              pitcherName:
+                currentPlay.matchup?.pitcher
+                  ?.fullName ?? null
+            };
+          } catch (err) {
+            // Keep normal ESPN MLB data if
+            // an MLB live-feed lookup fails.
+          }
+        })
+      );
+    }
+  } catch (err) {
+    // Keep normal ESPN MLB data if MLB
+    // schedule discovery fails.
+  }
+}
 
 const wnbaLatestPlays = {};
 
@@ -192,6 +531,19 @@ await Promise.all(
 
       const latestPlay = plays[plays.length - 1];
 
+      const summaryCompetitors =
+        summaryData.header?.competitions?.[0]?.competitors || [];
+
+      const summaryHome =
+        summaryCompetitors.find(
+          competitor => competitor.homeAway === 'home'
+        );
+
+      const summaryAway =
+        summaryCompetitors.find(
+          competitor => competitor.homeAway === 'away'
+        );
+
       if (!latestPlay) return;
 
       wnbaLatestPlays[event.id] = {
@@ -200,7 +552,15 @@ await Promise.all(
         text: latestPlay.text ?? null,
         clock: latestPlay.clock?.displayValue ?? null,
         period: latestPlay.period?.number ?? null,
-        teamId: latestPlay.team?.id ?? null
+        teamId: latestPlay.team?.id ?? null,
+        awayFoulsToGive:
+          summaryAway?.fouls?.foulsToGive ?? null,
+        awayBonusState:
+          summaryAway?.fouls?.bonusState ?? null,
+        homeFoulsToGive:
+          summaryHome?.fouls?.foulsToGive ?? null,
+        homeBonusState:
+          summaryHome?.fouls?.bonusState ?? null
       };
     } catch (err) {
       // Keep normal ESPN scoreboard data if a summary lookup fails.
@@ -320,8 +680,73 @@ const games = (data.events || []).map(event => {
             ? mlbLatestPlays[event.id]?.wallclock ?? null
             : null,
 
-		
-	wnbaLatestPlayTypeId:
+        mlbLatestHomeRunWallclock:
+          sport === 'baseball_mlb'
+            ? mlbLatestPlays[event.id]?.latestHomeRunWallclock ?? null
+            : null,
+
+        mlbLatestHomeRunBatterId:
+          sport === 'baseball_mlb'
+            ? mlbLatestPlays[event.id]?.latestHomeRunBatterId ?? null
+            : null,
+
+        mlbPitcherName:
+          sport === 'baseball_mlb'
+            ? mlbLatestPlays[event.id]?.pitcherName ?? null
+            : null,
+
+        mlbBatterId:
+          sport === 'baseball_mlb'
+            ? mlbLatestPlays[event.id]?.batterId ?? null
+            : null,
+
+        mlbBatterName:
+          sport === 'baseball_mlb'
+            ? mlbLatestPlays[event.id]?.batterName ?? null
+            : null,
+
+        mlbSeriesDescription:
+          sport === 'baseball_mlb'
+            ? mlbSeriesData[event.id]?.seriesDescription ?? null
+            : null,
+
+        mlbSeriesGameNumber:
+          sport === 'baseball_mlb'
+            ? mlbSeriesData[event.id]?.seriesGameNumber ?? null
+            : null,
+
+        mlbGamesInSeries:
+          sport === 'baseball_mlb'
+            ? mlbSeriesData[event.id]?.gamesInSeries ?? null
+            : null,
+
+        mlbSeriesRecordSource:
+          sport === 'baseball_mlb'
+            ? mlbSeriesData[event.id]?.recordSource ?? null
+            : null,
+
+        mlbSeriesAwayWins:
+          sport === 'baseball_mlb'
+            ? mlbSeriesData[event.id]?.awayWins ?? null
+            : null,
+
+        mlbSeriesAwayLosses:
+          sport === 'baseball_mlb'
+            ? mlbSeriesData[event.id]?.awayLosses ?? null
+            : null,
+
+        mlbSeriesHomeWins:
+          sport === 'baseball_mlb'
+            ? mlbSeriesData[event.id]?.homeWins ?? null
+            : null,
+
+        mlbSeriesHomeLosses:
+          sport === 'baseball_mlb'
+            ? mlbSeriesData[event.id]?.homeLosses ?? null
+            : null,
+
+
+    wnbaLatestPlayTypeId:
       sport === 'basketball_wnba'
         ? wnbaLatestPlays[event.id]?.typeId ?? null
         : null,
@@ -349,6 +774,26 @@ const games = (data.events || []).map(event => {
     wnbaLatestPlayTeamId:
       sport === 'basketball_wnba'
         ? wnbaLatestPlays[event.id]?.teamId ?? null
+        : null,
+
+    wnbaAwayFoulsToGive:
+      sport === 'basketball_wnba'
+        ? wnbaLatestPlays[event.id]?.awayFoulsToGive ?? null
+        : null,
+
+    wnbaAwayBonusState:
+      sport === 'basketball_wnba'
+        ? wnbaLatestPlays[event.id]?.awayBonusState ?? null
+        : null,
+
+    wnbaHomeFoulsToGive:
+      sport === 'basketball_wnba'
+        ? wnbaLatestPlays[event.id]?.homeFoulsToGive ?? null
+        : null,
+
+    wnbaHomeBonusState:
+      sport === 'basketball_wnba'
+        ? wnbaLatestPlays[event.id]?.homeBonusState ?? null
         : null,
 	
 		
@@ -399,17 +844,23 @@ const games = (data.events || []).map(event => {
 		
 		balls:
           sport === 'baseball_mlb'
-            ? situation.balls ?? null
+            ? mlbLiveData[event.id]?.balls ??
+              situation.balls ??
+              null
             : null,
 
         strikes:
           sport === 'baseball_mlb'
-            ? situation.strikes ?? null
+            ? mlbLiveData[event.id]?.strikes ??
+              situation.strikes ??
+              null
             : null,
 
         outs:
           sport === 'baseball_mlb'
-            ? situation.outs ?? null
+            ? mlbLiveData[event.id]?.outs ??
+              situation.outs ??
+              null
             : null,
 			
 		        possessionText:
