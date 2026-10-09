@@ -4726,8 +4726,39 @@ if (liveStatusText.includes('halftime')) {
       currentBatterId === homeRunBatterId
     );
 
+  const mlbPitcherGameKey =
+    espn.id
+      ? `espn_${espn.id}`
+      : mlbGameKey;
+
+  const mlbHalfInning =
+    espn.mlbHalfInning;
+
+  const cachedPitcher =
+    mlbPitcherGameKey &&
+    (mlbHalfInning === 'top' ||
+     mlbHalfInning === 'bottom')
+      ? window.scoMlbPitcherCache?.[mlbPitcherGameKey]?.[mlbHalfInning]
+      : null;
+
+  const pitcherChangeAgeMs =
+    cachedPitcher?.changedAt
+      ? Date.now() - cachedPitcher.changedAt
+      : Infinity;
+
+  const showPitchingChange =
+    cachedPitcher?.changedAt &&
+    pitcherChangeAgeMs >= 0 &&
+    pitcherChangeAgeMs <= 30 * 1000 &&
+    espn.mlbPitcherId != null &&
+    String(espn.mlbPitcherId) ===
+      cachedPitcher.pitcherId;
+
   if (showHomeRun) {
     statusLabel = 'HOME RUN';
+    context = '';
+  } else if (showPitchingChange) {
+    statusLabel = 'PITCHING CHANGE';
     context = '';
   } else if (isActiveHalfInning) {
 
@@ -6230,6 +6261,55 @@ latestPollingGames.forEach(game => {
 
   const gameKey = getGameKey(game);
 
+  const pitcherGameKey =
+    freshEspnGame.id
+      ? `espn_${freshEspnGame.id}`
+      : gameKey;
+
+  if (
+    sport === 'baseball_mlb' &&
+    pitcherGameKey &&
+    freshEspnGame.statusState === 'in'
+  ) {
+    window.scoMlbPitcherCache =
+      window.scoMlbPitcherCache || {};
+
+    const currentPitcherId =
+      freshEspnGame.mlbPitcherId != null
+        ? String(freshEspnGame.mlbPitcherId)
+        : null;
+
+    const halfInning =
+      freshEspnGame.mlbHalfInning;
+
+    if (
+      currentPitcherId &&
+      (halfInning === 'top' ||
+       halfInning === 'bottom')
+    ) {
+      window.scoMlbPitcherCache[pitcherGameKey] =
+        window.scoMlbPitcherCache[pitcherGameKey] || {};
+
+      const previousPitcher =
+        window.scoMlbPitcherCache[pitcherGameKey][halfInning];
+
+      if (
+        previousPitcher?.pitcherId &&
+        previousPitcher.pitcherId !== currentPitcherId
+      ) {
+        window.scoMlbPitcherCache[pitcherGameKey][halfInning] = {
+          pitcherId: currentPitcherId,
+          changedAt: Date.now()
+        };
+      } else if (!previousPitcher) {
+        window.scoMlbPitcherCache[pitcherGameKey][halfInning] = {
+          pitcherId: currentPitcherId,
+          changedAt: null
+        };
+      }
+    }
+  }
+
   const cachedFinalGame =
     window.scoFinalTransitionCache?.[sport]?.[
       gameKey
@@ -7074,6 +7154,40 @@ games.forEach(game => {
 
     if (freshEspnGame) {
     game.freshEspnStatus = freshEspnGame;
+
+    if (
+      sport === 'baseball_mlb' &&
+      freshEspnGame.mlbPitcherId != null
+    ) {
+      window.scoMlbPitcherCache =
+        window.scoMlbPitcherCache || {};
+
+      const gameKey =
+        freshEspnGame.id
+          ? `espn_${freshEspnGame.id}`
+          : getGameKey(game);
+
+      const halfInning =
+        freshEspnGame.mlbHalfInning;
+
+      if (
+        gameKey &&
+        (halfInning === 'top' ||
+         halfInning === 'bottom')
+      ) {
+        window.scoMlbPitcherCache[gameKey] =
+          window.scoMlbPitcherCache[gameKey] || {};
+
+        if (
+          !window.scoMlbPitcherCache[gameKey][halfInning]
+        ) {
+          window.scoMlbPitcherCache[gameKey][halfInning] = {
+            pitcherId: String(freshEspnGame.mlbPitcherId),
+            changedAt: null
+          };
+        }
+      }
+    }
   }
 
   if (sport === 'baseball_mlb' && mlbSeriesGames.length) {

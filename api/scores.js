@@ -455,6 +455,9 @@ if (sport === 'baseball_mlb' && liveMlbEvents.length > 0) {
               inning:
                 linescore.currentInning ?? null,
 
+              halfInning:
+                currentPlay.about?.halfInning ?? null,
+
               inningState:
                 linescore.inningState ?? null,
 
@@ -480,6 +483,10 @@ if (sport === 'baseball_mlb' && liveMlbEvents.length > 0) {
               batterName:
                 currentPlay.matchup?.batter
                   ?.fullName ?? null,
+
+              pitcherId:
+                currentPlay.matchup?.pitcher?.id ??
+                null,
 
               pitcherName:
                 currentPlay.matchup?.pitcher
@@ -715,6 +722,16 @@ const games = (data.events || []).map(event => {
         mlbLatestHomeRunBatterId:
           sport === 'baseball_mlb'
             ? mlbLatestPlays[event.id]?.latestHomeRunBatterId ?? null
+            : null,
+
+        mlbHalfInning:
+          sport === 'baseball_mlb'
+            ? mlbLiveData[event.id]?.halfInning ?? null
+            : null,
+
+        mlbPitcherId:
+          sport === 'baseball_mlb'
+            ? mlbLiveData[event.id]?.pitcherId ?? null
             : null,
 
         mlbPitcherName:
