@@ -4760,6 +4760,19 @@ if (liveStatusText.includes('halftime')) {
   } else if (showPitchingChange) {
     statusLabel = 'PITCHING CHANGE';
     context = '';
+  } else if (
+    mlbGameKey &&
+    window.scoMlbBasesLoadedCache?.[mlbGameKey]?.loaded === true &&
+    Number.isFinite(
+      window.scoMlbBasesLoadedCache[mlbGameKey].detectedAt
+    ) &&
+    Date.now() -
+      window.scoMlbBasesLoadedCache[mlbGameKey].detectedAt >= 0 &&
+    Date.now() -
+      window.scoMlbBasesLoadedCache[mlbGameKey].detectedAt <= 10 * 1000
+  ) {
+    statusLabel = 'BASES LOADED';
+    context = '';
   } else if (isActiveHalfInning) {
 
   const balls = Number(espn.balls ?? 0);
@@ -6307,6 +6320,39 @@ latestPollingGames.forEach(game => {
           changedAt: null
         };
       }
+    }
+
+    // Track when the bases transition to loaded.
+    window.scoMlbBasesLoadedCache =
+      window.scoMlbBasesLoadedCache || {};
+
+    const basesLoadedNow =
+      freshEspnGame.onFirst === true &&
+      freshEspnGame.onSecond === true &&
+      freshEspnGame.onThird === true;
+
+    const previousBasesState =
+      window.scoMlbBasesLoadedCache[pitcherGameKey];
+
+    if (!previousBasesState) {
+      // Seed the initial state without showing an alert.
+      window.scoMlbBasesLoadedCache[pitcherGameKey] = {
+        loaded: basesLoadedNow,
+        detectedAt: null
+      };
+    } else if (
+      basesLoadedNow &&
+      !previousBasesState.loaded
+    ) {
+      window.scoMlbBasesLoadedCache[pitcherGameKey] = {
+        loaded: true,
+        detectedAt: Date.now()
+      };
+    } else if (!basesLoadedNow) {
+      window.scoMlbBasesLoadedCache[pitcherGameKey] = {
+        loaded: false,
+        detectedAt: null
+      };
     }
   }
 
