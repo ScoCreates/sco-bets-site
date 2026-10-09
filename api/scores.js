@@ -483,7 +483,34 @@ if (sport === 'baseball_mlb' && liveMlbEvents.length > 0) {
 
               pitcherName:
                 currentPlay.matchup?.pitcher
-                  ?.fullName ?? null
+                  ?.fullName ?? null,
+
+              pitcherPitchCount: (() => {
+                const pitcherId =
+                  currentPlay.matchup?.pitcher?.id;
+
+                if (!pitcherId) return null;
+
+                const boxscoreTeams =
+                  mlbFeedData.liveData?.boxscore?.teams;
+
+                for (const side of ['away', 'home']) {
+                  const pitchingStats =
+                    boxscoreTeams?.[side]?.players?.[
+                      `ID${pitcherId}`
+                    ]?.stats?.pitching;
+
+                  if (
+                    Number.isFinite(
+                      pitchingStats?.numberOfPitches
+                    )
+                  ) {
+                    return pitchingStats.numberOfPitches;
+                  }
+                }
+
+                return null;
+              })()
             };
           } catch (err) {
             // Keep normal ESPN MLB data if
@@ -692,17 +719,28 @@ const games = (data.events || []).map(event => {
 
         mlbPitcherName:
           sport === 'baseball_mlb'
-            ? mlbLatestPlays[event.id]?.pitcherName ?? null
+            ? mlbLiveData[event.id]?.pitcherName ??
+              mlbLatestPlays[event.id]?.pitcherName ??
+              null
+            : null,
+
+        mlbPitcherPitchCount:
+          sport === 'baseball_mlb'
+            ? mlbLiveData[event.id]?.pitcherPitchCount ?? null
             : null,
 
         mlbBatterId:
           sport === 'baseball_mlb'
-            ? mlbLatestPlays[event.id]?.batterId ?? null
+            ? mlbLiveData[event.id]?.batterId ??
+              mlbLatestPlays[event.id]?.batterId ??
+              null
             : null,
 
         mlbBatterName:
           sport === 'baseball_mlb'
-            ? mlbLatestPlays[event.id]?.batterName ?? null
+            ? mlbLiveData[event.id]?.batterName ??
+              mlbLatestPlays[event.id]?.batterName ??
+              null
             : null,
 
         mlbSeriesDescription:

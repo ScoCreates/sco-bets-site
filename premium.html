@@ -5336,7 +5336,13 @@ else {
               white-space:nowrap;
             "
           >
-            ${espn.mlbPitcherName ? `P: ${espn.mlbPitcherName}` : ''}
+            ${espn.mlbPitcherName
+              ? `P: ${espn.mlbPitcherName}${
+                  Number.isFinite(espn.mlbPitcherPitchCount)
+                    ? ` (${espn.mlbPitcherPitchCount} pitches)`
+                    : ''
+                }`
+              : ''}
             ${
               espn.mlbPitcherName && espn.mlbBatterName
                 ? ' &bull; '
