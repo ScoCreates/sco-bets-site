@@ -6649,8 +6649,12 @@ if (supportsEstimatedHalftime) {
         gameCard?.querySelector('.game-summary-right');
 
       if (scoreboard) {
-        scoreboard.innerHTML =
+        const updatedScoreboardHtml =
           buildMiniScoreboard(game);
+
+        if (scoreboard.innerHTML !== updatedScoreboardHtml) {
+          scoreboard.innerHTML = updatedScoreboardHtml;
+        }
       }
     });
   } catch (err) {
