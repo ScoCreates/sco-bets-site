@@ -852,6 +852,11 @@ const games = (data.events || []).map(event => {
         : [],
 
 
+    wnbaLatestPlayId:
+      (sport === 'basketball_wnba' || sport === 'basketball_nba')
+        ? wnbaLatestPlays[event.id]?.playId ?? null
+        : null,
+
     wnbaLatestPlayTypeId:
       (sport === 'basketball_wnba' || sport === 'basketball_nba')
         ? wnbaLatestPlays[event.id]?.typeId ?? null

@@ -6556,9 +6556,12 @@ latestPollingGames.forEach(game => {
       freshEspnGame.wnbaLatestPlayTeamId;
 
     const playKey =
-      `${freshEspnGame.wnbaLatestPlayPeriod || ''}|` +
-      `${freshEspnGame.wnbaLatestPlayClock || ''}|` +
-      `${playTypeId}|${playTeamId || ''}`;
+      freshEspnGame.wnbaLatestPlayId ||
+      (
+        `${freshEspnGame.wnbaLatestPlayPeriod || ''}|` +
+        `${freshEspnGame.wnbaLatestPlayClock || ''}|` +
+        `${playTypeId}|${playTeamId || ''}`
+      );
 
     if (
       playType.includes('foul') &&
