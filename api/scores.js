@@ -96,13 +96,36 @@ if (sport === 'soccer_usa_mls') {
 
         if (!latestWithWallclock) return;
 
-        mlsClockAnchors[event.id] = {
-          clockSeconds: Number(
-            latestWithWallclock.play?.clock?.value ??
-            latestWithWallclock.time?.value
-          ),
-          wallclock: latestWithWallclock.play.wallclock
-        };
+       const rawClockSeconds = Number(
+  latestWithWallclock.play?.clock?.value ??
+  latestWithWallclock.time?.value
+);
+
+const clockDisplay = String(
+  latestWithWallclock.play?.clock?.displayValue ??
+  latestWithWallclock.time?.displayValue ??
+  ''
+).trim();
+
+const stoppageMatch = clockDisplay.match(
+  /^(\d+)'?\+(\d+)'?$/
+);
+
+let anchorClockSeconds = rawClockSeconds;
+
+if (stoppageMatch) {
+  const baseMinutes = Number(stoppageMatch[1]);
+  const addedMinutes = Number(stoppageMatch[2]);
+
+  anchorClockSeconds =
+    (baseMinutes + addedMinutes) * 60;
+}
+
+mlsClockAnchors[event.id] = {
+  clockSeconds: anchorClockSeconds,
+  wallclock: latestWithWallclock.play.wallclock,
+  precision: stoppageMatch ? 'approximate' : 'precise'
+};
       } catch (err) {
         // Keep normal ESPN scoreboard data if a summary lookup fails.
       }
@@ -535,7 +558,7 @@ if (sport === 'baseball_mlb' && liveMlbEvents.length > 0) {
 const wnbaLatestPlays = {};
 
 const liveWnbaEvents =
-  sport === 'basketball_wnba'
+  (sport === 'basketball_wnba' || sport === 'basketball_nba')
     ? (data.events || []).filter(
         event => event.status?.type?.state === 'in'
       )
@@ -565,6 +588,18 @@ await Promise.all(
 
       const latestPlay = plays[plays.length - 1];
 
+      const recentNotificationPlays = plays
+        .filter(play => {
+          const typeId = String(play.type?.id ?? '');
+          const typeText = String(play.type?.text ?? '').toLowerCase();
+
+          return (
+            typeId === '16' ||
+            (typeText.includes('foul') && typeText !== 'no foul')
+          );
+        })
+        .slice(-20);
+
       const summaryCompetitors =
         summaryData.header?.competitions?.[0]?.competitors || [];
 
@@ -581,11 +616,22 @@ await Promise.all(
       if (!latestPlay) return;
 
       wnbaLatestPlays[event.id] = {
+        recentNotificationPlays: recentNotificationPlays.map(play => ({
+          id: play.id ?? null,
+          typeId: play.type?.id ?? null,
+          typeText: play.type?.text ?? null,
+          teamId: play.team?.id ?? null,
+          period: play.period?.number ?? null,
+          clock: play.clock?.displayValue ?? null,
+          wallclock: play.wallclock ?? null
+        })),
+        playId: latestPlay.id ?? null,
         typeId: latestPlay.type?.id ?? null,
         typeText: latestPlay.type?.text ?? null,
         text: latestPlay.text ?? null,
         clock: latestPlay.clock?.displayValue ?? null,
         period: latestPlay.period?.number ?? null,
+        wallclock: latestPlay.wallclock ?? null,
         teamId: latestPlay.team?.id ?? null,
         awayFoulsToGive:
           summaryAway?.fouls?.foulsToGive ?? null,
@@ -800,54 +846,59 @@ const games = (data.events || []).map(event => {
             ? mlbSeriesData[event.id]?.homeLosses ?? null
             : null,
 
+    basketballRecentNotificationPlays:
+      (sport === 'basketball_wnba' || sport === 'basketball_nba')
+        ? wnbaLatestPlays[event.id]?.recentNotificationPlays ?? []
+        : [],
+
 
     wnbaLatestPlayTypeId:
-      sport === 'basketball_wnba'
+      (sport === 'basketball_wnba' || sport === 'basketball_nba')
         ? wnbaLatestPlays[event.id]?.typeId ?? null
         : null,
 
     wnbaLatestPlayTypeText:
-      sport === 'basketball_wnba'
+      (sport === 'basketball_wnba' || sport === 'basketball_nba')
         ? wnbaLatestPlays[event.id]?.typeText ?? null
         : null,
 
     wnbaLatestPlayText:
-      sport === 'basketball_wnba'
+      (sport === 'basketball_wnba' || sport === 'basketball_nba')
         ? wnbaLatestPlays[event.id]?.text ?? null
         : null,
 
     wnbaLatestPlayClock:
-      sport === 'basketball_wnba'
+      (sport === 'basketball_wnba' || sport === 'basketball_nba')
         ? wnbaLatestPlays[event.id]?.clock ?? null
         : null,
 
     wnbaLatestPlayPeriod:
-      sport === 'basketball_wnba'
+      (sport === 'basketball_wnba' || sport === 'basketball_nba')
         ? wnbaLatestPlays[event.id]?.period ?? null
         : null,
 
     wnbaLatestPlayTeamId:
-      sport === 'basketball_wnba'
+      (sport === 'basketball_wnba' || sport === 'basketball_nba')
         ? wnbaLatestPlays[event.id]?.teamId ?? null
         : null,
 
     wnbaAwayFoulsToGive:
-      sport === 'basketball_wnba'
+      (sport === 'basketball_wnba' || sport === 'basketball_nba')
         ? wnbaLatestPlays[event.id]?.awayFoulsToGive ?? null
         : null,
 
     wnbaAwayBonusState:
-      sport === 'basketball_wnba'
+      (sport === 'basketball_wnba' || sport === 'basketball_nba')
         ? wnbaLatestPlays[event.id]?.awayBonusState ?? null
         : null,
 
     wnbaHomeFoulsToGive:
-      sport === 'basketball_wnba'
+      (sport === 'basketball_wnba' || sport === 'basketball_nba')
         ? wnbaLatestPlays[event.id]?.homeFoulsToGive ?? null
         : null,
 
     wnbaHomeBonusState:
-      sport === 'basketball_wnba'
+      (sport === 'basketball_wnba' || sport === 'basketball_nba')
         ? wnbaLatestPlays[event.id]?.homeBonusState ?? null
         : null,
 	
@@ -895,6 +946,11 @@ const games = (data.events || []).map(event => {
         mlsClockAnchorWallclock:
           sport === 'soccer_usa_mls'
             ? mlsClockAnchors[event.id]?.wallclock ?? null
+            : null,
+
+        mlsClockAnchorPrecision:
+          sport === 'soccer_usa_mls'
+            ? mlsClockAnchors[event.id]?.precision ?? null
             : null,
 		
 		balls:
@@ -975,8 +1031,46 @@ const games = (data.events || []).map(event => {
 		
         homeTeam: home?.team?.displayName || null,
         awayTeam: away?.team?.displayName || null,
-        homeTeamId: home?.id ?? home?.team?.id ?? null,
+                homeTeamId: home?.id ?? home?.team?.id ?? null,
         awayTeamId: away?.id ?? away?.team?.id ?? null,
+
+        wnbaSeriesInfo:
+          sport === 'basketball_wnba' &&
+          competition?.series?.type === 'playoff' &&
+          competition?.notes?.some(note =>
+            /WNBA Finals/i.test(note.headline || '')
+          )
+            ? {
+                description: 'WNBA Finals',
+
+                gameNumber:
+                  Number(
+                    competition.notes
+                      .find(note =>
+                        /WNBA Finals/i.test(note.headline || '')
+                      )
+                      ?.headline?.match(/Game\s+(\d+)/i)?.[1]
+                  ) || null,
+
+                totalGames:
+                  competition.series.totalCompetitions ?? null,
+
+                homeWins:
+                  competition.series.competitors?.find(
+                    team =>
+                      String(team.id) ===
+                      String(home?.id ?? home?.team?.id)
+                  )?.wins ?? null,
+
+                awayWins:
+                  competition.series.competitors?.find(
+                    team =>
+                      String(team.id) ===
+                      String(away?.id ?? away?.team?.id)
+                  )?.wins ?? null
+              }
+            : null,
+
         homeShort: home?.team?.abbreviation || null,
         awayShort: away?.team?.abbreviation || null,
         homeRecord:
