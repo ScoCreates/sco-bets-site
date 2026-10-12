@@ -28,6 +28,8 @@ const SNAPSHOT_SCHEDULE_VERSION = 2;
 const AGGRESSIVE_POLLING = {
   live: 60 * 1000,
   startingSoon: 60 * 1000,
+  within10Minutes: 60 * 1000,
+  within60Minutes: 2 * 60 * 1000,
   within3Hours: 2 * 60 * 1000,
   within12Hours: 2 * 60 * 1000,
   within24Hours: 2 * 60 * 1000,
