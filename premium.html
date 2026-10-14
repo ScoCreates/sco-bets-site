@@ -1133,8 +1133,9 @@ button:active {
   right: 100%;
   margin-right: 4px;
   color: #ff4d4d;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 900;
+  line-height: 1;
 }
 
 .basketball-team-abbr {
@@ -4615,10 +4616,29 @@ if (liveStatusText.includes('halftime')) {
 
     game.scoEstimatedHalftimeReturnAt = estimatedReturnAt;
   }
-  } else if (liveStatusText.includes('intermission')) {
+    } else if (liveStatusText.includes('intermission')) {
     statusLabel = 'INTERMISSION';
     context = '';
-  
+
+  } else if (
+    selectedSport.startsWith('americanfootball') &&
+    espn.statusState === 'in' &&
+    window.scoFootballScoringCache?.[scoreboardGameKey] &&
+    Date.now() -
+      window.scoFootballScoringCache[scoreboardGameKey].detectedAt <= 30000
+  ) {
+    const scoringEvent =
+      window.scoFootballScoringCache[scoreboardGameKey];
+
+    const scoringType =
+      String(scoringEvent.typeText || '').toLowerCase();
+
+    statusLabel = scoringType.includes('touchdown')
+      ? 'TOUCHDOWN'
+      : 'FIELD GOAL';
+
+    context = '';
+
   } else if (
     selectedSport.startsWith('americanfootball') &&
     (
@@ -4665,6 +4685,14 @@ if (liveStatusText.includes('halftime')) {
     timeoutPeriod && espn.clock
       ? `• ${timeoutPeriodLabel}<span style="display:inline-block; margin-left:8px;">${espn.clock}</span>`
       : '';
+} else if (
+  (selectedSport === 'basketball_wnba' || selectedSport === 'basketball_nba') &&
+  window.scoBasketballFoulCache?.[getGameKey(game)] &&
+  Date.now() -
+    window.scoBasketballFoulCache[getGameKey(game)].detectedAt <= 10000
+) {
+  statusLabel = 'FOUL';
+  context = '';
 } else if (
   (selectedSport === 'basketball_wnba' || selectedSport === 'basketball_nba') &&
   window.scoBasketballTimeoutCache?.[getGameKey(game)] &&
@@ -4728,7 +4756,8 @@ if (liveStatusText.includes('halftime')) {
 
   const showHomeRun =
     cachedHomeRun &&
-    homeRunAgeMs <= 45 * 1000 &&
+    homeRunAgeMs >= 0 &&
+    homeRunAgeMs <= 120 * 1000 &&
     (
       !currentBatterId ||
       !homeRunBatterId ||
@@ -4755,10 +4784,24 @@ if (liveStatusText.includes('halftime')) {
       ? Date.now() - cachedPitcher.changedAt
       : Infinity;
 
+  const currentPitchCount =
+    Number.isFinite(espn.mlbPitcherPitchCount)
+      ? espn.mlbPitcherPitchCount
+      : null;
+
+  const startingPitchCount =
+    cachedPitcher?.startingPitchCount;
+
+  const hasThrownFirstPitch =
+    Number.isFinite(startingPitchCount) &&
+    Number.isFinite(currentPitchCount) &&
+    currentPitchCount > startingPitchCount;
+
   const showPitchingChange =
     cachedPitcher?.changedAt &&
     pitcherChangeAgeMs >= 0 &&
-    pitcherChangeAgeMs <= 30 * 1000 &&
+    pitcherChangeAgeMs <= 120 * 1000 &&
+    !hasThrownFirstPitch &&
     espn.mlbPitcherId != null &&
     String(espn.mlbPitcherId) ===
       cachedPitcher.pitcherId;
@@ -5183,7 +5226,7 @@ return `
     <div class="game-summary-status ${statusClass}">
       <div class="game-summary-status-main">
         <span class="game-status-dot"></span>
-        <span>${statusLabel}</span>
+        <span style="${statusLabel === 'FOUL' ? 'color: #ff4d4d; font-weight: 900;' : ''}">${statusLabel}</span>
 
         ${context ? `
         <span class="game-summary-status-context">${context}</span>
@@ -5460,7 +5503,9 @@ else {
     </div>
 
     ${
-      espn.mlbPitcherName || espn.mlbBatterName
+      !isFinal &&
+      (isTop || isBottom) &&
+      (espn.mlbPitcherName || espn.mlbBatterName)
         ? `
           <div
             style="
@@ -5472,9 +5517,9 @@ else {
             "
           >
             ${espn.mlbPitcherName
-              ? `P: ${espn.mlbPitcherName}${
+              ? `P: ${formatMlbPlayerLastName(espn.mlbPitcherName)}${
                   Number.isFinite(espn.mlbPitcherPitchCount)
-                    ? ` (${espn.mlbPitcherPitchCount} pitches)`
+                    ? ` (${espn.mlbPitcherPitchCount} ${espn.mlbPitcherPitchCount === 1 ? 'pitch' : 'pitches'})`
                     : ''
                 }`
               : ''}
@@ -5483,12 +5528,49 @@ else {
                 ? ' &bull; '
                 : ''
             }
-            ${espn.mlbBatterName ? `AB: ${espn.mlbBatterName}` : ''}
+            ${espn.mlbBatterName ? `AB: ${formatMlbPlayerLastName(espn.mlbBatterName)}` : ''}
           </div>
         `
         : ''
     }
   `;
+}
+
+function formatMlbPlayerLastName(fullName) {
+  const name = String(fullName || '').trim();
+
+  if (!name) return '';
+
+  const parts = name.split(/\s+/);
+
+  if (parts.length <= 1) return name;
+
+  const suffixes = ['Jr.', 'Jr', 'Sr.', 'Sr', 'II', 'III', 'IV'];
+
+  let suffix = '';
+
+  if (suffixes.includes(parts[parts.length - 1])) {
+    suffix = parts.pop();
+  }
+
+  const surnamePrefixes = [
+    'de', 'del', 'da', 'dos', 'das',
+    'van', 'von', 'der', 'den',
+    'la', 'las', 'los', 'le'
+  ];
+
+  let start = parts.length - 1;
+
+  while (
+    start > 1 &&
+    surnamePrefixes.includes(parts[start - 1].toLowerCase())
+  ) {
+    start--;
+  }
+
+  const lastName = parts.slice(start).join(' ');
+
+  return suffix ? `${lastName} ${suffix}` : lastName;
 }
 
 function buildBasketballLinescore(espn) {
@@ -5521,11 +5603,21 @@ function buildBasketballLinescore(espn) {
     String(foulCache.teamId) ===
       String(espn.homeTeamId);
 
+  const basketballStatusText = String(
+  `${espn.statusName || ''} ${espn.statusDescription || ''} ${espn.statusDetail || ''}`
+).toLowerCase();
+
+  const isBasketballPeriodBreak =
+    espn.statusState !== 'in' ||
+    /end of|halftime|intermission/.test(basketballStatusText);
+
   const awayInBonus =
+    !isBasketballPeriodBreak &&
     espn.wnbaAwayBonusState &&
     espn.wnbaAwayBonusState !== 'NONE';
 
   const homeInBonus =
+    !isBasketballPeriodBreak &&
     espn.wnbaHomeBonusState &&
     espn.wnbaHomeBonusState !== 'NONE';
 
@@ -5604,7 +5696,7 @@ function buildBasketballLinescore(espn) {
       <strong class="basketball-total-label">T</strong>
 
       <span class="basketball-team">
-                    ${awayCommittedFoul ? '<span class="basketball-foul-arrow">&rarr;</span>' : ''}
+                    ${awayCommittedFoul ? '<span class="basketball-foul-arrow">&#10140;</span>' : ''}
                     <span class="basketball-team-abbr">${espn.awayShort || 'AWY'}</span>
 ${awayInBonus ? '<span class="basketball-bonus">BONUS</span>' : ''}
                      ${espn.awayRecord
@@ -5630,7 +5722,7 @@ ${awayInBonus ? '<span class="basketball-bonus">BONUS</span>' : ''}
       <strong class="basketball-total">${espn.awayScore ?? '-'}${awayCalledTimeout ? '<span class="basketball-timeout-arrow">&larr;</span>' : ''}</strong>
 
       <span class="basketball-team">
-                     ${homeCommittedFoul ? '<span class="basketball-foul-arrow">&rarr;</span>' : ''}
+                     ${homeCommittedFoul ? '<span class="basketball-foul-arrow">&#10140;</span>' : ''}
                      <span class="basketball-team-abbr">${espn.homeShort || 'HME'}</span>
 ${homeInBonus ? '<span class="basketball-bonus">BONUS</span>' : ''}
                      ${espn.homeRecord
@@ -6415,7 +6507,12 @@ latestPollingGames.forEach(game => {
       ) {
         window.scoMlbPitcherCache[pitcherGameKey][halfInning] = {
           pitcherId: currentPitcherId,
-          changedAt: Date.now()
+          changedAt: Date.now(),
+          startingPitchCount: Number.isFinite(
+            freshEspnGame.mlbPitcherPitchCount
+          )
+            ? freshEspnGame.mlbPitcherPitchCount
+            : null
         };
       } else if (!previousPitcher) {
         window.scoMlbPitcherCache[pitcherGameKey][halfInning] = {
@@ -6478,10 +6575,31 @@ latestPollingGames.forEach(game => {
     return;
   }
 
-  if (
+    if (
     freshEspnIsFinal &&
     cachedFinalGame?.cachedFinal !== true
   ) {
+    const recordedFinalTime = new Date(
+      freshEspnGame.completedObservedAt ||
+      game?.completedObservedAt ||
+      ''
+    ).getTime();
+
+    const scheduledStartTime = new Date(
+      getGameCommenceTime(game) || ''
+    ).getTime();
+
+    // Without a server timestamp, do not revive old games.
+    if (
+      !Number.isFinite(recordedFinalTime) &&
+      (
+        !Number.isFinite(scheduledStartTime) ||
+        Date.now() - scheduledStartTime > 8 * 60 * 60 * 1000
+      )
+    ) {
+      return;
+    }
+
     window.scoFinalTransitionCache =
       window.scoFinalTransitionCache || {};
 
@@ -6495,8 +6613,21 @@ latestPollingGames.forEach(game => {
       cachedFinal: true,
       espnStatus: freshEspnGame,
       completedObservedAt:
-        game?.completedObservedAt || null,
-      finalObservedAt: Date.now()
+        freshEspnGame.completedObservedAt ||
+        game?.completedObservedAt ||
+        null,
+      finalObservedAt:
+        (() => {
+          const serverTime = new Date(
+            freshEspnGame.completedObservedAt ||
+            game?.completedObservedAt ||
+            ''
+          ).getTime();
+
+          return Number.isFinite(serverTime)
+            ? serverTime
+            : Date.now();
+        })()
     };
 
     try {
@@ -6542,6 +6673,52 @@ latestPollingGames.forEach(game => {
           freshEspnGame.mlbLatestHomeRunBatterId,
         detectedAt: Date.now()
       };
+    }
+  }
+
+  if (sport.startsWith('americanfootball')) {
+    const scoringPlay =
+      freshEspnGame.footballLatestScoringPlay;
+
+    const scoringId =
+      scoringPlay?.id != null
+        ? String(scoringPlay.id)
+        : null;
+
+    const scoringType =
+      String(scoringPlay?.typeText || '').toLowerCase();
+
+    const scoringTime =
+      Date.parse(scoringPlay?.wallclock || '');
+
+    const scoringAgeMs =
+      Date.now() - scoringTime;
+
+    const isFootballScore =
+      scoringType.includes('touchdown') ||
+      scoringType === 'field goal good';
+
+    if (
+      freshEspnGame.statusState === 'in' &&
+      scoringId &&
+      isFootballScore &&
+      Number.isFinite(scoringTime) &&
+      scoringAgeMs >= 0 &&
+      scoringAgeMs <= 60 * 1000
+    ) {
+      window.scoFootballScoringCache =
+        window.scoFootballScoringCache || {};
+
+      const cachedScore =
+        window.scoFootballScoringCache[gameKey];
+
+      if (cachedScore?.playId !== scoringId) {
+        window.scoFootballScoringCache[gameKey] = {
+          playId: scoringId,
+          typeText: scoringPlay.typeText,
+          detectedAt: Date.now()
+        };
+      }
     }
   }
 
@@ -9518,7 +9695,9 @@ if (aIsFinal && bIsFinal) {
 
 if (
   game.status === 'final' ||
-  currentEspnStatus?.statusState === 'post'
+  currentEspnStatus?.statusState === 'post' ||
+  currentEspnStatus?.statusName === 'STATUS_FINAL' ||
+  String(currentEspnStatus?.statusDescription || '').toLowerCase() === 'final'
 ) {
   isFinalStatus = true;
 

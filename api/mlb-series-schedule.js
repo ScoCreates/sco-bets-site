@@ -41,6 +41,23 @@ export default async function handler(req, res) {
     const schedule = await response.json();
     const games = [];
 
+    const teamsResponse = await fetch(
+      'https://statsapi.mlb.com/api/v1/teams?sportId=1'
+    );
+
+    if (!teamsResponse.ok) {
+      throw new Error(`MLB teams returned ${teamsResponse.status}`);
+    }
+
+    const teamsPayload = await teamsResponse.json();
+
+    const abbreviationByTeamId = new Map(
+      (teamsPayload.teams || []).map(team => [
+        String(team.id),
+        team.abbreviation
+      ])
+    );
+
     for (const date of schedule.dates || []) {
       for (const game of date.games || []) {
         const series = game.seriesStatus;
@@ -58,6 +75,15 @@ export default async function handler(req, res) {
           gameDate: game.gameDate,
           awayTeam: game.teams?.away?.team?.name,
           homeTeam: game.teams?.home?.team?.name,
+          awayShort:
+            abbreviationByTeamId.get(
+              String(game.teams?.away?.team?.id)
+            ) || null,
+
+          homeShort:
+            abbreviationByTeamId.get(
+              String(game.teams?.home?.team?.id)
+            ) || null,
           mlbSeriesDescription: game.seriesDescription || series.description,
           mlbSeriesGameNumber: Number(series.gameNumber),
           mlbSeriesRecordSource: game.recordSource,

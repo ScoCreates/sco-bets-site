@@ -1,3 +1,7 @@
+const { Redis } = require('@upstash/redis');
+const supabase = require('../lib/supabase');
+
+const redis = Redis.fromEnv();
 function normalizeTeamName(name) {
   return String(name || '')
     .toLowerCase()
@@ -228,6 +232,18 @@ await Promise.all(
         text: latestPlay.text ?? null,
         period: latestPlay.period?.number ?? null,
         wallclock: latestPlay.wallclock ?? null,
+
+        scoringPlay: latestScoringPlay
+          ? {
+              id: latestScoringPlay.id ?? null,
+              typeId: latestScoringPlay.type?.id ?? null,
+              typeText: latestScoringPlay.type?.text ?? null,
+              text: latestScoringPlay.text ?? null,
+              clock: latestScoringPlay.clock?.displayValue ?? null,
+              period: latestScoringPlay.period?.number ?? null,
+              wallclock: latestScoringPlay.wallclock ?? null
+            }
+          : null,
         latestHomeRunWallclock,
         latestHomeRunBatterId,
         pitcherName:
@@ -689,6 +705,18 @@ await Promise.all(
         drive => Array.isArray(drive?.plays) ? drive.plays : []
       );
 
+const latestScoringPlay = [...plays].reverse().find(play => {
+  const typeText = String(play.type?.text || '').toLowerCase();
+
+  return (
+    play.scoringPlay === true &&
+    (
+      typeText.includes('touchdown') ||
+      typeText === 'field goal good'
+    )
+  );
+});
+
       const latestPlay = plays[plays.length - 1];
 
       if (!latestPlay) return;
@@ -699,7 +727,19 @@ await Promise.all(
         text: latestPlay.text ?? null,
         clock: latestPlay.clock?.displayValue ?? null,
         period: latestPlay.period?.number ?? null,
-        wallclock: latestPlay.wallclock ?? null
+        wallclock: latestPlay.wallclock ?? null,
+
+        scoringPlay: latestScoringPlay
+          ? {
+              id: latestScoringPlay.id ?? null,
+              typeId: latestScoringPlay.type?.id ?? null,
+              typeText: latestScoringPlay.type?.text ?? null,
+              text: latestScoringPlay.text ?? null,
+              clock: latestScoringPlay.clock?.displayValue ?? null,
+              period: latestScoringPlay.period?.number ?? null,
+              wallclock: latestScoringPlay.wallclock ?? null
+            }
+          : null
       };
     } catch (err) {
       // Keep normal ESPN scoreboard data if a summary lookup fails.
@@ -936,7 +976,12 @@ const games = (data.events || []).map(event => {
     footballLatestPlayWallclock:
       sport.startsWith('americanfootball')
         ? footballLatestPlays[event.id]?.wallclock ?? null
-        : null,	
+        : null,
+
+	footballLatestScoringPlay:
+      sport.startsWith('americanfootball')
+        ? footballLatestPlays[event.id]?.scoringPlay ?? null
+        : null,
 		
         clockSeconds:
           sport === 'soccer_usa_mls'
@@ -1110,6 +1155,61 @@ const games = (data.events || []).map(event => {
           : `${normalizeTeamName(away?.team?.displayName)}_${normalizeTeamName(home?.team?.displayName)}_${String(event.date || '').slice(0, 10)}`
       };
     });
+
+    // Attach server-recorded completion times to FINAL games.
+    const finalGames = games.filter(game =>
+      game.statusState === 'post' ||
+      game.statusName === 'STATUS_FINAL'
+    );
+
+    if (finalGames.length > 0) {
+      try {
+        const observations = await Promise.all(
+          finalGames.map(game =>
+            redis.get(`game_observation:${game.gameKey}`)
+          )
+        );
+
+        finalGames.forEach((game, index) => {
+          game.completedObservedAt =
+            observations[index]?.completed_observed_at || null;
+        });
+
+        // Fall back to Supabase when Redis has no completion timestamp.
+        const missingTimestamps = finalGames.filter(
+          game => !game.completedObservedAt
+        );
+
+        if (missingTimestamps.length > 0) {
+          const { data, error } = await supabase
+            .from('completed_games')
+            .select('game_key, completed_observed_at, completed_at')
+            .in(
+              'game_key',
+              missingTimestamps.map(game => game.gameKey)
+            );
+
+          if (error) {
+            console.error('Completion timestamp lookup:', error.message);
+          } else {
+            const completionTimes = new Map(
+              (data || []).map(record => [
+                record.game_key,
+                record.completed_observed_at || record.completed_at
+              ])
+            );
+
+            missingTimestamps.forEach(game => {
+              game.completedObservedAt =
+                completionTimes.get(game.gameKey) || null;
+            });
+          }
+        }
+
+      } catch (err) {
+        // Keep ESPN scores available if Redis is unavailable.
+      }
+    }
 
     return res.status(200).json({
       sport,
