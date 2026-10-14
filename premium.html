@@ -6424,11 +6424,18 @@ const normalizeTeam = value => {
     .toLowerCase()
     .replace(/[^a-z0-9]/g, '');
 
-  if (
+    if (
     sport === 'soccer_usa_mls' &&
     normalized === 'houstondynamofc'
   ) {
     return 'houstondynamo';
+  }
+
+  if (
+    sport === 'basketball_nba' &&
+    normalized === 'laclippers'
+  ) {
+    return 'losangelesclippers';
   }
 
   return normalized;
