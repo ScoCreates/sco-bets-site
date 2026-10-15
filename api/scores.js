@@ -233,17 +233,6 @@ await Promise.all(
         period: latestPlay.period?.number ?? null,
         wallclock: latestPlay.wallclock ?? null,
 
-        scoringPlay: latestScoringPlay
-          ? {
-              id: latestScoringPlay.id ?? null,
-              typeId: latestScoringPlay.type?.id ?? null,
-              typeText: latestScoringPlay.type?.text ?? null,
-              text: latestScoringPlay.text ?? null,
-              clock: latestScoringPlay.clock?.displayValue ?? null,
-              period: latestScoringPlay.period?.number ?? null,
-              wallclock: latestScoringPlay.wallclock ?? null
-            }
-          : null,
         latestHomeRunWallclock,
         latestHomeRunBatterId,
         pitcherName:

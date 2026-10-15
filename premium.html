@@ -4026,7 +4026,13 @@ function formatGameStatus(commenceTime, game = null) {
             window.scoMlbHomeRunCache[mlbGameKey] = {
               wallclock: homeRunWallclock,
               batterId: espn.mlbLatestHomeRunBatterId || null,
-              detectedAt: Date.now()
+              detectedAt: Date.now(),
+              pitcherId: espn.mlbPitcherId != null
+                ? String(espn.mlbPitcherId)
+                : null,
+              startingPitchCount: Number.isFinite(espn.mlbPitcherPitchCount)
+                ? espn.mlbPitcherPitchCount
+                : null
             };
           }
         }
@@ -4754,15 +4760,29 @@ if (liveStatusText.includes('halftime')) {
       ? Date.now() - cachedHomeRun.detectedAt
       : Infinity;
 
+  const homeRunPitcherMatches =
+    cachedHomeRun?.pitcherId != null &&
+    espn.mlbPitcherId != null &&
+    String(espn.mlbPitcherId) === cachedHomeRun.pitcherId;
+
+  const homeRunNextBatter =
+    homeRunBatterId != null &&
+    currentBatterId != null &&
+    currentBatterId !== homeRunBatterId;
+
+  const homeRunNextPitchConfirmed =
+    homeRunNextBatter &&
+    homeRunPitcherMatches &&
+    Number.isFinite(cachedHomeRun?.startingPitchCount) &&
+    Number.isFinite(espn.mlbPitcherPitchCount) &&
+    espn.mlbPitcherPitchCount >
+      cachedHomeRun.startingPitchCount;
+
   const showHomeRun =
     cachedHomeRun &&
     homeRunAgeMs >= 0 &&
-    homeRunAgeMs <= 120 * 1000 &&
-    (
-      !currentBatterId ||
-      !homeRunBatterId ||
-      currentBatterId === homeRunBatterId
-    );
+    homeRunAgeMs <= 15 * 1000 &&
+    !homeRunNextPitchConfirmed;
 
   const mlbPitcherGameKey =
     espn.id
