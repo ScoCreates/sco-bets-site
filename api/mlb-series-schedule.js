@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     const startDate = new Date(now);
     const endDate = new Date(now);
 
-    startDate.setUTCDate(startDate.getUTCDate() - 1);
+    startDate.setUTCDate(startDate.getUTCDate() - 21);
     endDate.setUTCDate(endDate.getUTCDate() + 14);
 
     const formatDate = date => date.toISOString().slice(0, 10);
@@ -87,6 +87,7 @@ export default async function handler(req, res) {
           mlbSeriesDescription: game.seriesDescription || series.description,
           mlbSeriesGameNumber: Number(series.gameNumber),
           mlbSeriesRecordSource: game.recordSource,
+          mlbSeriesResult: series.result || null,
           mlbSeriesAwayWins: Number(game.teams?.away?.leagueRecord?.wins ?? 0),
           mlbSeriesAwayLosses: Number(game.teams?.away?.leagueRecord?.losses ?? 0),
           mlbSeriesHomeWins: Number(game.teams?.home?.leagueRecord?.wins ?? 0),

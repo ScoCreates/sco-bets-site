@@ -257,7 +257,61 @@ async function loadSharedResults() {
       })
     );
 
+let mlbSeriesGames = [];
+
+try {
+  const seriesResponse = await fetch('/api/mlb-series-schedule');
+
+  if (seriesResponse.ok) {
+    const seriesPayload = await seriesResponse.json();
+
+    mlbSeriesGames = Array.isArray(seriesPayload.games)
+      ? seriesPayload.games
+      : [];
+  }
+} catch (error) {
+  console.warn('MLB series results unavailable:', error);
+}
+
     const combinedResults = responses.flat();
+combinedResults.forEach(game => {
+  if (game.sport !== 'baseball_mlb') {
+    return;
+  }
+
+  const gameDate = game.espnStatus?.date;
+
+  const pacificDate = value => {
+    const date = new Date(value);
+
+    if (!Number.isFinite(date.getTime())) {
+      return '';
+    }
+
+    return date.toLocaleDateString('en-CA', {
+      timeZone: 'America/Los_Angeles',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  };
+
+  const normalizeTeam = value =>
+    String(value || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
+
+  const matches = mlbSeriesGames.filter(seriesGame =>
+    normalizeTeam(seriesGame.awayTeam) === normalizeTeam(game.away) &&
+    normalizeTeam(seriesGame.homeTeam) === normalizeTeam(game.home) &&
+    pacificDate(seriesGame.gameDate) !== '' &&
+    pacificDate(seriesGame.gameDate) === pacificDate(gameDate)
+  );
+
+  if (matches.length === 1) {
+    game.mlbSeriesInfo = matches[0];
+  }
+});
 
     const uniqueResults = new Map();
 
@@ -981,6 +1035,25 @@ function renderResults() {
           </strong>
         `}
           </div>
+          ${game.sport === 'baseball_mlb' &&
+            game.mlbSeriesInfo?.mlbSeriesResult ? `
+            <div style="
+              margin-top:10px;
+              color:#94a3b8;
+              font-size:12px;
+              font-weight:600;
+              line-height:1.5;
+            ">
+              ${game.mlbSeriesInfo.mlbSeriesDescription
+                ?.replace('AL Championship Series', 'ALCS')
+                .replace('NL Championship Series', 'NLCS')
+                .replace('AL Division Series', 'ALDS')
+                .replace('NL Division Series', 'NLDS')
+                .replace('Wild Card Series', 'Wild Card')}
+              Game ${game.mlbSeriesInfo.mlbSeriesGameNumber}
+              &middot; ${game.mlbSeriesInfo.mlbSeriesResult}
+            </div>
+          ` : ''}
 
         </div>
 
