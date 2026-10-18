@@ -2405,6 +2405,8 @@ function showOpenFeedback(bookTitle) {
    ========================================================== */
 
 function resetArbitrageCalculator() {
+  currentBestArb = null;
+
   const bankroll = document.getElementById('bankroll');
   const odds1 = document.getElementById('odds1');
   const odds2 = document.getElementById('odds2');
@@ -3275,6 +3277,8 @@ function fillFromBestArb() {
           result.innerHTML = '<span style="color:#ff8080;">This arbitrage opportunity is no longer available.</span>';
           return;
         }
+
+        currentBestArb = selectedArb;
 
         document.getElementById('odds1').value = selectedArb.price1;
         document.getElementById('odds2').value = selectedArb.price2;
