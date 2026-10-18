@@ -354,6 +354,133 @@ combinedResults.forEach(game => {
         return bTime - aTime;
       });
 
+        // Discover WNBA Finals schedule from a completed game.
+    const wnbaResult = allResults.find(
+      game => game.sport === 'basketball_wnba'
+    );
+
+    if (wnbaResult?.espnStatus?.id) {
+      try {
+        const eventId = wnbaResult.espnStatus.id;
+
+        const summaryResponse = await fetch(
+          `https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/summary?event=${encodeURIComponent(eventId)}`
+        );
+
+        if (summaryResponse.ok) {
+          const summary = await summaryResponse.json();
+
+          const teamId =
+            summary.header?.competitions?.[0]?.competitors?.[0]?.id;
+
+          const season = new Date(
+            wnbaResult.espnStatus.date
+          ).getUTCFullYear();
+
+          if (teamId && Number.isFinite(season)) {
+            const scheduleResponse = await fetch(
+              `https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/teams/${encodeURIComponent(teamId)}/schedule?season=${season}`
+            );
+
+            if (scheduleResponse.ok) {
+              const schedule = await scheduleResponse.json();
+
+              const finalsGames = (schedule.events || []).filter(
+                event => event.competitions?.[0]?.notes?.some(
+                  note => /WNBA Finals/i.test(note.headline || '')
+                )
+              );
+
+                            const seriesWins = new Map();
+
+              const completedFinals = finalsGames
+                .map(event => {
+                  const competition = event.competitions?.[0];
+
+                  const gameNumber = Number(
+                    competition?.notes
+                      ?.find(note =>
+                        /WNBA Finals/i.test(note.headline || '')
+                      )
+                      ?.headline?.match(/Game\s+(\d+)/i)?.[1]
+                  );
+
+                  return { event, competition, gameNumber };
+                })
+                .filter(item =>
+                  Number.isInteger(item.gameNumber) &&
+                  item.gameNumber > 0
+                )
+                .sort((a, b) => a.gameNumber - b.gameNumber);
+
+              let expectedGameNumber = 1;
+
+              completedFinals.forEach(({ event, competition, gameNumber }) => {
+                if (gameNumber !== expectedGameNumber) return;
+
+                if (!competition.status?.type?.completed) return;
+
+                const winner = competition.competitors?.find(
+                  team => team.winner === true
+                );
+
+                if (!winner?.id) return;
+
+                expectedGameNumber++;
+
+                const winnerId = String(winner.id);
+
+                seriesWins.set(
+                  winnerId,
+                  (seriesWins.get(winnerId) || 0) + 1
+                );
+
+                                const result = allResults.find(
+                  game =>
+                    game.sport === 'basketball_wnba' &&
+                    String(game.espnStatus?.id) === String(event.id)
+                );
+
+                if (result) {
+                  const competitors = competition.competitors || [];
+
+                  const winnerWins = seriesWins.get(winnerId) || 0;
+
+                  const opponent = competitors.find(
+                    team => String(team.id) !== winnerId
+                  );
+
+                  const opponentWins = opponent
+                    ? seriesWins.get(String(opponent.id)) || 0
+                    : 0;
+
+                  result.wnbaSeriesInfo = {
+                    gameNumber,
+                    leader: winnerWins > opponentWins
+                      ? winner.team?.abbreviation ||
+                        winner.team?.displayName
+                      : opponentWins > winnerWins
+                        ? opponent?.team?.abbreviation ||
+                          opponent?.team?.displayName
+                        : null,
+                    leaderWins: Math.max(winnerWins, opponentWins),
+                    trailingWins: Math.min(winnerWins, opponentWins)
+                  };
+
+                  console.log(
+                    'WNBA historical series attached:',
+                    result.wnbaSeriesInfo
+                  );
+                }
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('WNBA Finals schedule unavailable:', error);
+      }
+    }
+
     renderResults();
   } catch (err) {
     console.error('Failed to load shared completed games:', err);
@@ -1052,6 +1179,23 @@ function renderResults() {
                 .replace('Wild Card Series', 'Wild Card')}
               Game ${game.mlbSeriesInfo.mlbSeriesGameNumber}
               &middot; ${game.mlbSeriesInfo.mlbSeriesResult}
+            </div>
+          ` : ''}
+
+          ${game.sport === 'basketball_wnba' &&
+            game.wnbaSeriesInfo ? `
+            <div style="
+              margin-top:10px;
+              color:#94a3b8;
+              font-size:12px;
+              font-weight:600;
+              line-height:1.5;
+            ">
+              WNBA Finals Game ${game.wnbaSeriesInfo.gameNumber}
+              &middot;
+              ${game.wnbaSeriesInfo.leader
+                ? `${game.wnbaSeriesInfo.leader} leads series ${game.wnbaSeriesInfo.leaderWins}-${game.wnbaSeriesInfo.trailingWins}`
+                : `Series tied ${game.wnbaSeriesInfo.leaderWins}-${game.wnbaSeriesInfo.trailingWins}`}
             </div>
           ` : ''}
 
