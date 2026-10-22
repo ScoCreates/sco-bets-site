@@ -141,9 +141,12 @@
       <button class="filter-pill active" data-sport="all">All</button>
       <button class="filter-pill" data-sport="baseball_mlb">MLB</button>
       <button class="filter-pill" data-sport="basketball_wnba">WNBA</button>
+      <button class="filter-pill" data-sport="basketball_nba">NBA</button>
+      <button class="filter-pill" data-sport="basketball_ncaab">NCAA BB (M)</button>
+      <button class="filter-pill" data-sport="basketball_wncaab">NCAA BB (W)</button>
       <button class="filter-pill" data-sport="soccer_usa_mls">MLS</button>
       <button class="filter-pill" data-sport="americanfootball_nfl">NFL</button>
-      <button class="filter-pill" data-sport="americanfootball_ncaaf">NCAA Football</button>
+      <button class="filter-pill" data-sport="americanfootball_ncaaf">NCAA FB</button>
     </div>
 
     <div class="search-wrap">
@@ -639,10 +642,25 @@ function buildHistoricalMlbScoreboard(game) {
           font-weight:800;
           text-align:center;
         ">
-          ${getInningValue(
-            homeLinescores,
-            inning
-          )}
+        ${(
+          inning === finalInning &&
+          finalInning >= 9 &&
+          Number(espn.homeScore) > Number(espn.awayScore) &&
+          !homeLinescores.some(
+            ls => Number(ls.period) === inning
+          ) &&
+          /final/i.test(
+            String(
+              espn.statusDescription ||
+              espn.statusName ||
+              espn.status ||
+              ''
+            )
+          )
+        )
+          ? 'X'
+          : getInningValue(homeLinescores, inning)
+        }
         </span>
       `).join('')}
 

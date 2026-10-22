@@ -237,9 +237,16 @@ body {
   margin: 12px 0;
 }
 
+/* Biggest Movers: reduce space below the final divider */
+#biggest-movers > div:last-child .card-divider {
+  margin-bottom: 4px;
+}
+
 .grid > .card {
   display: flex;
   flex-direction: column;
+  height: 598px;
+  box-sizing: border-box;
   outline: 2px solid cyan !important;
 }
 
@@ -251,6 +258,26 @@ body {
 
 #guidance-reason {
   white-space: pre-line;
+}
+
+/* Arbitrage Watch: compact heading spacing */
+#arb-pick {
+  margin-top: 4px;
+}
+
+/* Arbitrage Watch: bring explanation closer to divider */
+#arb-details + .why-pick-toggle {
+  margin-top: -4px;
+}
+
+/* Compact opportunity spacing in the upper Arbitrage Watch card only */
+.arb-watch-card #arb-details > div[style*="padding:"] {
+  padding: 2px 0 !important;
+}
+
+/* Reduce spacing above the edge percentage in Arbitrage Watch only */
+.arb-watch-card #arb-details > div > div > div[style*="margin-top:10px"] {
+  margin-top: 5px !important;
 }
 
 
@@ -1134,7 +1161,7 @@ button:active {
   margin-right: 4px;
   color: #ff4d4d;
   font-size: 16px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
 }
 
@@ -1183,6 +1210,7 @@ button:active {
   font-size: 13px;
   font-weight: 900;
   line-height: 21px;
+  text-shadow: 0.3px 0 #00ff88, -0.3px 0 #00ff88;
 }
 
 .football-linescore {
@@ -1222,6 +1250,7 @@ button:active {
   color: #00ff88;
   font-weight: 900;
   text-align: left !important;
+  position: relative;
 }
 
 .football-team-abbr {
@@ -1244,7 +1273,7 @@ button:active {
 
 .football-possession {
   position: absolute;
-  left: calc(100% + 6px);
+  right: calc(100% + 4px);
   top: 50%;
   transform: translateY(-50%);
   font-size: 18px;
@@ -1259,14 +1288,14 @@ button:active {
     padding-bottom: 0;
   }
 
-  .football-possession {
-    position: absolute;
-    left: calc(100% + 5px);
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 14px;
-    line-height: 1;
-  }
+.football-possession {
+  position: absolute;
+  right: calc(100% + 4px);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  line-height: 1;
+}
 
   .football-total {
     padding-right: 0;
@@ -1896,6 +1925,46 @@ window.addEventListener("DOMContentLoaded", checkAccess);
   <div class="logo">SCO Bets AI</div>
   <div>
     <a href="index.html" id="nav-home-button">Home</a>
+<button
+  type="button"
+  id="sco-return-to-arbitrage"
+  onclick="
+    const dashboard = document.getElementById('sco-dashboard-view');
+    const arbitrage = document.getElementById('sco-arbitrage-view');
+
+    if (dashboard && arbitrage) {
+      window.scoArbitrageGameReturnY = window.scrollY;
+      dashboard.style.display = 'none';
+      arbitrage.style.display = 'block';
+      this.style.display = 'none';
+
+      const homeButton = document.getElementById('nav-home-button');
+
+      if (homeButton) {
+        homeButton.textContent = 'Home';
+        homeButton.href = 'index.html';
+        homeButton.onclick = null;
+      }
+
+      returnScrollPosition = null;
+
+      window.scrollTo(0, window.scoArbitrageListY || 0);
+    }
+  "
+  style="
+    display:none;
+    background:transparent;
+    border:1px solid rgba(0,255,136,0.5);
+    border-radius:8px;
+    color:#00ff88;
+    padding:8px 12px;
+    font-size:12px;
+    font-weight:600;
+    cursor:pointer;
+  "
+>
+  ← Return to Arbitrage Opportunities
+</button>
     <button
       id="nav-logout-button"
       onclick="logoutMember()"
@@ -1916,7 +1985,7 @@ window.addEventListener("DOMContentLoaded", checkAccess);
   </div>
 </div>
 
-<div class="container">
+<div class="container" id="sco-dashboard-view">
   <div class="dashboard-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:0px;">
     <div>
       <h1>Sports Betting <span class="dashboard-title-break">Intelligence Dashboard</span></h1>
@@ -1935,7 +2004,7 @@ window.addEventListener("DOMContentLoaded", checkAccess);
           <option value="soccer_usa_mls">⚽ MLS</option>
           <option value="americanfootball_nfl">🏈 NFL</option>
           <option value="americanfootball_ncaaf">🏈 NCAA Football</option>
-          <option value="basketball_nba">🏀 NBA — PRESEASON</option>
+          <option value="basketball_nba">🏀 NBA</option>
 
           <option disabled>────────────</option>
           <option disabled>Off Season</option>
@@ -2068,7 +2137,7 @@ window.addEventListener("DOMContentLoaded", checkAccess);
 </div>
 </div>
 
-  <div class="card">
+  <div class="card arb-watch-card">
     <h3>Arbitrage Watch</h3>
     <div id="arb-pick" class="pick">Scanning...</div>
     <div id="arb-details" class="muted"></div>
@@ -2085,6 +2154,27 @@ window.addEventListener("DOMContentLoaded", checkAccess);
 
       When available, compare both prices and act quickly before the market adjusts.
     </div>
+
+<button
+      type="button"
+      id="sco-view-all-arbitrage"
+      onclick="window.scoArbitrageReturnY=window.scrollY; document.getElementById('sco-dashboard-view').after(document.getElementById('sco-arbitrage-view')); document.getElementById('sco-dashboard-view').style.display='none'; document.getElementById('sco-arbitrage-view').style.display='block'; window.scrollTo(0,0);"
+      style="
+        display:block;
+        margin:14px auto 0;
+        padding:0;
+        background:transparent;
+        border:none;
+        color:#00ff88;
+        font-size:13px;
+        font-weight:600;
+        cursor:pointer;
+        text-align:left;
+      "
+    >
+      View All Arbitrage →
+    </button>
+
 </div>
 
     <div class="card" id="biggest-movers-card">
@@ -2335,6 +2425,42 @@ window.addEventListener("DOMContentLoaded", checkAccess);
 
       <div id="arb-result" style="margin-top:20px; line-height:1.8;"></div>
     </div>
+
+<!-- Full Arbitrage Opportunities View -->
+<div
+  id="sco-arbitrage-view"
+  class="container"
+  style="display:none;"
+>
+  <div style="margin-bottom:24px;">
+    <button
+      type="button"
+      id="return-from-arbitrage"
+      onclick="document.getElementById('sco-arbitrage-view').style.display='none'; document.getElementById('sco-dashboard-view').style.display='block'; window.scrollTo(0, window.scoArbitrageReturnY || 0);"
+      style="margin-bottom:18px;"
+    >
+      ← Return to Dashboard
+    </button>
+
+    <h1>Arbitrage Opportunities</h1>
+
+    <p class="muted">
+      Explore all detected arbitrage opportunities,
+      ranked by estimated profit percentage.
+    </p>
+
+    <p class="muted" style="font-size:12px;">
+      Odds can change quickly. Always verify current
+      sportsbook prices before placing bets.
+    </p>
+  </div>
+
+  <div id="sco-all-arbitrage-list">
+    <div class="card">
+      <p class="muted">Arbitrage opportunities will appear here.</p>
+    </div>
+  </div>
+</div>
 
   </div>
 </div>
@@ -2975,8 +3101,8 @@ pricesByTeam[outcome.name].push(outcome.price);
     }
 
     const badge = isArbBook
-      ? '<div style="color:#00ff88; font-size:12px; margin-bottom:6px;">Recommended for arbitrage</div>'
-      : '';
+      ? '<div style="color:#00ff88; font-size:12px; margin-bottom:6px; min-height:14px;">Recommended for arbitrage</div>'
+      : '<div style="font-size:12px; margin-bottom:6px; min-height:14px; visibility:hidden;" aria-hidden="true">Recommended for arbitrage</div>';
 
     return `
       <div
@@ -3243,6 +3369,28 @@ function fillFromBestArb() {
   }
 
   window.calculateSelectedArb = function(arbIndex) {
+    const fullArbitrageView = document.getElementById('sco-arbitrage-view');
+    const dashboardView = document.getElementById('sco-dashboard-view');
+
+    if (
+      fullArbitrageView?.style.display === 'block' &&
+      dashboardView
+    ) {
+      window.scoArbitrageListY = window.scrollY;
+
+      fullArbitrageView.style.display = 'none';
+      dashboardView.style.display = 'block';
+
+      const returnToArbitrage =
+        document.getElementById('sco-return-to-arbitrage');
+
+      if (returnToArbitrage) {
+        returnToArbitrage.style.display = 'inline-block';
+      }
+
+      window.scrollTo(0, window.scoArbitrageReturnY || 0);
+    }
+
     returnScrollPosition = window.scrollY;
 
     const navButton = document.getElementById('nav-home-button');
@@ -4644,10 +4792,23 @@ if (liveStatusText.includes('halftime')) {
       String(scoringEvent.typeText || '').toLowerCase();
 
     statusLabel = scoringType.includes('touchdown')
-      ? 'TOUCHDOWN'
-      : 'FIELD GOAL';
+  ? 'TOUCHDOWN'
+  : 'FIELD GOAL';
 
-    context = '';
+const scoringPeriod =
+  Number(espn.period) || 0;
+
+const scoringPeriodLabel =
+  scoringPeriod > 4
+    ? `OT${scoringPeriod - 4}`
+    : `Q${scoringPeriod}`;
+
+const scoringClock = espn.clock || '';
+
+context =
+  scoringPeriod && scoringClock
+    ? `• ${scoringPeriodLabel}<span style="display:inline-block; margin-left:8px;">${scoringClock}</span>`
+    : '';
 
   } else if (
     selectedSport.startsWith('americanfootball') &&
@@ -4680,11 +4841,17 @@ if (liveStatusText.includes('halftime')) {
   
 } else if (
   selectedSport.startsWith('americanfootball') &&
-  String(espn.footballLatestPlayTypeId) === '21'
+  espn.statusState === 'in' &&
+  window.scoFootballTimeoutCache?.[scoreboardGameKey] &&
+  Date.now() -
+    window.scoFootballTimeoutCache[scoreboardGameKey].detectedAt <= 10000
 ) {
   statusLabel = 'TIMEOUT';
 
-  const timeoutPeriod = Number(espn.period) || 0;
+  const timeoutEvent =
+    window.scoFootballTimeoutCache[scoreboardGameKey];
+
+  const timeoutPeriod = Number(timeoutEvent.period) || 0;
 
   const timeoutPeriodLabel =
     timeoutPeriod > 4
@@ -4692,8 +4859,8 @@ if (liveStatusText.includes('halftime')) {
       : `Q${timeoutPeriod}`;
 
   context =
-    timeoutPeriod && espn.clock
-      ? `• ${timeoutPeriodLabel}<span style="display:inline-block; margin-left:8px;">${espn.clock}</span>`
+    timeoutPeriod && timeoutEvent.clock
+      ? `• ${timeoutPeriodLabel}<span style="display:inline-block; margin-left:8px;">${timeoutEvent.clock}</span>`
       : '';
 } else if (
   (selectedSport === 'basketball_wnba' || selectedSport === 'basketball_nba') &&
@@ -4702,7 +4869,21 @@ if (liveStatusText.includes('halftime')) {
     window.scoBasketballFoulCache[getGameKey(game)].detectedAt <= 10000
 ) {
   statusLabel = 'FOUL';
-  context = '';
+
+  const foulEvent =
+    window.scoBasketballFoulCache[getGameKey(game)];
+
+  const foulPeriod = Number(foulEvent.period) || 0;
+
+  const foulPeriodLabel =
+    foulPeriod > 4
+      ? `OT${foulPeriod - 4}`
+      : `Q${foulPeriod}`;
+
+  context =
+    foulPeriod && foulEvent.clock
+      ? `• ${foulPeriodLabel}<span style="display:inline-block; margin-left:8px;">${foulEvent.clock}</span>`
+      : '';
 } else if (
   (selectedSport === 'basketball_wnba' || selectedSport === 'basketball_nba') &&
   window.scoBasketballTimeoutCache?.[getGameKey(game)] &&
@@ -4734,6 +4915,12 @@ if (liveStatusText.includes('halftime')) {
       espn.statusDescription ||
       ''
     ).trim();
+
+  const compactBaseballDetail = baseballDetail
+    .replace(/\bTop\s+(\d+)(?:st|nd|rd|th)\b/gi, 'TOP $1')
+    .replace(/\bBottom\s+(\d+)(?:st|nd|rd|th)\b/gi, 'BOT $1')
+    .replace(/\bMiddle\s+(\d+)(?:st|nd|rd|th)\b/gi, 'MID $1')
+    .replace(/\bEnd\s+(\d+)(?:st|nd|rd|th)\b/gi, 'END $1');
 
   const baseballDetailLower =
     baseballDetail.toLowerCase();
@@ -4785,8 +4972,8 @@ if (liveStatusText.includes('halftime')) {
   const showHomeRun =
     cachedHomeRun &&
     homeRunAgeMs >= 0 &&
-    homeRunAgeMs <= 15 * 1000 &&
-    !homeRunNextPitchConfirmed;
+    homeRunAgeMs <= 90 * 1000 &&
+    !homeRunNextBatter;
 
   const mlbPitcherGameKey =
     espn.id
@@ -4849,7 +5036,9 @@ if (liveStatusText.includes('halftime')) {
   ) {
     statusLabel = 'BASES LOADED';
     context = '';
-  } else if (isActiveHalfInning) {
+  }
+
+  if (isActiveHalfInning) {
 
   const balls = Number(espn.balls ?? 0);
   const strikes = Number(espn.strikes ?? 0);
@@ -4911,7 +5100,7 @@ if (liveStatusText.includes('halftime')) {
 `;
 
   context = `
-    <span>${baseballDetail}</span>
+    <span>${compactBaseballDetail}</span>
 
     <span
       style="
@@ -4940,9 +5129,13 @@ if (liveStatusText.includes('halftime')) {
       .startsWith('middle of the 7th inning')
   ) {
     statusLabel = '7TH INNING STRETCH';
-    context = '';
-  } else {
-    context = baseballDetail;
+    context = compactBaseballDetail;
+  } else if (
+    !showHomeRun &&
+    !showPitchingChange &&
+    statusLabel !== 'BASES LOADED'
+  ) {
+    context = compactBaseballDetail;
   }
 } else if (
   selectedSport.includes('soccer')
@@ -5250,7 +5443,7 @@ return `
     <div class="game-summary-status ${statusClass}">
       <div class="game-summary-status-main">
         <span class="game-status-dot"></span>
-        <span style="${statusLabel === 'FOUL' ? 'color: #ff4d4d; font-weight: 900;' : ''}">${statusLabel}</span>
+        <span style="${statusLabel === 'FOUL' ? 'color: #ff4d4d; font-weight: 700;' : ''}">${statusLabel}</span>
 
         ${context ? `
         <span class="game-summary-status-context">${context}</span>
@@ -5871,6 +6064,24 @@ const getValue = (linescores, period) => {
     hasActualPlayStarted &&
     currentPeriod === period;
 
+  const footballTimeoutCache =
+    window.scoFootballTimeoutCache?.[`espn_${espn.id}`];
+
+  const showFootballTimeout =
+    espn.statusState === 'in' &&
+    footballTimeoutCache &&
+    Date.now() - footballTimeoutCache.detectedAt <= 10 * 1000;
+
+  const awayFootballTimeout =
+    showFootballTimeout &&
+    Boolean(espn.awayTeamId) &&
+    String(footballTimeoutCache.teamId) === String(espn.awayTeamId);
+
+  const homeFootballTimeout =
+    showFootballTimeout &&
+    Boolean(espn.homeTeamId) &&
+    String(footballTimeoutCache.teamId) === String(espn.homeTeamId);
+
   const gridColumns = `82px repeat(${periods.length}, 34px) 40px`;
 
   return `
@@ -5887,6 +6098,7 @@ const getValue = (linescores, period) => {
       <strong class="football-total-label">T</strong>
 
       <span class="football-team">
+        ${awayHasPossession ? '<span class="football-possession">🏈</span>' : ''}
                      <span class="football-team-abbr">${espn.awayShort || 'AWY'}</span>
                       ${espn.awayRecord
                            ? `<span class="scoreboard-team-record">(${espn.awayRecord})</span>`
@@ -5902,27 +6114,32 @@ const getValue = (linescores, period) => {
 
       <strong class="football-total">
         <span>${espn.awayScore ?? '-'}</span>
-        ${awayHasPossession ? '<span class="football-possession">🏈</span>' : ''}
+        ${awayFootballTimeout
+          ? '<span class="basketball-timeout-arrow">➜</span>'
+          : ''}
       </strong>
 
-      <span class="football-team">
-                     <span class="football-team-abbr">${espn.homeShort || 'HME'}</span>
-                     ${espn.homeRecord
-                          ? `<span class="scoreboard-team-record">(${espn.homeRecord})</span>`
-                          : ''}
-                </span>
-      ${periods.map(period => `
-        <span class="football-score ${
-          isCurrentPeriod(period) ? 'current-period' : ''
-        }">
-          ${getValue(espn.homeLinescores, period)}
-        </span>
-      `).join('')}
-
-            <strong class="football-total">
-        <span>${espn.homeScore ?? '-'}</span>
+<span class="football-team">
         ${homeHasPossession ? '<span class="football-possession">🏈</span>' : ''}
-      </strong>
+        <span class="football-team-abbr">${espn.homeShort || 'HME'}</span>
+        ${espn.homeRecord
+          ? `<span class="scoreboard-team-record">(${espn.homeRecord})</span>`
+          : ''}
+</span>
+${periods.map(period => `
+  <span class="football-score ${
+    isCurrentPeriod(period) ? 'current-period' : ''
+  }">
+    ${getValue(espn.homeLinescores, period)}
+  </span>
+`).join('')}
+
+<strong class="football-total">
+  <span>${espn.homeScore ?? '-'}</span>
+  ${homeFootballTimeout
+    ? '<span class="basketball-timeout-arrow">➜</span>'
+    : ''}
+</strong>
     </div>
 
     ${
@@ -5932,8 +6149,8 @@ const getValue = (linescores, period) => {
       ).toLowerCase().match(/end of|halftime|intermission|delay/) &&
       Number(espn.down) >= 1 &&
       Number(espn.down) <= 4 &&
-      espn.shortDownDistanceText
-        ? `<div class="football-down-distance">${espn.shortDownDistanceText}</div>`
+      (espn.downDistanceText || espn.shortDownDistanceText)
+        ? `<div class="football-down-distance">${String(espn.downDistanceText || espn.shortDownDistanceText).replace(/\s+at\s+/i, ' · ')}</div>`
         : ''
     }
   `;
@@ -6753,6 +6970,56 @@ latestPollingGames.forEach(game => {
     }
   }
 
+  if (sport.startsWith('americanfootball')) {
+    const timeoutPlay =
+      freshEspnGame.footballLatestTeamTimeout;
+
+    const timeoutId =
+      timeoutPlay?.id != null
+        ? String(timeoutPlay.id)
+        : null;
+
+    const timeoutTeamId =
+      timeoutPlay?.teamId != null
+        ? String(timeoutPlay.teamId)
+        : null;
+
+    const timeoutTime =
+      Date.parse(timeoutPlay?.wallclock || '');
+
+    const timeoutAgeMs =
+      Date.now() - timeoutTime;
+
+    if (
+      freshEspnGame.statusState === 'in' &&
+      timeoutId &&
+      timeoutTeamId &&
+      (
+        timeoutTeamId === String(freshEspnGame.awayTeamId) ||
+        timeoutTeamId === String(freshEspnGame.homeTeamId)
+      ) &&
+      Number.isFinite(timeoutTime) &&
+      timeoutAgeMs >= 0 &&
+      timeoutAgeMs <= 60 * 1000
+    ) {
+      window.scoFootballTimeoutCache =
+        window.scoFootballTimeoutCache || {};
+
+      const cachedTimeout =
+        window.scoFootballTimeoutCache[gameKey];
+
+      if (cachedTimeout?.playId !== timeoutId) {
+        window.scoFootballTimeoutCache[gameKey] = {
+          playId: timeoutId,
+          teamId: timeoutTeamId,
+          period: timeoutPlay.period,
+          clock: timeoutPlay.clock,
+          detectedAt: Date.now()
+        };
+      }
+    }
+  }
+
     if (sport === 'basketball_wnba' || sport === 'basketball_nba') {
     const playType =
       String(freshEspnGame.wnbaLatestPlayTypeText || '').toLowerCase();
@@ -6787,6 +7054,8 @@ latestPollingGames.forEach(game => {
         window.scoBasketballFoulCache[gameKey] = {
           foulKey: playKey,
           teamId: String(playTeamId),
+          period: freshEspnGame.wnbaLatestPlayPeriod,
+          clock: freshEspnGame.wnbaLatestPlayClock,
           detectedAt: Date.now()
         };
       }
@@ -8224,8 +8493,8 @@ if (statTodayGames) {
           nextGameLabel: 'WNBA'
         },
         basketball_nba: {
-          title: '🏀 No NBA preseason games scheduled for today',
-          message: 'Preseason odds will automatically appear here when sportsbook markets are available.',
+          title: '🏀 No NBA games scheduled for today',
+          message: 'NBA odds will automatically appear here when sportsbook markets are available.',
           useNextScheduledDate: true,
           nextGameLabel: 'NBA'
         },
@@ -8969,6 +9238,28 @@ if (implied < 1 && !isNonActionableForArb) {
      window.activeArbs = activeArbs;
 
      window.scrollToGame = function(gameCardId, sportsbookName = null, arbBooks = []) {
+
+                      const fullArbitrageView = document.getElementById('sco-arbitrage-view');
+                      const dashboardView = document.getElementById('sco-dashboard-view');
+
+    if (
+      fullArbitrageView?.style.display === 'block' &&
+      dashboardView
+    ) {
+      window.scoArbitrageListY = window.scrollY;
+
+      fullArbitrageView.style.display = 'none';
+      dashboardView.style.display = 'block';
+
+      const returnToArbitrage = document.getElementById('sco-return-to-arbitrage');
+
+      if (returnToArbitrage) {
+        returnToArbitrage.style.display = 'inline-block';
+      }
+
+      window.scrollTo(0, window.scoArbitrageReturnY || 0);
+    }
+
                       returnScrollPosition = window.scrollY;
                       activateReturnButton();
 
@@ -9089,7 +9380,7 @@ if (implied < 1 && !isNonActionableForArb) {
                 mover
               ])
           ).values()
-        ).slice(0, 3);
+        ).slice(0, 4);
 
         if (biggestMoversEl) {
           biggestMoversEl.innerHTML = sortedMovers
@@ -9112,7 +9403,7 @@ if (implied < 1 && !isNonActionableForArb) {
                                               onclick="scrollToGame('${moverGameId}', '${mover.book}')"
                                               style="
                                                    cursor:pointer;
-                                                   padding:8px 0;
+                                                   padding:4px 0;
                                              "
                                         >
                 <div style="
@@ -9184,6 +9475,14 @@ if (implied < 1 && !isNonActionableForArb) {
     const arbPick = document.getElementById('arb-pick');
     const arbDetails = document.getElementById('arb-details');
 
+    const viewAllArbitrageButton =
+      document.getElementById('sco-view-all-arbitrage');
+
+    if (viewAllArbitrageButton) {
+      viewAllArbitrageButton.style.display =
+        activeArbs.length > 2 ? 'block' : 'none';
+    }
+
     if (bestArb) {
       currentBestArb = bestArb;
       if (statArb) statArb.textContent = `${activeArbs.length} Active`;
@@ -9195,16 +9494,20 @@ if (implied < 1 && !isNonActionableForArb) {
                            arbPick.style.cursor = 'default';
                            arbPick.onclick = null;
                     } else {
-                         arbPick.textContent = `${activeArbs.length} arbitrage opportunities active`;
+                         arbPick.textContent = `${activeArbs.length} Arbitrage Opportunities`;
                          arbPick.style.cursor = 'default';
                          arbPick.onclick = null;
                     }
                 }
 
-      if (arbDetails) {
-                   arbDetails.innerHTML = activeArbs
-                        .sort((a, b) => b.edge - a.edge)
-                       .map((arb, arbIndex) => `
+            if (arbDetails) {
+                   activeArbs.sort((a, b) => b.edge - a.edge);
+
+                   const renderArbitrageOpportunities = (opportunities) =>
+                       opportunities.map((arb) => {
+                         const arbIndex = activeArbs.indexOf(arb);
+
+                         return `
                               <div style="
                                          padding:6px 0;
                             ">
@@ -9305,8 +9608,32 @@ if (implied < 1 && !isNonActionableForArb) {
                     </div>
                    ${arbIndex < activeArbs.length - 1 ? '<div class="card-divider" style="margin:8px 0 4px;"></div>' : ''}
                </div>
-           `)
+           `;
+                       })
            .join('') + '<div class="card-divider"></div>';
+
+            arbDetails.innerHTML =
+              renderArbitrageOpportunities(activeArbs.slice(0, 2));
+           const fullArbitrageHTML =
+             renderArbitrageOpportunities(activeArbs);
+
+           const allArbitrageList = document.getElementById('sco-all-arbitrage-list');
+           const fullArbitrageView = document.getElementById('sco-arbitrage-view');
+
+           if (allArbitrageList && arbDetails) {
+             const viewingAllArbitrage =
+               fullArbitrageView?.style.display === 'block';
+
+             const previousScrollY = viewingAllArbitrage
+               ? window.scrollY
+               : null;
+
+             allArbitrageList.innerHTML = fullArbitrageHTML;
+
+             if (previousScrollY !== null) {
+               window.scrollTo(0, previousScrollY);
+             }
+           }
 }
 
 } else {
@@ -9340,6 +9667,12 @@ if (implied < 1 && !isNonActionableForArb) {
     <div>${arbMessage}</div>
     <div class="card-divider"></div>
   `;
+  const allArbitrageList = document.getElementById('sco-all-arbitrage-list');
+
+  if (allArbitrageList && arbDetails) {
+    allArbitrageList.innerHTML = arbDetails.innerHTML;
+  }
+
 }
 }
 

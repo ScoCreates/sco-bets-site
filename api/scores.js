@@ -706,6 +706,18 @@ const latestScoringPlay = [...plays].reverse().find(play => {
   );
 });
 
+      const latestTeamTimeout = [...plays].reverse().find(play => {
+        if (String(play.type?.id ?? '') !== '21') {
+          return false;
+        }
+
+        const timeoutTeams = (play.teamParticipants || []).filter(
+          participant => participant.timeout === true && participant.id
+        );
+
+        return timeoutTeams.length === 1;
+      });
+
       const latestPlay = plays[plays.length - 1];
 
       if (!latestPlay) return;
@@ -717,6 +729,20 @@ const latestScoringPlay = [...plays].reverse().find(play => {
         clock: latestPlay.clock?.displayValue ?? null,
         period: latestPlay.period?.number ?? null,
         wallclock: latestPlay.wallclock ?? null,
+
+        teamTimeout: latestTeamTimeout
+          ? {
+              id: latestTeamTimeout.id ?? null,
+              teamId: String(
+                latestTeamTimeout.teamParticipants.find(
+                  participant => participant.timeout === true
+                ).id
+              ),
+              clock: latestTeamTimeout.clock?.displayValue ?? null,
+              period: latestTeamTimeout.period?.number ?? null,
+              wallclock: latestTeamTimeout.wallclock ?? null
+            }
+          : null,
 
         scoringPlay: latestScoringPlay
           ? {
@@ -970,6 +996,11 @@ const games = (data.events || []).map(event => {
 	footballLatestScoringPlay:
       sport.startsWith('americanfootball')
         ? footballLatestPlays[event.id]?.scoringPlay ?? null
+        : null,
+
+        footballLatestTeamTimeout:
+      sport.startsWith('americanfootball')
+        ? footballLatestPlays[event.id]?.teamTimeout ?? null
         : null,
 		
         clockSeconds:
