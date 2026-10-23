@@ -6115,7 +6115,7 @@ const getValue = (linescores, period) => {
       <strong class="football-total">
         <span>${espn.awayScore ?? '-'}</span>
         ${awayFootballTimeout
-          ? '<span class="basketball-timeout-arrow">➜</span>'
+          ? '<span class="basketball-timeout-arrow">&larr;</span>'
           : ''}
       </strong>
 
@@ -6136,8 +6136,8 @@ ${periods.map(period => `
 
 <strong class="football-total">
   <span>${espn.homeScore ?? '-'}</span>
-  ${homeFootballTimeout
-    ? '<span class="basketball-timeout-arrow">➜</span>'
+    ${homeFootballTimeout
+    ? '<span class="basketball-timeout-arrow">&larr;</span>'
     : ''}
 </strong>
     </div>
