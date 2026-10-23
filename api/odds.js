@@ -98,13 +98,41 @@ async function fetchEspnScores(sport, espnDate) {
   try {
     // console.log('ESPN URL:', url);
 
-    const response = await fetch(url);
+        const response = await fetch(url);
 
     if (!response.ok) {
       return [];
     }
 
     const data = await response.json();
+
+    if (sport === 'americanfootball_ncaaf') {
+      try {
+        const fcsUrl = new URL(url);
+        fcsUrl.searchParams.set('groups', '81');
+        fcsUrl.searchParams.set('limit', '300');
+
+        const fcsResponse = await fetch(fcsUrl.toString());
+
+        if (fcsResponse.ok) {
+          const fcsData = await fcsResponse.json();
+
+          const existingIds = new Set(
+            (data.events || []).map(event => String(event.id))
+          );
+
+          for (const event of fcsData.events || []) {
+            if (!existingIds.has(String(event.id))) {
+              data.events = data.events || [];
+              data.events.push(event);
+              existingIds.add(String(event.id));
+            }
+          }
+        }
+      } catch (error) {
+        console.error('ESPN FCS odds enrichment failed:', error);
+      }
+    }
 
     return (data.events || []).map(event => {
       const competition = event.competitions?.[0];
@@ -325,10 +353,33 @@ console.log(
 
       const oddsGameTime = new Date(game.commence_time).getTime();
 
-      const possibleEspnMatches = espnScoresData.filter(espnGame =>
-        espnGame.gameKey &&
-        espnGame.gameKey.startsWith(teamOnlyKey)
-      );
+      const possibleEspnMatches = espnScoresData.filter(espnGame => {
+        if (
+          espnGame.gameKey &&
+          espnGame.gameKey.startsWith(teamOnlyKey)
+        ) {
+          return true;
+        }
+
+        if (sport !== 'americanfootball_ncaaf') {
+          return false;
+        }
+
+        const normalizeNcaaMatchName = name =>
+          String(name || '')
+            .toLowerCase()
+            .replace(/\bumass\b/g, 'massachusetts')
+            .replace(/\([^)]*\)/g, '')
+            .replace(/\b(university|college)\b/g, '')
+            .replace(/[^a-z0-9]/g, '');
+
+        return (
+          normalizeNcaaMatchName(game.away_team) ===
+            normalizeNcaaMatchName(espnGame.awayTeam) &&
+          normalizeNcaaMatchName(game.home_team) ===
+            normalizeNcaaMatchName(espnGame.homeTeam)
+        );
+      });
 
       const closestEspnMatch = possibleEspnMatches
         .map(espnGame => ({

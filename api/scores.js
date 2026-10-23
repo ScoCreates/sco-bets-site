@@ -64,6 +64,39 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
+if (sport === 'americanfootball_ncaaf') {
+  try {
+    const fcsUrl = new URL(url);
+    fcsUrl.searchParams.set('groups', '81');
+    fcsUrl.searchParams.set('limit', '300');
+
+    const fcsResponse = await fetch(fcsUrl.toString(), {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
+    });
+
+    if (fcsResponse.ok) {
+      const fcsData = await fcsResponse.json();
+
+      const existingIds = new Set(
+        (data.events || []).map(event => String(event.id))
+      );
+
+      for (const event of fcsData.events || []) {
+        if (!existingIds.has(String(event.id))) {
+          data.events = data.events || [];
+          data.events.push(event);
+          existingIds.add(String(event.id));
+        }
+      }
+    }
+  } catch (error) {
+    console.error('ESPN FCS scoreboard request failed:', error);
+  }
+}
+
 const mlsClockAnchors = {};
 const footballLatestPlays = {};
 
