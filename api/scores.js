@@ -545,6 +545,32 @@ if (sport === 'baseball_mlb' && liveMlbEvents.length > 0) {
                 currentPlay.matchup?.batter
                   ?.fullName ?? null,
 
+              batterPosition: (() => {
+                const batterId =
+                  currentPlay.matchup?.batter?.id;
+
+                if (!batterId) return null;
+
+                const boxscoreTeams =
+                  mlbFeedData.liveData?.boxscore?.teams;
+
+                for (const side of ['away', 'home']) {
+                  const player =
+                    boxscoreTeams?.[side]?.players?.[
+                      `ID${batterId}`
+                    ];
+
+                  if (player) {
+                    return (
+                      player.position?.abbreviation ??
+                      null
+                    );
+                  }
+                }
+
+                return null;
+              })(),
+
               pitcherId:
                 currentPlay.matchup?.pitcher?.id ??
                 null,
@@ -633,6 +659,7 @@ await Promise.all(
 
           return (
             typeId === '16' ||
+            typeId === '19' ||
             (typeText.includes('foul') && typeText !== 'no foul')
           );
         })
@@ -707,7 +734,14 @@ await Promise.all(
         }
       });
 
-      if (!summaryResponse.ok) return;
+      if (!summaryResponse.ok) {
+        console.error('SCO FOOTBALL SUMMARY HTTP ERROR:', {
+          game: event.name,
+          gameId: event.id,
+          status: summaryResponse.status
+        });
+        return;
+      }
 
       const summaryData = await summaryResponse.json();
 
@@ -751,17 +785,34 @@ const latestScoringPlay = [...plays].reverse().find(play => {
         return timeoutTeams.length === 1;
       });
 
+      const latestPenaltyPlay = [...plays].reverse().find(play =>
+        play.isPenalty === true
+      );
+
       const latestPlay = plays[plays.length - 1];
 
       if (!latestPlay) return;
 
       footballLatestPlays[event.id] = {
+        id: latestPlay.id ?? null,
         typeId: latestPlay.type?.id ?? null,
         typeText: latestPlay.type?.text ?? null,
         text: latestPlay.text ?? null,
         clock: latestPlay.clock?.displayValue ?? null,
         period: latestPlay.period?.number ?? null,
         wallclock: latestPlay.wallclock ?? null,
+
+        penaltyPlay: latestPenaltyPlay
+          ? {
+              id: latestPenaltyPlay.id ?? null,
+              text: latestPenaltyPlay.text ?? null,
+              typeText: latestPenaltyPlay.penalty?.type?.text ?? null,
+              status: latestPenaltyPlay.penalty?.status?.slug ?? null,
+              clock: latestPenaltyPlay.clock?.displayValue ?? null,
+              period: latestPenaltyPlay.period?.number ?? null,
+              wallclock: latestPenaltyPlay.wallclock ?? null
+            }
+          : null,
 
         teamTimeout: latestTeamTimeout
           ? {
@@ -790,6 +841,12 @@ const latestScoringPlay = [...plays].reverse().find(play => {
           : null
       };
     } catch (err) {
+      console.error('SCO FOOTBALL SUMMARY ERROR:', {
+        game: event.name,
+        gameId: event.id,
+        error: err?.message || String(err)
+      });
+
       // Keep normal ESPN scoreboard data if a summary lookup fails.
     }
   })
@@ -894,6 +951,11 @@ const games = (data.events || []).map(event => {
               null
             : null,
 
+        mlbBatterPosition:
+          sport === 'baseball_mlb'
+            ? mlbLiveData[event.id]?.batterPosition ?? null
+            : null,
+
         mlbSeriesDescription:
           sport === 'baseball_mlb'
             ? mlbSeriesData[event.id]?.seriesDescription ?? null
@@ -996,7 +1058,12 @@ const games = (data.events || []).map(event => {
         : null,
 	
 		
-	footballLatestPlayTypeId:
+	footballLatestPlayId:
+      sport.startsWith('americanfootball')
+        ? footballLatestPlays[event.id]?.id ?? null
+        : null,
+
+    footballLatestPlayTypeId:
       sport.startsWith('americanfootball')
         ? footballLatestPlays[event.id]?.typeId ?? null
         : null,
@@ -1035,7 +1102,12 @@ const games = (data.events || []).map(event => {
       sport.startsWith('americanfootball')
         ? footballLatestPlays[event.id]?.teamTimeout ?? null
         : null,
-		
+
+        footballLatestPenaltyPlay:
+      sport.startsWith('americanfootball')
+        ? footballLatestPlays[event.id]?.penaltyPlay ?? null
+        : null,
+
         clockSeconds:
           sport === 'soccer_usa_mls'
             ? status.clock ?? null
@@ -1176,6 +1248,8 @@ const games = (data.events || []).map(event => {
 
         homeShort: home?.team?.abbreviation || null,
         awayShort: away?.team?.abbreviation || null,
+        homeMascot: home?.team?.name || null,
+        awayMascot: away?.team?.name || null,
         homeRecord:
           home?.records?.find(record => record.type === 'total')?.summary ||
           home?.records?.[0]?.summary ||

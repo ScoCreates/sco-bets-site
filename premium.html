@@ -237,8 +237,10 @@ body {
   margin: 12px 0;
 }
 
-/* Biggest Movers: reduce space below the final divider */
-#biggest-movers > div:last-child .card-divider {
+/* Biggest Movers: preserve spacing above dividers,
+   but reduce space before the next team name */
+#biggest-movers .card-divider {
+  margin-top: 12px;
   margin-bottom: 4px;
 }
 
@@ -1163,6 +1165,14 @@ button:active {
   font-size: 16px;
   font-weight: 700;
   line-height: 1;
+}
+
+.football-penalty-arrow {
+  color: #ff4d4d;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  margin-left: 3px;
 }
 
 .basketball-team-abbr {
@@ -2161,7 +2171,7 @@ window.addEventListener("DOMContentLoaded", checkAccess);
       onclick="window.scoArbitrageReturnY=window.scrollY; document.getElementById('sco-dashboard-view').after(document.getElementById('sco-arbitrage-view')); document.getElementById('sco-dashboard-view').style.display='none'; document.getElementById('sco-arbitrage-view').style.display='block'; window.scrollTo(0,0);"
       style="
         display:block;
-        margin:14px auto 0;
+        margin:6px auto 0;
         padding:0;
         background:transparent;
         border:none;
@@ -4842,9 +4852,9 @@ context =
 } else if (
   selectedSport.startsWith('americanfootball') &&
   espn.statusState === 'in' &&
-  window.scoFootballTimeoutCache?.[scoreboardGameKey] &&
+  window.scoFootballTimeoutCache?.[scoreboardGameKey]?.active === true &&
   Date.now() -
-    window.scoFootballTimeoutCache[scoreboardGameKey].detectedAt <= 10000
+    window.scoFootballTimeoutCache[scoreboardGameKey].detectedAt <= 3 * 60 * 1000
 ) {
   statusLabel = 'TIMEOUT';
 
@@ -4861,6 +4871,31 @@ context =
   context =
     timeoutPeriod && timeoutEvent.clock
       ? `• ${timeoutPeriodLabel}<span style="display:inline-block; margin-left:8px;">${timeoutEvent.clock}</span>`
+      : '';
+} else if (
+  selectedSport.startsWith('americanfootball') &&
+  espn.statusState === 'in' &&
+  window.scoFootballPenaltyCache?.[scoreboardGameKey]?.active === true &&
+  Date.now() -
+    window.scoFootballPenaltyCache[scoreboardGameKey].detectedAt <= 3 * 60 * 1000
+) {
+  const penaltyEvent =
+    window.scoFootballPenaltyCache[scoreboardGameKey];
+
+  statusLabel = penaltyEvent.isOffsetting
+    ? 'OFFSETTING PENALTIES'
+    : 'PENALTY';
+
+  const penaltyPeriod = Number(penaltyEvent.period) || 0;
+
+  const penaltyPeriodLabel =
+    penaltyPeriod > 4
+      ? `OT${penaltyPeriod - 4}`
+      : `Q${penaltyPeriod}`;
+
+  context =
+    penaltyPeriod && penaltyEvent.clock
+      ? `• ${penaltyPeriodLabel}<span style="display:inline-block; margin-left:8px;">${penaltyEvent.clock}</span>`
       : '';
 } else if (
   (selectedSport === 'basketball_wnba' || selectedSport === 'basketball_nba') &&
@@ -4890,10 +4925,13 @@ context =
   Date.now() -
     window.scoBasketballTimeoutCache[getGameKey(game)].detectedAt <= 10000
 ) {
-  statusLabel = 'TIMEOUT';
-
   const timeoutEvent =
     window.scoBasketballTimeoutCache[getGameKey(game)];
+
+  statusLabel =
+    timeoutEvent.typeId === '19'
+      ? 'OFFICIALS TIMEOUT'
+      : 'TIMEOUT';
 
   const timeoutPeriod = Number(timeoutEvent.period) || 0;
 
@@ -5191,14 +5229,7 @@ const previousClockWasFirstHalf =
 const currentClockIsSecondHalf =
   projectedSeconds >= 45 * 60;
 
-const displayedSeconds =
-  previousClockWasFirstHalf &&
-  currentClockIsSecondHalf
-    ? projectedSeconds
-    : previousMlsClockState?.displayedSeconds != null
-      ? previousMlsClockState.displayedSeconds +
-        elapsedSincePrevious
-      : projectedSeconds;
+const displayedSeconds = projectedSeconds;
 
 window.scoMlsClockState[mlsClockGameKey] = {
   previousProjectedSeconds:
@@ -5745,7 +5776,10 @@ else {
                 ? ' &bull; '
                 : ''
             }
-            ${espn.mlbBatterName ? `AB: ${formatMlbPlayerLastName(espn.mlbBatterName)}` : ''}
+            ${espn.mlbBatterName
+              ? `AB: ${formatMlbPlayerLastName(espn.mlbBatterName)}${espn.mlbBatterPosition ? `
+           (${espn.mlbBatterPosition})` : ''}`
+             : ''}
           </div>
         `
         : ''
@@ -5843,6 +5877,7 @@ function buildBasketballLinescore(espn) {
 
   const showRecentTimeout =
     timeoutCache &&
+    String(timeoutCache.typeId) === '16' &&
     Date.now() - timeoutCache.detectedAt <= 10 * 1000;
 
   const awayCalledTimeout =
@@ -6069,8 +6104,8 @@ const getValue = (linescores, period) => {
 
   const showFootballTimeout =
     espn.statusState === 'in' &&
-    footballTimeoutCache &&
-    Date.now() - footballTimeoutCache.detectedAt <= 10 * 1000;
+    footballTimeoutCache?.active === true &&
+    Date.now() - footballTimeoutCache.detectedAt <= 3 * 60 * 1000;
 
   const awayFootballTimeout =
     showFootballTimeout &&
@@ -6081,6 +6116,30 @@ const getValue = (linescores, period) => {
     showFootballTimeout &&
     Boolean(espn.homeTeamId) &&
     String(footballTimeoutCache.teamId) === String(espn.homeTeamId);
+
+  const footballPenaltyCache =
+    window.scoFootballPenaltyCache?.[`espn_${espn.id}`];
+
+  const showFootballPenalty =
+    espn.statusState === 'in' &&
+    footballPenaltyCache?.active === true &&
+    Date.now() - footballPenaltyCache.detectedAt <= 3 * 60 * 1000;
+
+  const awayFootballPenalty =
+    showFootballPenalty &&
+    Boolean(espn.awayTeamId) &&
+    (
+      footballPenaltyCache.teamIds?.includes(String(espn.awayTeamId)) ||
+      String(footballPenaltyCache.teamId) === String(espn.awayTeamId)
+    );
+
+  const homeFootballPenalty =
+    showFootballPenalty &&
+    Boolean(espn.homeTeamId) &&
+    (
+      footballPenaltyCache.teamIds?.includes(String(espn.homeTeamId)) ||
+      String(footballPenaltyCache.teamId) === String(espn.homeTeamId)
+    );
 
   const gridColumns = `82px repeat(${periods.length}, 34px) 40px`;
 
@@ -6117,6 +6176,9 @@ const getValue = (linescores, period) => {
         ${awayFootballTimeout
           ? '<span class="basketball-timeout-arrow">&larr;</span>'
           : ''}
+        ${awayFootballPenalty
+          ? '<span class="football-penalty-arrow">&larr;</span>'
+          : ''}
       </strong>
 
 <span class="football-team">
@@ -6138,6 +6200,9 @@ ${periods.map(period => `
   <span>${espn.homeScore ?? '-'}</span>
     ${homeFootballTimeout
     ? '<span class="basketball-timeout-arrow">&larr;</span>'
+    : ''}
+    ${homeFootballPenalty
+    ? '<span class="football-penalty-arrow">&larr;</span>'
     : ''}
 </strong>
     </div>
@@ -6384,6 +6449,11 @@ function toggleWhy(contentId, el) {
                    top: y,
                    behavior: 'smooth'
                });
+
+     // Reset the Team Selector without changing the scroll position.
+     teamSelect.value = '';
+     localStorage.removeItem('selectedTeam');
+
                 break;
                     }
              }
@@ -7013,13 +7083,217 @@ latestPollingGames.forEach(game => {
         window.scoFootballTimeoutCache[gameKey];
 
       if (cachedTimeout?.playId !== timeoutId) {
-        window.scoFootballTimeoutCache[gameKey] = {
-          playId: timeoutId,
-          teamId: timeoutTeamId,
-          period: timeoutPlay.period,
-          clock: timeoutPlay.clock,
-          detectedAt: Date.now()
+      window.scoFootballTimeoutCache[gameKey] = {
+        playId: timeoutId,
+        teamId: timeoutTeamId,
+        period: timeoutPlay.period,
+        clock: timeoutPlay.clock,
+        detectedAt: Date.now(),
+        active: true
+      };
+      }
+        }
+  }
+
+  if (sport.startsWith('americanfootball')) {
+    const cachedTimeout =
+      window.scoFootballTimeoutCache?.[gameKey];
+
+    if (cachedTimeout?.active === true) {
+      const latestPlayId =
+        String(freshEspnGame.footballLatestPlayId || '');
+
+      const latestPlayType =
+        String(freshEspnGame.footballLatestPlayTypeText || '')
+          .toLowerCase();
+
+      const latestPlayTime =
+        Date.parse(
+          freshEspnGame.footballLatestPlayWallclock || ''
+        );
+
+      const timeoutTime =
+        Date.parse(
+          freshEspnGame.footballLatestTeamTimeout?.wallclock || ''
+        );
+
+      const isResumedPlay =
+        latestPlayType === 'rush' ||
+        latestPlayType.includes('pass');
+
+      const isAfterTimeout =
+        latestPlayId &&
+        latestPlayId !== cachedTimeout.playId &&
+        Number.isFinite(latestPlayTime) &&
+        Number.isFinite(timeoutTime) &&
+        latestPlayTime > timeoutTime;
+
+      const exceededMaximumDuration =
+        Date.now() - cachedTimeout.detectedAt > 3 * 60 * 1000;
+
+      if (
+        (isResumedPlay && isAfterTimeout) ||
+        exceededMaximumDuration ||
+        freshEspnGame.statusState !== 'in'
+      ) {
+        cachedTimeout.active = false;
+
+        cachedTimeout.clearedReason =
+          isResumedPlay && isAfterTimeout
+            ? 'play-resumed'
+            : exceededMaximumDuration
+              ? 'maximum-duration'
+              : 'game-status-changed';
+
+        cachedTimeout.clearedAt = Date.now();
+        cachedTimeout.clearedByPlayId = latestPlayId;
+        cachedTimeout.clearedByPlayType = latestPlayType;
+      }
+    }
+  }
+
+  if (sport.startsWith('americanfootball')) {
+    const penaltyPlay =
+      freshEspnGame.footballLatestPenaltyPlay;
+
+    const penaltyId =
+      penaltyPlay?.id != null
+        ? String(penaltyPlay.id)
+        : null;
+
+    const penaltyText =
+      String(penaltyPlay?.text || '');
+
+    const penaltyTime =
+      Date.parse(penaltyPlay?.wallclock || '');
+
+    const penaltyAgeMs =
+      Date.now() - penaltyTime;
+
+    const awayShort =
+      String(freshEspnGame.awayShort || '').toUpperCase();
+
+    const homeShort =
+      String(freshEspnGame.homeShort || '').toUpperCase();
+
+    const penaltyTeams = [
+      {
+        short: awayShort,
+        id: freshEspnGame.awayTeamId
+      },
+      {
+        short: homeShort,
+        id: freshEspnGame.homeTeamId
+      }
+    ].filter(team => {
+      if (!team.short || team.id == null) return false;
+
+      const escapedShort =
+        team.short.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+      const nflPattern = new RegExp(
+        `\\bPENALTY\\s+on\\s+${escapedShort}(?:-|\\b)`,
+        'i'
+      );
+
+      const ncaaPattern = new RegExp(
+        `\\bPENALTY\\s+${escapedShort}\\b`,
+        'i'
+      );
+
+      return (
+        nflPattern.test(penaltyText) ||
+        ncaaPattern.test(penaltyText)
+      );
+    });
+
+    if (
+      freshEspnGame.statusState === 'in' &&
+      penaltyId &&
+      (
+        penaltyTeams.length === 1 ||
+        (
+          penaltyTeams.length === 2 &&
+          String(penaltyPlay?.status || '').toLowerCase() === 'offsetting'
+        )
+      ) &&
+      Number.isFinite(penaltyTime) &&
+      penaltyAgeMs >= 0 &&
+      penaltyAgeMs <= 60 * 1000
+    ) {
+      window.scoFootballPenaltyCache =
+        window.scoFootballPenaltyCache || {};
+
+      const cachedPenalty =
+        window.scoFootballPenaltyCache[gameKey];
+
+      if (cachedPenalty?.playId !== penaltyId) {
+                window.scoFootballPenaltyCache[gameKey] = {
+          playId: penaltyId,
+          teamId: String(penaltyTeams[0].id),
+          teamIds: penaltyTeams.map(team => String(team.id)),
+          isOffsetting:
+            penaltyTeams.length === 2 &&
+            String(penaltyPlay?.status || '').toLowerCase() === 'offsetting',
+          period: penaltyPlay.period,
+          clock: penaltyPlay.clock,
+          wallclock: penaltyPlay.wallclock,
+          detectedAt: Date.now(),
+          active: true
         };
+      }
+    }
+
+    const cachedPenalty =
+      window.scoFootballPenaltyCache?.[gameKey];
+
+    if (cachedPenalty?.active === true) {
+      const latestPlayId =
+        String(freshEspnGame.footballLatestPlayId || '');
+
+      const latestPlayType =
+        String(freshEspnGame.footballLatestPlayTypeText || '')
+          .toLowerCase();
+
+      const latestPlayTime =
+        Date.parse(
+          freshEspnGame.footballLatestPlayWallclock || ''
+        );
+
+      const cachedPenaltyTime =
+        Date.parse(cachedPenalty.wallclock || '');
+
+      const isResumedPlay =
+        latestPlayType === 'rush' ||
+        latestPlayType.includes('pass');
+
+      const isAfterPenalty =
+        latestPlayId &&
+        latestPlayId !== cachedPenalty.playId &&
+        Number.isFinite(latestPlayTime) &&
+        Number.isFinite(cachedPenaltyTime) &&
+        latestPlayTime > cachedPenaltyTime;
+
+      const exceededMaximumDuration =
+        Date.now() - cachedPenalty.detectedAt > 3 * 60 * 1000;
+
+      if (
+        (isResumedPlay && isAfterPenalty) ||
+        exceededMaximumDuration ||
+        freshEspnGame.statusState !== 'in'
+      ) {
+        cachedPenalty.active = false;
+
+        cachedPenalty.clearedReason =
+          isResumedPlay && isAfterPenalty
+            ? 'play-resumed'
+            : exceededMaximumDuration
+              ? 'maximum-duration'
+              : 'game-status-changed';
+
+        cachedPenalty.clearedAt = Date.now();
+        cachedPenalty.clearedByPlayId = latestPlayId;
+        cachedPenalty.clearedByPlayType = latestPlayType;
       }
     }
   }
@@ -7065,19 +7339,75 @@ latestPollingGames.forEach(game => {
       }
     }
 
-    if (playTypeId === '16' && playTeamId) {
+    const recentBasketballPlays =
+      Array.isArray(freshEspnGame.basketballRecentNotificationPlays)
+        ? freshEspnGame.basketballRecentNotificationPlays
+        : [];
+
+    const recentTimeout = [...recentBasketballPlays]
+      .reverse()
+      .find(play => {
+        const eventTime = Date.parse(play.wallclock || '');
+        const eventAge = Date.now() - eventTime;
+
+        const isTeamTimeout =
+          String(play.typeId) === '16' &&
+          play.teamId != null &&
+          (
+            String(play.teamId) === String(freshEspnGame.awayTeamId) ||
+            String(play.teamId) === String(freshEspnGame.homeTeamId)
+          );
+
+        const isOfficialsTimeout =
+          String(play.typeId) === '19';
+
+        return (
+          (isTeamTimeout || isOfficialsTimeout) &&
+          play.id != null &&
+          Number.isFinite(eventTime) &&
+          eventAge >= 0 &&
+          eventAge <= 60 * 1000
+        );
+      });
+
+    if (recentTimeout) {
       window.scoBasketballTimeoutCache =
         window.scoBasketballTimeoutCache || {};
 
       const cachedTimeout =
         window.scoBasketballTimeoutCache[gameKey];
 
-      if (cachedTimeout?.playId !== playKey) {
+      const timeoutPlayId = String(recentTimeout.id);
+
+      const timeoutWallclock =
+        Date.parse(recentTimeout.wallclock || '');
+
+      const previousTimeoutWallclock =
+        Date.parse(cachedTimeout?.wallclock || '');
+
+      const isNewerTimeout =
+        !cachedTimeout ||
+        (
+          Number.isFinite(timeoutWallclock) &&
+          (
+            !Number.isFinite(previousTimeoutWallclock) ||
+            timeoutWallclock > previousTimeoutWallclock
+          )
+        );
+
+      if (
+        cachedTimeout?.playId !== timeoutPlayId &&
+        isNewerTimeout
+      ) {
         window.scoBasketballTimeoutCache[gameKey] = {
-          playId: playKey,
-          teamId: String(playTeamId),
-          period: freshEspnGame.wnbaLatestPlayPeriod,
-          clock: freshEspnGame.wnbaLatestPlayClock,
+          playId: timeoutPlayId,
+          typeId: String(recentTimeout.typeId),
+          teamId: recentTimeout.teamId != null
+            ? String(recentTimeout.teamId)
+            : null,
+          period: recentTimeout.period,
+          clock: recentTimeout.clock,
+          wallclock: recentTimeout.wallclock,
           detectedAt: Date.now()
         };
       }
@@ -7139,6 +7469,18 @@ if (supportsEstimatedHalftime) {
         if (scoreboard.innerHTML !== updatedScoreboardHtml) {
           scoreboard.innerHTML = updatedScoreboardHtml;
         }
+      }
+
+      // Close the betting interface as soon as ESPN confirms FINAL.
+      // Preserve the scoreboard and the existing final-card timer.
+      if (freshEspnIsFinal && gameCard) {
+        gameCard.classList.add('final-game-card');
+
+        Array.from(gameCard.children).forEach(child => {
+          if (!child.classList.contains('game-summary-header')) {
+            child.remove();
+          }
+        });
       }
     });
   } catch (err) {
@@ -9492,6 +9834,59 @@ if (implied < 1 && !isNonActionableForArb) {
 
               const moverGameId = `game-${mover.gameKey}`;
 
+              const moverGame = Array.isArray(window.currentOddsSnapshot)
+                ? window.currentOddsSnapshot.find(
+                    game => getGameKey(game) === mover.gameKey
+                  )
+                : null;
+
+            let moverDisplayName = mover.team;
+
+              if (
+                selectedSport === 'americanfootball_ncaaf' &&
+                moverGame
+              ) {
+                const espn =
+                  moverGame.freshEspnStatus ||
+                  moverGame.espnStatus ||
+                  {};
+
+                const normalizeName = name =>
+                  String(name || '')
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]/g, '');
+
+                const teams = [
+                  {
+                    full: moverGame.away,
+                    espnFull: espn.awayTeam,
+                    short: espn.awayShort,
+                    mascot: espn.awayMascot
+                  },
+                  {
+                    full: moverGame.home,
+                    espnFull: espn.homeTeam,
+                    short: espn.homeShort,
+                    mascot: espn.homeMascot
+                  }
+                ];
+
+                const matchingTeam = teams.find(team =>
+                  normalizeName(team.full) ===
+                    normalizeName(mover.team) &&
+                  normalizeName(team.espnFull) ===
+                    normalizeName(mover.team)
+                );
+
+                if (
+                  matchingTeam?.short &&
+                  matchingTeam?.mascot
+                ) {
+                                    moverDisplayName =
+                  `${matchingTeam.short} ${matchingTeam.mascot}`;
+                }
+              }
+
               return `
                <div
                                               onclick="scrollToGame('${moverGameId}', '${mover.book}')"
@@ -9508,11 +9903,21 @@ if (implied < 1 && !isNonActionableForArb) {
                   font-weight:700;
                   color:#e5e7eb;
                 ">
- <span style="
-  color:${mover.movement === 'up' ? '#00ff88' : '#fbbf24'};
-  font-size:20px;
-">
-  ${mover.team}
+<span
+  title="${mover.team}"
+  style="
+    color:${mover.movement === 'up' ? '#00ff88' : '#fbbf24'};
+    font-size:20px;
+    min-width:0;
+    flex:1;
+    display:-webkit-box;
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:2;
+    overflow:hidden;
+    overflow-wrap:anywhere;
+  "
+>
+    ${moverDisplayName}
 </span>
 
                   <span style="
@@ -9686,7 +10091,7 @@ if (implied < 1 && !isNonActionableForArb) {
                                   href="${getSportsbookUrl(arb.book1)}"
                                   target="_blank"
                                   rel="noopener"
-                                  style="display:inline-block; padding:8px 13px; border-radius:999px; background:rgba(0,255,136,0.88); color:#04110a; font-weight:700; text-decoration:none; font-size:12px;"
+                                  style="display:inline-block; padding:4px 13px; border-radius:999px; background:rgba(0,255,136,0.88); color:#04110a; font-weight:700; text-decoration:none; font-size:12px;"
                             >
                                   Open ${sportsbookShortNames[arb.book1] || arb.book1}
                             </a>
@@ -9695,7 +10100,7 @@ if (implied < 1 && !isNonActionableForArb) {
                                 href="${getSportsbookUrl(arb.book2)}"
                                 target="_blank"
                                 rel="noopener"
-                                style="display:inline-block; padding:8px 13px; border-radius:999px; background:rgba(251,191,36,0.92); color:#111827; font-weight:700; text-decoration:none; font-size:12px;"
+                                style="display:inline-block; padding:4px 13px; border-radius:999px; background:rgba(251,191,36,0.92); color:#111827; font-weight:700; text-decoration:none; font-size:12px;"
                            >
                                 Open ${sportsbookShortNames[arb.book2] || arb.book2}
                           </a>
@@ -9704,7 +10109,7 @@ if (implied < 1 && !isNonActionableForArb) {
                </div>
            `;
                        })
-           .join('') + '<div class="card-divider"></div>';
+           .join('');
 
             arbDetails.innerHTML =
               renderArbitrageOpportunities(activeArbs.slice(0, 2));
