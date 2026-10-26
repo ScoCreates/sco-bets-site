@@ -44,7 +44,7 @@ const CONSERVATIVE_POLLING = {
   delayed: 5 * 60 * 1000,
   suspended: 15 * 60 * 1000,
   within10Minutes: 60 * 1000,
-  within60Minutes: 5 * 60 * 1000,
+  within60Minutes: 2 * 60 * 1000,
   within3Hours: 10 * 60 * 1000,
   within6Hours: 15 * 60 * 1000,
   within12Hours: 20 * 60 * 1000,
