@@ -644,14 +644,7 @@ async function getDueSnapshotSports() {
     }
   );
 
-  const sportsToCheck =
-    hasCompleteSchedule
-      ? SNAPSHOT_SPORTS.filter(
-          sport =>
-            Number(storedSchedule[sport]) <=
-            Date.now()
-        )
-      : SNAPSHOT_SPORTS;
+    const sportsToCheck = SNAPSHOT_SPORTS;
 
   console.log(
     'ODDS SNAPSHOT SPORTS TO CHECK:',

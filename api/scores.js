@@ -571,6 +571,80 @@ if (sport === 'baseball_mlb' && liveMlbEvents.length > 0) {
                 return null;
               })(),
 
+              latestPinchHitter: (() => {
+                const allPlays =
+                  mlbFeedData.liveData?.plays?.allPlays || [];
+
+                const substitutions =
+                  allPlays.flatMap(play =>
+                    (play.playEvents || []).filter(
+                      playEvent =>
+                        playEvent.details?.eventType ===
+                          'offensive_substitution' &&
+                        playEvent.position?.abbreviation === 'PH'
+                    )
+                  );
+
+                const latest =
+                  substitutions
+                    .filter(event =>
+                      Number.isFinite(
+                        Date.parse(event.startTime || '')
+                      )
+                    )
+                    .sort((a, b) =>
+                      Date.parse(b.startTime) -
+                      Date.parse(a.startTime)
+                    )[0];
+
+                if (!latest) return null;
+
+                return {
+                  playerId: latest.player?.id ?? null,
+                  playerName: latest.player?.fullName ?? null,
+                  startTime: latest.startTime ?? null,
+                  description:
+                    latest.details?.description ?? null
+                };
+              })(),
+
+              latestPinchRunner: (() => {
+                const allPlays =
+                  mlbFeedData.liveData?.plays?.allPlays || [];
+
+                const substitutions =
+                  allPlays.flatMap(play =>
+                    (play.playEvents || []).filter(
+                      playEvent =>
+                        playEvent.details?.eventType ===
+                          'offensive_substitution' &&
+                        playEvent.position?.abbreviation === 'PR'
+                    )
+                  );
+
+                const latest =
+                  substitutions
+                    .filter(event =>
+                      Number.isFinite(
+                        Date.parse(event.startTime || '')
+                      )
+                    )
+                    .sort((a, b) =>
+                      Date.parse(b.startTime) -
+                      Date.parse(a.startTime)
+                    )[0];
+
+                if (!latest) return null;
+
+                return {
+                  playerId: latest.player?.id ?? null,
+                  playerName: latest.player?.fullName ?? null,
+                  startTime: latest.startTime ?? null,
+                  description:
+                    latest.details?.description ?? null
+                };
+              })(),
+
               pitcherId:
                 currentPlay.matchup?.pitcher?.id ??
                 null,
@@ -954,6 +1028,16 @@ const games = (data.events || []).map(event => {
         mlbBatterPosition:
           sport === 'baseball_mlb'
             ? mlbLiveData[event.id]?.batterPosition ?? null
+            : null,
+
+        mlbLatestPinchHitter:
+          sport === 'baseball_mlb'
+            ? mlbLiveData[event.id]?.latestPinchHitter ?? null
+            : null,
+
+        mlbLatestPinchRunner:
+          sport === 'baseball_mlb'
+            ? mlbLiveData[event.id]?.latestPinchRunner ?? null
             : null,
 
         mlbSeriesDescription:
