@@ -5683,21 +5683,23 @@ const hasActualPlayStarted =
   };
 
 const isExtraInnings = periods.length > 9;
+const isMobileMlbScoreboard =
+  window.matchMedia('(max-width: 700px)').matches;
 
 const teamColumnWidth =
-  isExtraInnings ? 70 : 82;
+  isExtraInnings && isMobileMlbScoreboard ? 70 : 82;
 
 const inningColumnWidth =
-  isExtraInnings ? 20 : 24;
+  isExtraInnings && isMobileMlbScoreboard ? 20 : 24;
 
 const totalColumnWidth =
-  isExtraInnings ? 30 : 34;
+  isExtraInnings && isMobileMlbScoreboard ? 30 : 34;
 
 const gridColumns =
   `${teamColumnWidth}px repeat(${periods.length}, ${inningColumnWidth}px) ${totalColumnWidth}px`;
 
 const gridColumnGap =
-  isExtraInnings ? 3 : 4;
+  isExtraInnings && isMobileMlbScoreboard ? 3 : 4;
   
  const awayScore = Number(espn.awayScore) || 0;
  const homeScore = Number(espn.homeScore) || 0;
