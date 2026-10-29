@@ -2009,7 +2009,6 @@ window.addEventListener("DOMContentLoaded", checkAccess);
       <div>
         <label for="sport-select" class="sport-label">Sport:</label>
         <select id="sport-select" style="margin-left:8px; padding:8px 12px; min-height:42px; border-radius:10px; background:#0f172a; color:white; border:1px solid #00ff88;">
-          <option value="baseball_mlb">⚾ MLB</option>
           <option value="basketball_wnba">🏀 WNBA</option>
           <option value="soccer_usa_mls">⚽ MLS</option>
           <option value="americanfootball_nfl">🏈 NFL</option>
@@ -2018,7 +2017,7 @@ window.addEventListener("DOMContentLoaded", checkAccess);
 
           <option disabled>────────────</option>
           <option disabled>Off Season</option>
-
+          <option value="baseball_mlb">⚾ MLB</option>
           <option value="basketball_ncaab">🏀 NCAA (M)</option>
           <option value="basketball_wncaab">🏀 NCAA (W)</option>
         </select>
@@ -9103,8 +9102,8 @@ if (statTodayGames) {
 
       const offseasonSports = {
         baseball_mlb: {
-          title: '⚾ No MLB games scheduled for today',
-          message: 'Odds will automatically appear here when the next MLB markets are available.',
+          title: '⚾ MLB — No Games Currently Available',
+          message: 'The MLB season has concluded. Odds will return when sportsbooks begin offering markets for the next season.',
           useNextScheduledDate: true,
           nextGameLabel: 'MLB'
         },
