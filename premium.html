@@ -7737,9 +7737,7 @@ async function refreshRecentResults(sport) {
 
       return (
         Number.isFinite(completedTime) &&
-        completedTime > 0 &&
-        Date.now() - completedTime >=
-          FINAL_CARD_RETENTION_MS
+        completedTime > 0
       );
     });
 
@@ -9104,7 +9102,7 @@ if (statTodayGames) {
         baseball_mlb: {
           title: '⚾ MLB — No Games Currently Available',
           message: 'The MLB season has concluded. Odds will return when sportsbooks begin offering markets for the next season.',
-          useNextScheduledDate: true,
+          useNextScheduledDate: false,
           nextGameLabel: 'MLB'
         },
         basketball_wnba: {
@@ -11422,6 +11420,37 @@ if (sportSelect) {
     window.history.replaceState({}, '', url);
 
     loadOddsHistoryStateForSport(selectedSport);
+
+    // Clear previous sport's market guidance while switching sports.
+    const sportSwitchLoadingFields = {
+      'top-pick': 'Loading market guidance...',
+      'top-confidence': '',
+      'top-meta': '',
+      'top-status': '',
+      'top-confidence-reason': '',
+      'arb-pick': 'Checking arbitrage opportunities...',
+      'arb-details': '',
+      'biggest-movers': 'Scanning line movement...',
+      'biggest-movers-details': ''
+    };
+
+    Object.entries(sportSwitchLoadingFields).forEach(([id, message]) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = message;
+    });
+
+    const guidanceLink = document.getElementById('merged-guidance-link');
+    if (guidanceLink) guidanceLink.style.display = 'none';
+
+    const oddsList = document.getElementById('odds-list');
+
+    if (oddsList) {
+      oddsList.innerHTML = `
+        <div class="muted" style="padding:24px; text-align:center;">
+          Loading ${sportSelect.options[sportSelect.selectedIndex].text.trim()} odds and game information...
+        </div>
+      `;
+    }
 
     loadOdds().finally(() => {
       scheduleNextOddsPoll();
