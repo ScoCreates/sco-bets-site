@@ -7659,6 +7659,61 @@ latestPollingGames.forEach(game => {
       const timeoutPlayTime =
         Date.parse(activeBasketballTimeout.wallclock || '');
 
+      const freshClock =
+        String(freshEspnGame.clock || '').trim();
+
+      const timeoutClock =
+        String(activeBasketballTimeout.clock || '').trim();
+
+      const freshPeriod =
+        Number(freshEspnGame.period) || 0;
+
+      const timeoutPeriod =
+        Number(activeBasketballTimeout.period) || 0;
+
+      const clockToSeconds = clock => {
+        const match = /^(\d+):(\d{1,2})(?:\.(\d+))?$/.exec(clock);
+
+        if (!match) return null;
+
+        return (
+          Number(match[1]) * 60 +
+          Number(match[2]) +
+          Number(`0.${match[3] || '0'}`)
+        );
+      };
+
+      const freshSeconds = clockToSeconds(freshClock);
+      const timeoutSeconds = clockToSeconds(timeoutClock);
+
+      const clockMovedForwardInGame =
+        freshPeriod === timeoutPeriod &&
+        freshSeconds !== null &&
+        timeoutSeconds !== null &&
+        freshSeconds < timeoutSeconds - 2;
+
+      if (
+        clockMovedForwardInGame &&
+        !activeBasketballTimeout.clockMovementLogged
+      ) {
+        console.log('[SCO TIMEOUT] CLOCK MOVED', {
+          gameKey,
+          observedAt: new Date().toLocaleTimeString(),
+          timeoutPeriod,
+          timeoutClock,
+          freshPeriod,
+          freshClock,
+          gameSecondsElapsed: Math.round(
+            (timeoutSeconds - freshSeconds) * 10
+          ) / 10,
+          timeoutAgeSeconds: Math.round(
+            (Date.now() - activeBasketballTimeout.detectedAt) / 1000
+          )
+        });
+
+        activeBasketballTimeout.clockMovementLogged = true;
+      }
+
       const resumedGameplay =
         recentBasketballPlays.some(play => {
           const playTime =
