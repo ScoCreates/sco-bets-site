@@ -4930,7 +4930,8 @@ context =
       ? 'OFFICIALS TIMEOUT'
       : 'TIMEOUT';
 
-  const timeoutPeriod = Number(timeoutEvent.period) || 0;
+  const timeoutPeriod = Number(espn.period) || Number(timeoutEvent.period) || 0;
+  const timeoutClock = espn.clock || timeoutEvent.clock || '';
 
   const timeoutPeriodLabel =
     timeoutPeriod > 4
@@ -4938,8 +4939,8 @@ context =
       : `Q${timeoutPeriod}`;
 
   context =
-    timeoutPeriod && timeoutEvent.clock
-      ? `• ${timeoutPeriodLabel}<span style="display:inline-block; margin-left:8px;">${timeoutEvent.clock}</span>`
+    timeoutPeriod && timeoutClock
+      ? `• ${timeoutPeriodLabel}<span style="display:inline-block; margin-left:8px;">${timeoutClock}</span>`
       : '';
 } else if (
   selectedSport.startsWith('baseball')
