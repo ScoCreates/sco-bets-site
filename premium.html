@@ -7639,6 +7639,16 @@ latestPollingGames.forEach(game => {
           detectedAt: Date.now(),
           active: true
         };
+
+        console.log('[SCO TIMEOUT] START', {
+          gameKey,
+          detectedAt: new Date().toLocaleTimeString(),
+          teamId: recentTimeout.teamId,
+          period: recentTimeout.period,
+          clock: recentTimeout.clock,
+          playId: timeoutPlayId,
+          espnWallclock: recentTimeout.wallclock
+        });
       }
     }
 
@@ -7683,6 +7693,48 @@ latestPollingGames.forEach(game => {
         5 * 60 * 1000;
 
       if (resumedGameplay || timeoutExpired) {
+        const timeoutDurationSeconds = Math.round(
+          (Date.now() - activeBasketballTimeout.detectedAt) / 1000
+        );
+
+        const clearingPlay = resumedGameplay
+          ? recentBasketballPlays.find(play => {
+              const playTime = Date.parse(play.wallclock || '');
+              const playType = String(play.typeText || '').toLowerCase();
+              const playTypeId = String(play.typeId || '');
+
+              const isGameplay =
+                playType.includes('shot') ||
+                playType.includes('free throw') ||
+                playType.includes('rebound') ||
+                playType.includes('turnover') ||
+                playType.includes('steal') ||
+                playType.includes('layup') ||
+                playType.includes('dunk') ||
+                ['62', '64', '66', '70', '87'].includes(playTypeId);
+
+              return (
+                Number.isFinite(playTime) &&
+                playTime > timeoutPlayTime &&
+                isGameplay
+              );
+            })
+          : null;
+
+        console.log('[SCO TIMEOUT] CLEARED', {
+          gameKey,
+          clearedAt: new Date().toLocaleTimeString(),
+          reason: resumedGameplay
+            ? 'Gameplay event detected'
+            : 'Five-minute safeguard',
+          durationSeconds: timeoutDurationSeconds,
+          timeoutPlayId: activeBasketballTimeout.playId,
+          clearingPlayId: clearingPlay?.id ?? null,
+          clearingPlayType: clearingPlay?.typeText ?? null,
+          clearingPlayClock: clearingPlay?.clock ?? null,
+          clearingPlayWallclock: clearingPlay?.wallclock ?? null
+        });
+
         activeBasketballTimeout.active = false;
       }
     }
