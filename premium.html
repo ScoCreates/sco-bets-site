@@ -7745,7 +7745,7 @@ latestPollingGames.forEach(game => {
 
       const timeoutExpired =
         Date.now() - activeBasketballTimeout.detectedAt >
-        5 * 60 * 1000;
+        140 * 1000;
 
       if (resumedGameplay || timeoutExpired) {
         const timeoutDurationSeconds = Math.round(
@@ -7781,7 +7781,7 @@ latestPollingGames.forEach(game => {
           clearedAt: new Date().toLocaleTimeString(),
           reason: resumedGameplay
             ? 'Gameplay event detected'
-            : 'Five-minute safeguard',
+            : '140-second safeguard',
           durationSeconds: timeoutDurationSeconds,
           timeoutPlayId: activeBasketballTimeout.playId,
           clearingPlayId: clearingPlay?.id ?? null,
