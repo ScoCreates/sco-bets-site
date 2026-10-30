@@ -4920,9 +4920,7 @@ context =
       : '';
 } else if (
   (selectedSport === 'basketball_wnba' || selectedSport === 'basketball_nba') &&
-  window.scoBasketballTimeoutCache?.[getGameKey(game)] &&
-  Date.now() -
-    window.scoBasketballTimeoutCache[getGameKey(game)].detectedAt <= 10000
+  window.scoBasketballTimeoutCache?.[getGameKey(game)]?.active === true
 ) {
   const timeoutEvent =
     window.scoBasketballTimeoutCache[getGameKey(game)];
@@ -5570,7 +5568,24 @@ return `
                   data-return-at="${game.scoEstimatedHalftimeReturnAt}"
                   style="font-size:12px; font-weight:700;"
                 >
-                  Estimated return in --
+Estimated return in ${(() => {
+  const remainingSeconds = Math.ceil(
+    (Number(game.scoEstimatedHalftimeReturnAt) - Date.now()) / 1000
+  );
+
+  if (!Number.isFinite(remainingSeconds)) {
+    return '--';
+  }
+
+  if (remainingSeconds <= 0) {
+    return '0:00';
+  }
+
+  const minutes = Math.floor(remainingSeconds / 60);
+  const seconds = remainingSeconds % 60;
+
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
+})()}
                 </div>
                 <div style="margin-top:2px; font-size:10px; opacity:0.7;">
                   Approximate — not an official game clock
@@ -5959,7 +5974,7 @@ function buildBasketballLinescore(espn) {
   const showRecentTimeout =
     timeoutCache &&
     String(timeoutCache.typeId) === '16' &&
-    Date.now() - timeoutCache.detectedAt <= 10 * 1000;
+    timeoutCache.active === true;
 
   const awayCalledTimeout =
     showRecentTimeout &&
@@ -7484,50 +7499,78 @@ latestPollingGames.forEach(game => {
   }
 
     if (sport === 'basketball_wnba' || sport === 'basketball_nba') {
-    const playType =
-      String(freshEspnGame.wnbaLatestPlayTypeText || '').toLowerCase();
+        const recentBasketballPlays =
+      Array.isArray(freshEspnGame.basketballRecentNotificationPlays)
+        ? freshEspnGame.basketballRecentNotificationPlays
+        : [];
 
-    const playTypeId =
-      String(freshEspnGame.wnbaLatestPlayTypeId || '');
+    const recentFoul = [...recentBasketballPlays]
+      .reverse()
+      .find(play => {
+        const typeText =
+          String(play.typeText || '').toLowerCase();
 
-    const playTeamId =
-      freshEspnGame.wnbaLatestPlayTeamId;
+        const eventTime = Date.parse(play.wallclock || '');
+        const eventAge = Date.now() - eventTime;
 
-    const playKey =
-      freshEspnGame.wnbaLatestPlayId ||
-      (
-        `${freshEspnGame.wnbaLatestPlayPeriod || ''}|` +
-        `${freshEspnGame.wnbaLatestPlayClock || ''}|` +
-        `${playTypeId}|${playTeamId || ''}`
-      );
+        const validTeam =
+          play.teamId != null &&
+          (
+            String(play.teamId) === String(freshEspnGame.awayTeamId) ||
+            String(play.teamId) === String(freshEspnGame.homeTeamId)
+          );
 
-    if (
-      playType.includes('foul') &&
-      playType !== 'no foul' &&
-      !playType.includes('turnover') &&
-      playTeamId
-    ) {
+        return (
+          typeText.includes('foul') &&
+          typeText !== 'no foul' &&
+          !typeText.includes('turnover') &&
+          validTeam &&
+          play.id != null &&
+          Number.isFinite(eventTime) &&
+          eventAge >= 0 &&
+          eventAge <= 60 * 1000
+        );
+      });
+
+    if (recentFoul) {
       window.scoBasketballFoulCache =
         window.scoBasketballFoulCache || {};
 
       const cachedFoul =
         window.scoBasketballFoulCache[gameKey];
 
-      if (cachedFoul?.foulKey !== playKey) {
+      const foulKey = String(recentFoul.id);
+
+      const foulWallclock =
+        Date.parse(recentFoul.wallclock || '');
+
+      const previousFoulWallclock =
+        Date.parse(cachedFoul?.wallclock || '');
+
+      const isNewerFoul =
+        !cachedFoul ||
+        (
+          Number.isFinite(foulWallclock) &&
+          (
+            !Number.isFinite(previousFoulWallclock) ||
+            foulWallclock > previousFoulWallclock
+          )
+        );
+
+      if (
+        cachedFoul?.foulKey !== foulKey &&
+        isNewerFoul
+      ) {
         window.scoBasketballFoulCache[gameKey] = {
-          foulKey: playKey,
-          teamId: String(playTeamId),
-          period: freshEspnGame.wnbaLatestPlayPeriod,
-          clock: freshEspnGame.wnbaLatestPlayClock,
+          foulKey,
+          teamId: String(recentFoul.teamId),
+          period: recentFoul.period,
+          clock: recentFoul.clock,
+          wallclock: recentFoul.wallclock,
           detectedAt: Date.now()
         };
       }
     }
-
-    const recentBasketballPlays =
-      Array.isArray(freshEspnGame.basketballRecentNotificationPlays)
-        ? freshEspnGame.basketballRecentNotificationPlays
-        : [];
 
     const recentTimeout = [...recentBasketballPlays]
       .reverse()
@@ -7593,8 +7636,54 @@ latestPollingGames.forEach(game => {
           period: recentTimeout.period,
           clock: recentTimeout.clock,
           wallclock: recentTimeout.wallclock,
-          detectedAt: Date.now()
+          detectedAt: Date.now(),
+          active: true
         };
+      }
+    }
+
+    const activeBasketballTimeout =
+      window.scoBasketballTimeoutCache?.[gameKey];
+
+    if (activeBasketballTimeout?.active) {
+      const timeoutPlayTime =
+        Date.parse(activeBasketballTimeout.wallclock || '');
+
+      const resumedGameplay =
+        recentBasketballPlays.some(play => {
+          const playTime =
+            Date.parse(play.wallclock || '');
+
+          const playType =
+            String(play.typeText || '').toLowerCase();
+
+          const playTypeId =
+            String(play.typeId || '');
+
+          const isGameplay =
+            playType.includes('shot') ||
+            playType.includes('free throw') ||
+            playType.includes('rebound') ||
+            playType.includes('turnover') ||
+            playType.includes('steal') ||
+            playType.includes('layup') ||
+            playType.includes('dunk') ||
+            ['62', '64', '66', '70', '87'].includes(playTypeId);
+
+          return (
+            Number.isFinite(playTime) &&
+            Number.isFinite(timeoutPlayTime) &&
+            playTime > timeoutPlayTime &&
+            isGameplay
+          );
+        });
+
+      const timeoutExpired =
+        Date.now() - activeBasketballTimeout.detectedAt >
+        5 * 60 * 1000;
+
+      if (resumedGameplay || timeoutExpired) {
+        activeBasketballTimeout.active = false;
       }
     }
   }

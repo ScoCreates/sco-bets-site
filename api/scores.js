@@ -734,10 +734,18 @@ await Promise.all(
           return (
             typeId === '16' ||
             typeId === '19' ||
-            (typeText.includes('foul') && typeText !== 'no foul')
+            (typeText.includes('foul') && typeText !== 'no foul') ||
+            typeText.includes('shot') ||
+            typeText.includes('free throw') ||
+            typeText.includes('rebound') ||
+            typeText.includes('turnover') ||
+            typeText.includes('steal') ||
+            typeText.includes('layup') ||
+            typeText.includes('dunk') ||
+            ['62', '64', '66', '70', '87'].includes(typeId)
           );
         })
-        .slice(-20);
+        .slice(-100);
 
       const summaryCompetitors =
         summaryData.header?.competitions?.[0]?.competitors || [];
@@ -1104,6 +1112,11 @@ const games = (data.events || []).map(event => {
     wnbaLatestPlayText:
       (sport === 'basketball_wnba' || sport === 'basketball_nba')
         ? wnbaLatestPlays[event.id]?.text ?? null
+        : null,
+
+    wnbaLatestPlayWallclock:
+      (sport === 'basketball_wnba' || sport === 'basketball_nba')
+        ? wnbaLatestPlays[event.id]?.wallclock ?? null
         : null,
 
     wnbaLatestPlayClock:
