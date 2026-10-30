@@ -14,6 +14,7 @@ function mapSportToEspn(sport) {
     basketball_nba: 'basketball/nba',
     basketball_wnba: 'basketball/wnba',
     basketball_ncaab: 'basketball/mens-college-basketball',
+    basketball_wncaab: 'basketball/womens-college-basketball',
     soccer_usa_mls: 'soccer/usa.1',
     americanfootball_nfl: 'football/nfl',
     americanfootball_ncaaf: 'football/college-football'
