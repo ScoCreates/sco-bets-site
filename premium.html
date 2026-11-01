@@ -2009,17 +2009,17 @@ window.addEventListener("DOMContentLoaded", checkAccess);
       <div>
         <label for="sport-select" class="sport-label">Sport:</label>
         <select id="sport-select" style="margin-left:8px; padding:8px 12px; min-height:42px; border-radius:10px; background:#0f172a; color:white; border:1px solid #00ff88;">
-          <option value="basketball_wnba">🏀 WNBA</option>
-          <option value="soccer_usa_mls">⚽ MLS</option>
+          <option value="basketball_ncaab">🏀 NCAA (M)</option>
+          <option value="basketball_wncaab">🏀 NCAA (W)</option>
+          <option value="basketball_nba">🏀 NBA</option>
           <option value="americanfootball_nfl">🏈 NFL</option>
           <option value="americanfootball_ncaaf">🏈 NCAA Football</option>
-          <option value="basketball_nba">🏀 NBA</option>
+          <option value="soccer_usa_mls">⚽ MLS</option>
 
           <option disabled>────────────</option>
           <option disabled>Off Season</option>
           <option value="baseball_mlb">⚾ MLB</option>
-          <option value="basketball_ncaab">🏀 NCAA (M)</option>
-          <option value="basketball_wncaab">🏀 NCAA (W)</option>
+          <option value="basketball_wnba">🏀 WNBA</option>
         </select>
       </div>
 
@@ -4699,9 +4699,15 @@ context = '';
 const basketballPeriod = Number(espn.period);
 
 const basketballPeriodLabel =
-  basketballPeriod > 4
-    ? `OT${basketballPeriod - 4}`
-    : `Q${basketballPeriod}`;
+  selectedSport === 'basketball_ncaab'
+    ? basketballPeriod > 2
+      ? basketballPeriod === 3
+        ? 'OT'
+        : `${basketballPeriod - 2}OT`
+      : `${basketballPeriod}H`
+    : basketballPeriod > 4
+      ? `OT${basketballPeriod - 4}`
+      : `Q${basketballPeriod}`;
 	const basketballDisplayClock = (() => {
   const rawClock = String(espn.clock || '').trim();
 
@@ -5600,7 +5606,7 @@ Estimated return in ${(() => {
       ${selectedSport.startsWith('baseball')
                           ? buildMlbLinescore(espn)
                           : selectedSport.startsWith('basketball')
-                            ? buildBasketballLinescore(espn)
+                            ? buildBasketballLinescore(espn, selectedSport)
                             : selectedSport.startsWith('americanfootball')
                               ? buildFootballLinescore(espn)
                               : selectedSport.startsWith('soccer')
@@ -5921,9 +5927,12 @@ function formatMlbPlayerLastName(fullName) {
   return suffix ? `${lastName} ${suffix}` : lastName;
 }
 
-function buildBasketballLinescore(espn) {
+function buildBasketballLinescore(espn, sport) {
+  const regulationPeriods =
+    sport === 'basketball_ncaab' ? 2 : 4;
+
   const maxPeriod = Math.max(
-    4,
+    regulationPeriods,
     ...(espn.awayLinescores || []).map(ls => Number(ls.period) || 0),
     ...(espn.homeLinescores || []).map(ls => Number(ls.period) || 0)
   );
@@ -5988,6 +5997,14 @@ function buildBasketballLinescore(espn) {
     String(timeoutCache.teamId) === String(espn.homeTeamId);
 
   const getLabel = (period) => {
+    if (sport === 'basketball_ncaab') {
+      if (period <= 2) {
+        return period;
+      }
+
+      return period === 3 ? 'OT' : `${period - 2}OT`;
+    }
+
     return period <= 4 ? period : `OT${period - 4}`;
   };
 
