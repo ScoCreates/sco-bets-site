@@ -6804,10 +6804,65 @@ async function refreshIndependentScoreboards() {
     return;
   }
 
+  if (
+    sport === 'basketball_ncaab' &&
+    latestPollingGames.length > 0 &&
+    latestPollingGames.every(game => {
+      const startTime = new Date(
+        game.commence_time ||
+        game.commenceTime ||
+        game.startTime ||
+        ''
+      ).getTime();
+
+      return (
+        game.freshEspnStatus?.statusState === 'pre' &&
+        Number.isFinite(startTime) &&
+        startTime - Date.now() > 15 * 60 * 1000
+      );
+    })
+  ) {
+    return;
+  }
+
   try {
-    const response = await fetch(
-      `/api/scores?sport=${encodeURIComponent(sport)}`
-    );
+    let scoresUrl =
+      `/api/scores?sport=${encodeURIComponent(sport)}`;
+
+    if (sport === 'basketball_ncaab') {
+      const activeGame = latestPollingGames.find(game => {
+        const startTime = new Date(
+          game.commence_time ||
+          game.commenceTime ||
+          game.startTime ||
+          ''
+        ).getTime();
+
+        return (
+          game.freshEspnStatus?.statusState === 'in' ||
+          (
+            Number.isFinite(startTime) &&
+            Math.abs(startTime - Date.now()) <= 15 * 60 * 1000
+          )
+        );
+      });
+
+      if (activeGame) {
+        const gameDate = String(
+          activeGame.freshEspnStatus?.date ||
+          activeGame.commence_time ||
+          activeGame.commenceTime ||
+          activeGame.startTime ||
+          ''
+        ).slice(0, 10).replace(/-/g, '');
+
+        if (gameDate) {
+          scoresUrl += `&date=${encodeURIComponent(gameDate)}`;
+        }
+      }
+    }
+
+    const response = await fetch(scoresUrl);
 
     if (!response.ok) {
       return;
@@ -7500,7 +7555,7 @@ latestPollingGames.forEach(game => {
   }
 
     if (sport === 'basketball_wnba' || sport === 'basketball_nba') {
-        const recentBasketballPlays =
+    const recentBasketballPlays =
       Array.isArray(freshEspnGame.basketballRecentNotificationPlays)
         ? freshEspnGame.basketballRecentNotificationPlays
         : [];
@@ -7640,16 +7695,6 @@ latestPollingGames.forEach(game => {
           detectedAt: Date.now(),
           active: true
         };
-
-        console.log('[SCO TIMEOUT] START', {
-          gameKey,
-          detectedAt: new Date().toLocaleTimeString(),
-          teamId: recentTimeout.teamId,
-          period: recentTimeout.period,
-          clock: recentTimeout.clock,
-          playId: timeoutPlayId,
-          espnWallclock: recentTimeout.wallclock
-        });
       }
     }
 
@@ -7673,15 +7718,24 @@ latestPollingGames.forEach(game => {
         Number(activeBasketballTimeout.period) || 0;
 
       const clockToSeconds = clock => {
-        const match = /^(\d+):(\d{1,2})(?:\.(\d+))?$/.exec(clock);
+        const value = String(clock || '').trim();
 
-        if (!match) return null;
+        const match =
+          /^(\d+):(\d{1,2})(?:\.(\d+))?$/.exec(value);
 
-        return (
-          Number(match[1]) * 60 +
-          Number(match[2]) +
-          Number(`0.${match[3] || '0'}`)
-        );
+        if (match) {
+          return (
+            Number(match[1]) * 60 +
+            Number(match[2]) +
+            Number(`0.${match[3] || '0'}`)
+          );
+        }
+
+        if (/^\d+(?:\.\d+)?$/.test(value)) {
+          return Number(value);
+        }
+
+        return null;
       };
 
       const freshSeconds = clockToSeconds(freshClock);
@@ -7692,28 +7746,6 @@ latestPollingGames.forEach(game => {
         freshSeconds !== null &&
         timeoutSeconds !== null &&
         freshSeconds < timeoutSeconds - 2;
-
-      if (
-        clockMovedForwardInGame &&
-        !activeBasketballTimeout.clockMovementLogged
-      ) {
-        console.log('[SCO TIMEOUT] CLOCK MOVED', {
-          gameKey,
-          observedAt: new Date().toLocaleTimeString(),
-          timeoutPeriod,
-          timeoutClock,
-          freshPeriod,
-          freshClock,
-          gameSecondsElapsed: Math.round(
-            (timeoutSeconds - freshSeconds) * 10
-          ) / 10,
-          timeoutAgeSeconds: Math.round(
-            (Date.now() - activeBasketballTimeout.detectedAt) / 1000
-          )
-        });
-
-        activeBasketballTimeout.clockMovementLogged = true;
-      }
 
       const resumedGameplay =
         recentBasketballPlays.some(play => {
@@ -7746,51 +7778,14 @@ latestPollingGames.forEach(game => {
 
       const timeoutExpired =
         Date.now() - activeBasketballTimeout.detectedAt >
-        140 * 1000;
+        300 * 1000;
 
-      if (resumedGameplay || timeoutExpired) {
-        const timeoutDurationSeconds = Math.round(
-          (Date.now() - activeBasketballTimeout.detectedAt) / 1000
-        );
+      const resumedByClock =
+        clockMovedForwardInGame &&
+        freshEspnGame.statusState === 'in' &&
+        Date.now() - activeBasketballTimeout.detectedAt >= 5000;
 
-        const clearingPlay = resumedGameplay
-          ? recentBasketballPlays.find(play => {
-              const playTime = Date.parse(play.wallclock || '');
-              const playType = String(play.typeText || '').toLowerCase();
-              const playTypeId = String(play.typeId || '');
-
-              const isGameplay =
-                playType.includes('shot') ||
-                playType.includes('free throw') ||
-                playType.includes('rebound') ||
-                playType.includes('turnover') ||
-                playType.includes('steal') ||
-                playType.includes('layup') ||
-                playType.includes('dunk') ||
-                ['62', '64', '66', '70', '87'].includes(playTypeId);
-
-              return (
-                Number.isFinite(playTime) &&
-                playTime > timeoutPlayTime &&
-                isGameplay
-              );
-            })
-          : null;
-
-        console.log('[SCO TIMEOUT] CLEARED', {
-          gameKey,
-          clearedAt: new Date().toLocaleTimeString(),
-          reason: resumedGameplay
-            ? 'Gameplay event detected'
-            : '140-second safeguard',
-          durationSeconds: timeoutDurationSeconds,
-          timeoutPlayId: activeBasketballTimeout.playId,
-          clearingPlayId: clearingPlay?.id ?? null,
-          clearingPlayType: clearingPlay?.typeText ?? null,
-          clearingPlayClock: clearingPlay?.clock ?? null,
-          clearingPlayWallclock: clearingPlay?.wallclock ?? null
-        });
-
+      if (resumedGameplay || resumedByClock || timeoutExpired) {
         activeBasketballTimeout.active = false;
       }
     }
@@ -8448,7 +8443,10 @@ window.getExpectedMarketVerificationInterval =
 let freshEspnGames = [];
 
 try {
-  if (sport === 'americanfootball_ncaaf') {
+  if (
+    sport === 'americanfootball_ncaaf' ||
+    sport === 'basketball_ncaab'
+  ) {
     const espnDates = new Set();
 
     const easternToday = new Intl.DateTimeFormat('en-CA', {
@@ -8657,7 +8655,13 @@ const completedGames = Array.isArray(payload.completedGames)
   : [];
   
 const normalizeScoreboardTeamName = value => {
-  const normalized = String(value || '')
+  const teamName = String(value || '');
+
+  const normalized = (
+    sport === 'basketball_ncaab'
+      ? teamName.replace(/\b(?:Appalachian St|App State)\b/gi, 'Appalachian State')
+      : teamName
+  )
   .toLowerCase()
   .replace(/&/g, 'and')
   .replace(/\([^)]*\)/g, '')
@@ -8708,6 +8712,37 @@ games.forEach(game => {
 
     freshEspnGame =
       freshEspnByMatchup.get(matchupKey) || null;
+
+    if (
+      !freshEspnGame &&
+      (sport === 'basketball_ncaab' ||
+       sport === 'basketball_wncaab')
+    ) {
+      const reversedMatchupKey =
+        `${normalizeScoreboardTeamName(game.home)}_${normalizeScoreboardTeamName(game.away)}_${gameDate}`;
+
+      const reversedMatch =
+        freshEspnByMatchup.get(reversedMatchupKey) || null;
+
+      if (reversedMatch) {
+        const matchingGames = freshEspnGames.filter(espnGame => {
+          const sameDate =
+            String(espnGame.date || '').slice(0, 10) === gameDate;
+
+          const reversedTeams =
+            normalizeScoreboardTeamName(espnGame.awayTeam) ===
+              normalizeScoreboardTeamName(game.home) &&
+            normalizeScoreboardTeamName(espnGame.homeTeam) ===
+              normalizeScoreboardTeamName(game.away);
+
+          return sameDate && reversedTeams;
+        });
+
+        if (matchingGames.length === 1) {
+          freshEspnGame = reversedMatch;
+        }
+      }
+    }
   }
 
     if (freshEspnGame) {

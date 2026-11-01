@@ -45,8 +45,22 @@ export default async function handler(req, res) {
       effectiveDate = easternDate.replace(/-/g, '');
     }
 
-    const dateParam = effectiveDate ? `?dates=${effectiveDate}` : '';
-    const url = `https://site.api.espn.com/apis/site/v2/sports/${espnSportPath}/scoreboard${dateParam}`;
+    const espnParams = new URLSearchParams();
+
+    if (effectiveDate) {
+      espnParams.set('dates', effectiveDate);
+    }
+
+    if (sport === 'basketball_ncaab') {
+      espnParams.set('groups', '50');
+      espnParams.set('limit', '300');
+    }
+
+    const queryString = espnParams.toString();
+
+    const url =
+      `https://site.api.espn.com/apis/site/v2/sports/${espnSportPath}/scoreboard` +
+      (queryString ? `?${queryString}` : '');
 
     const response = await fetch(url, {
       cache: 'no-store',
@@ -112,14 +126,14 @@ if (sport === 'soccer_usa_mls') {
         const summaryUrl =
           `https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/summary?event=${event.id}`;
 
-        const summaryResponse = await fetch(summaryUrl, {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache'
-          }
-        });
+      const summaryResponse = await fetch(summaryUrl, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
 
-        if (!summaryResponse.ok) return;
+      if (!summaryResponse.ok) return;
 
         const summaryData = await summaryResponse.json();
 
@@ -709,14 +723,14 @@ await Promise.all(
       const summaryUrl =
         `https://site.api.espn.com/apis/site/v2/sports/${espnSportPath}/summary?event=${event.id}`;
 
-      const summaryResponse = await fetch(summaryUrl, {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache'
-        }
-      });
+const summaryResponse = await fetch(summaryUrl, {
+  cache: 'no-store',
+  headers: {
+    'Cache-Control': 'no-cache'
+  }
+});
 
-      if (!summaryResponse.ok) return;
+if (!summaryResponse.ok) return;
 
       const summaryData = await summaryResponse.json();
 
