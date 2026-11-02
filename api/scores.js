@@ -51,7 +51,10 @@ export default async function handler(req, res) {
       espnParams.set('dates', effectiveDate);
     }
 
-    if (sport === 'basketball_ncaab') {
+    if (
+      sport === 'basketball_ncaab' ||
+      sport === 'basketball_wncaab'
+    ) {
       espnParams.set('groups', '50');
       espnParams.set('limit', '300');
     }

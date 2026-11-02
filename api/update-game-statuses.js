@@ -482,7 +482,9 @@ async function fetchEspnGames(requestedSport, date) {
   const urls =
     requestedSport === 'americanfootball_ncaaf'
       ? [url, `${url}&groups=81`]
-      : [url];
+      : requestedSport === 'basketball_wncaab'
+        ? [`${url}&groups=50&limit=500`]
+        : [url];
 
   const responses = await Promise.all(
     urls.map(fetchUrl => fetch(fetchUrl))
