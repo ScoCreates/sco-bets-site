@@ -10279,7 +10279,11 @@ if (implied < 1 && !isNonActionableForArb) {
             let moverDisplayName = mover.team;
 
               if (
-                selectedSport === 'americanfootball_ncaaf' &&
+                (
+                  selectedSport === 'americanfootball_ncaaf' ||
+                  selectedSport === 'basketball_ncaab' ||
+                  selectedSport === 'basketball_wncaab'
+                ) &&
                 moverGame
               ) {
                 const espn =
@@ -10308,8 +10312,6 @@ if (implied < 1 && !isNonActionableForArb) {
                 ];
 
                 const matchingTeam = teams.find(team =>
-                  normalizeName(team.full) ===
-                    normalizeName(mover.team) &&
                   normalizeName(team.espnFull) ===
                     normalizeName(mover.team)
                 );
