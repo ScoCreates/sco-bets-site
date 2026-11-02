@@ -68,6 +68,8 @@ function mapSportToEspn(sport) {
   const map = {
   basketball_nba: { group: 'basketball', league: 'nba', dateParam: null },
   basketball_wnba: { group: 'basketball', league: 'wnba', dateParam: null },
+  basketball_ncaab: { group: 'basketball', league: 'mens-college-basketball', dateParam: null },
+  basketball_wncaab: { group: 'basketball', league: 'womens-college-basketball', dateParam: null },
   baseball_mlb: { group: 'baseball', league: 'mlb', dateParam: null },
   soccer_usa_mls: { group: 'soccer', league: 'usa.1', dateParam: null },
   americanfootball_nfl: { group: 'football', league: 'nfl', dateParam: null },
@@ -92,8 +94,16 @@ async function fetchEspnScores(sport, espnDate) {
     espnDate ||
     new Date().toISOString().slice(0, 10).replace(/-/g, '');
 
+  const espnParams = new URLSearchParams();
+  espnParams.set('dates', today);
+
+  if (sport === 'basketball_ncaab') {
+    espnParams.set('groups', '50');
+    espnParams.set('limit', '300');
+  }
+
   const url =
-  `https://site.api.espn.com/apis/site/v2/sports/${espnSport.group}/${espnSport.league}/scoreboard?dates=${today}`;
+    `https://site.api.espn.com/apis/site/v2/sports/${espnSport.group}/${espnSport.league}/scoreboard?${espnParams.toString()}`;
 
   try {
     // console.log('ESPN URL:', url);
