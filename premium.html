@@ -8509,15 +8509,33 @@ try {
     espnDates.add(easternToday);
 
     games.forEach(game => {
-      const gameDate = String(
+      const commenceTime =
         game.commence_time ||
         game.commenceTime ||
         game.startTime ||
-        ''
-      ).slice(0, 10).replace(/-/g, '');
+        '';
+
+      const gameDate = String(commenceTime)
+        .slice(0, 10)
+        .replace(/-/g, '');
 
       if (/^\d{8}$/.test(gameDate)) {
         espnDates.add(gameDate);
+      }
+
+      if (sport === 'basketball_ncaab' && commenceTime) {
+        const parsedDate = new Date(commenceTime);
+
+        if (!Number.isNaN(parsedDate.getTime())) {
+          const easternGameDate = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'America/New_York',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+          }).format(parsedDate).replace(/-/g, '');
+
+          espnDates.add(easternGameDate);
+        }
       }
     });
 
@@ -8717,6 +8735,10 @@ const normalizeScoreboardTeamName = value => {
   .replace(/\([^)]*\)/g, '')
   .replace(/\b(university|college)\b/g, '')
   .replace(/\bumass\b/g, 'massachusetts')
+  .replace(/\bcal baptist\b/g, 'california baptist')
+  .replace(/\bcsu northridge\b/g, 'cal state northridge')
+  .replace(/^lsu new orleans privateers$/g, 'new orleans privateers')
+  .replace(/\bst\b/g, 'state')
   .replace(/[^a-z0-9]/g, '');
 
   if (
