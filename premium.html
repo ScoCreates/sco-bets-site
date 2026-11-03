@@ -4781,7 +4781,7 @@ if (liveStatusText.includes('halftime')) {
           : selectedSport === 'basketball_wnba' ||
             selectedSport === 'basketball_nba' ||
             selectedSport === 'basketball_ncaab' ||
-            selectedSport === 'basketball_ncaaw'
+            selectedSport === 'basketball_wncaab'
             ? 15
             : 0;
 
@@ -7852,7 +7852,7 @@ latestPollingGames.forEach(game => {
   sport === 'basketball_wnba' ||
   sport === 'basketball_nba' ||
   sport === 'basketball_ncaab' ||
-  sport === 'basketball_ncaaw';
+  sport === 'basketball_wncaab';
 
 if (supportsEstimatedHalftime) {
   const halftimeText = String(
