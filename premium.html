@@ -4779,7 +4779,9 @@ if (liveStatusText.includes('halftime')) {
         : selectedSport === 'soccer_usa_mls'
           ? 15
           : selectedSport === 'basketball_wnba' ||
-            selectedSport === 'basketball_nba'
+            selectedSport === 'basketball_nba' ||
+            selectedSport === 'basketball_ncaab' ||
+            selectedSport === 'basketball_ncaaw'
             ? 15
             : 0;
 
@@ -7848,7 +7850,9 @@ latestPollingGames.forEach(game => {
   sport === 'americanfootball_ncaaf' ||
   sport === 'soccer_usa_mls' ||
   sport === 'basketball_wnba' ||
-  sport === 'basketball_nba';
+  sport === 'basketball_nba' ||
+  sport === 'basketball_ncaab' ||
+  sport === 'basketball_ncaaw';
 
 if (supportsEstimatedHalftime) {
   const halftimeText = String(
