@@ -714,7 +714,12 @@ if (sport === 'baseball_mlb' && liveMlbEvents.length > 0) {
 const wnbaLatestPlays = {};
 
 const liveWnbaEvents =
-  (sport === 'basketball_wnba' || sport === 'basketball_nba')
+  (
+    sport === 'basketball_wnba' ||
+    sport === 'basketball_nba' ||
+    sport === 'basketball_ncaab' ||
+    sport === 'basketball_wncaab'
+  )
     ? (data.events || []).filter(
         event => event.status?.type?.state === 'in'
       )
@@ -752,6 +757,9 @@ if (!summaryResponse.ok) return;
           return (
             typeId === '16' ||
             typeId === '19' ||
+            typeId === '578' ||
+            typeId === '579' ||
+            typeId === '580' ||
             (typeText.includes('foul') && typeText !== 'no foul') ||
             typeText.includes('shot') ||
             typeText.includes('free throw') ||
@@ -1106,8 +1114,13 @@ const games = (data.events || []).map(event => {
             ? mlbSeriesData[event.id]?.homeLosses ?? null
             : null,
 
-    basketballRecentNotificationPlays:
-      (sport === 'basketball_wnba' || sport === 'basketball_nba')
+      basketballRecentNotificationPlays:
+      (
+        sport === 'basketball_wnba' ||
+        sport === 'basketball_nba' ||
+        sport === 'basketball_ncaab' ||
+        sport === 'basketball_wncaab'
+      )
         ? wnbaLatestPlays[event.id]?.recentNotificationPlays ?? []
         : [],
 

@@ -4903,7 +4903,12 @@ context =
       ? `• ${penaltyPeriodLabel}<span style="display:inline-block; margin-left:8px;">${penaltyEvent.clock}</span>`
       : '';
 } else if (
-  (selectedSport === 'basketball_wnba' || selectedSport === 'basketball_nba') &&
+  (
+    selectedSport === 'basketball_wnba' ||
+    selectedSport === 'basketball_nba' ||
+    selectedSport === 'basketball_ncaab' ||
+    selectedSport === 'basketball_wncaab'
+  ) &&
   window.scoBasketballFoulCache?.[getGameKey(game)] &&
   Date.now() -
     window.scoBasketballFoulCache[getGameKey(game)].detectedAt <= 10000
@@ -4916,23 +4921,37 @@ context =
   const foulPeriod = Number(foulEvent.period) || 0;
 
   const foulPeriodLabel =
-    foulPeriod > 4
-      ? `OT${foulPeriod - 4}`
-      : `Q${foulPeriod}`;
+    selectedSport === 'basketball_ncaab'
+      ? (
+          foulPeriod > 2
+            ? `OT${foulPeriod - 2}`
+            : `${foulPeriod}H`
+        )
+      : (
+          foulPeriod > 4
+            ? `OT${foulPeriod - 4}`
+            : `Q${foulPeriod}`
+        );
 
   context =
     foulPeriod && foulEvent.clock
       ? `• ${foulPeriodLabel}<span style="display:inline-block; margin-left:8px;">${foulEvent.clock}</span>`
       : '';
 } else if (
-  (selectedSport === 'basketball_wnba' || selectedSport === 'basketball_nba') &&
+  (
+    selectedSport === 'basketball_wnba' ||
+    selectedSport === 'basketball_nba' ||
+    selectedSport === 'basketball_ncaab' ||
+    selectedSport === 'basketball_wncaab'
+  ) &&
   window.scoBasketballTimeoutCache?.[getGameKey(game)]?.active === true
 ) {
   const timeoutEvent =
     window.scoBasketballTimeoutCache[getGameKey(game)];
 
   statusLabel =
-    timeoutEvent.typeId === '19'
+    timeoutEvent.typeId === '19' ||
+    timeoutEvent.typeId === '580'
       ? 'OFFICIALS TIMEOUT'
       : 'TIMEOUT';
 
@@ -4940,9 +4959,17 @@ context =
   const timeoutClock = espn.clock || timeoutEvent.clock || '';
 
   const timeoutPeriodLabel =
-    timeoutPeriod > 4
-      ? `OT${timeoutPeriod - 4}`
-      : `Q${timeoutPeriod}`;
+    selectedSport === 'basketball_ncaab'
+      ? (
+          timeoutPeriod > 2
+            ? `OT${timeoutPeriod - 2}`
+            : `${timeoutPeriod}H`
+        )
+      : (
+          timeoutPeriod > 4
+            ? `OT${timeoutPeriod - 4}`
+            : `Q${timeoutPeriod}`
+        );
 
   context =
     timeoutPeriod && timeoutClock
@@ -5983,7 +6010,7 @@ function buildBasketballLinescore(espn, sport) {
 
   const showRecentTimeout =
     timeoutCache &&
-    String(timeoutCache.typeId) === '16' &&
+    ['16', '578', '579'].includes(String(timeoutCache.typeId)) &&
     timeoutCache.active === true;
 
   const awayCalledTimeout =
@@ -7571,7 +7598,12 @@ latestPollingGames.forEach(game => {
     }
   }
 
-    if (sport === 'basketball_wnba' || sport === 'basketball_nba') {
+    if (
+      sport === 'basketball_wnba' ||
+      sport === 'basketball_nba' ||
+      sport === 'basketball_ncaab' ||
+      sport === 'basketball_wncaab'
+    ) {
     const recentBasketballPlays =
       Array.isArray(freshEspnGame.basketballRecentNotificationPlays)
         ? freshEspnGame.basketballRecentNotificationPlays
@@ -7652,7 +7684,7 @@ latestPollingGames.forEach(game => {
         const eventAge = Date.now() - eventTime;
 
         const isTeamTimeout =
-          String(play.typeId) === '16' &&
+          ['16', '578', '579'].includes(String(play.typeId)) &&
           play.teamId != null &&
           (
             String(play.teamId) === String(freshEspnGame.awayTeamId) ||
@@ -7660,7 +7692,8 @@ latestPollingGames.forEach(game => {
           );
 
         const isOfficialsTimeout =
-          String(play.typeId) === '19';
+          String(play.typeId) === '19' ||
+          String(play.typeId) === '580';
 
         return (
           (isTeamTimeout || isOfficialsTimeout) &&
