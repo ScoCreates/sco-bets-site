@@ -482,7 +482,8 @@ async function fetchEspnGames(requestedSport, date) {
   const urls =
     requestedSport === 'americanfootball_ncaaf'
       ? [url, `${url}&groups=81`]
-      : requestedSport === 'basketball_wncaab'
+      : requestedSport === 'basketball_wncaab' ||
+        requestedSport === 'basketball_ncaab'
         ? [`${url}&groups=50&limit=500`]
         : [url];
 
