@@ -5604,23 +5604,23 @@ return `
                   data-return-at="${game.scoEstimatedHalftimeReturnAt}"
                   style="font-size:12px; font-weight:700;"
                 >
-Estimated return in ${(() => {
+${(() => {
   const remainingSeconds = Math.ceil(
     (Number(game.scoEstimatedHalftimeReturnAt) - Date.now()) / 1000
   );
 
   if (!Number.isFinite(remainingSeconds)) {
-    return '--';
+    return 'Estimated return unavailable';
   }
 
   if (remainingSeconds <= 0) {
-    return '0:00';
+    return 'Expected to resume shortly';
   }
 
   const minutes = Math.floor(remainingSeconds / 60);
   const seconds = remainingSeconds % 60;
 
-  return `${minutes}:${String(seconds).padStart(2, '0')}`;
+  return `Estimated return in ${minutes}:${String(seconds).padStart(2, '0')}`;
 })()}
                 </div>
                 <div style="margin-top:2px; font-size:10px; opacity:0.7;">
