@@ -6206,6 +6206,14 @@ const getValue = (linescores, period) => {
   if (found) {
     const value = found.displayValue;
 
+    if (
+      period === currentPeriod &&
+      espn.statusState === 'in' &&
+      (value === '0' || value === 0 || value === '' || value == null)
+    ) {
+      return '';
+    }
+
     return value === '' || value == null
       ? '0'
       : value;
