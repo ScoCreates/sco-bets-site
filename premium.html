@@ -6570,6 +6570,14 @@ function toggleWhy(contentId, el) {
            const home = card.getAttribute('data-home-team') || '';
 
            if (away === selectedTeam || home === selectedTeam) {
+      const scheduledGamesDetails =
+        card.closest('#scheduled-games-without-odds details');
+
+      if (scheduledGamesDetails) {
+        scheduledGamesDetails.open = true;
+        window.scoScheduledGamesExpanded = true;
+      }
+
       returnScrollPosition = window.scrollY;
 
       const navButton = document.getElementById('nav-home-button');
@@ -8502,6 +8510,11 @@ window.getExpectedMarketVerificationInterval =
 
     const games = Array.isArray(payload.games) ? payload.games : [];
 
+    const scheduledGamesWithoutOdds =
+      Array.isArray(payload.scheduledGamesWithoutOdds)
+        ? payload.scheduledGamesWithoutOdds
+        : [];
+
 let freshEspnGames = [];
 
 try {
@@ -8760,6 +8773,13 @@ const normalizeScoreboardTeamName = value => {
     return 'houstondynamo';
   }
 
+  if (
+    sport === 'basketball_wncaab' &&
+    normalized === 'hamptonpirates'
+  ) {
+    return 'hamptonladypirates';
+  }
+
   return normalized;
 };
 
@@ -8770,7 +8790,7 @@ const freshEspnByMatchup = new Map(
   ])
 );
 
-games.forEach(game => {
+[...games, ...scheduledGamesWithoutOdds].forEach(game => {
   const existingEspnId =
     String(game?.espnStatus?.id || '');
 
@@ -9301,7 +9321,24 @@ try {
 if (statTodayGames) {
   const todayLocalDate = new Date().toLocaleDateString('en-CA');
 
-  const todayGames = games.filter(game => {
+  const todayGames = [...new Map(
+    [...games, ...(
+      sport === 'basketball_ncaab' ||
+      sport === 'basketball_wncaab'
+        ? scheduledGamesWithoutOdds
+        : []
+    )].map(game => {
+      const espnId =
+        game?.freshEspnStatus?.id ||
+        game?.espnStatus?.id;
+
+      const key = espnId
+        ? `espn_${espnId}`
+        : `${normalizeScoreboardTeamName(game.away)}_${normalizeScoreboardTeamName(game.home)}_${String(game.commence_time || '').slice(0, 10)}`;
+
+      return [key, game];
+    })
+  ).values()].filter(game => {
     if (!game.commence_time) return false;
 
     const gameLocalDate =
@@ -10746,6 +10783,40 @@ const mergedGames = [
   ...retainedFinalGames
 ];
 
+if (
+  sport === 'basketball_ncaab' ||
+  sport === 'basketball_wncaab'
+) {
+  const seenFinalEspnIds = new Set();
+
+  for (let i = mergedGames.length - 1; i >= 0; i--) {
+    const game = mergedGames[i];
+
+    const espnId = String(
+      game?.freshEspnStatus?.id ||
+      game?.espnStatus?.id ||
+      game?.espnStatus?.gameId ||
+      ''
+    );
+
+    const isFinal =
+      game.status === 'final' ||
+      game.isRetainedFinalCard === true ||
+      game.freshEspnStatus?.statusState === 'post' ||
+      game.espnStatus?.statusState === 'post';
+
+    if (!isFinal || !espnId) {
+      continue;
+    }
+
+    if (seenFinalEspnIds.has(espnId)) {
+      mergedGames.splice(i, 1);
+    } else {
+      seenFinalEspnIds.add(espnId);
+    }
+  }
+}
+
 mergedGames.forEach(game => {
   const gameKey = getGameKey(game);
   const cachedFinal =
@@ -10817,7 +10888,50 @@ const visibleGames = mergedGames.filter(game => {
   );
 });
 	  	  
-  const sortedGames = [...visibleGames].sort((a, b) => {
+    const hasUsableOdds = game =>
+    (game.bookmakers || []).some(book => {
+      const odds = Array.isArray(book.odds) ? book.odds : [];
+
+      const hasAwayPrice = odds.some(outcome =>
+        outcome.name === game.away &&
+        Number.isFinite(Number(outcome.price)) &&
+        Number(outcome.price) !== 0
+      );
+
+      const hasHomePrice = odds.some(outcome =>
+        outcome.name === game.home &&
+        Number.isFinite(Number(outcome.price)) &&
+        Number(outcome.price) !== 0
+      );
+
+      return hasAwayPrice && hasHomePrice;
+    });
+
+  const gamesWithUsableOdds = visibleGames.filter(game =>
+    hasUsableOdds(game) ||
+    game.isFinalTransitionCard === true ||
+    game.isRetainedFinalCard === true
+  );
+
+  const gamesWithoutUsableOdds = visibleGames.filter(game =>
+    !hasUsableOdds(game) &&
+    game.isFinalTransitionCard !== true &&
+    game.isRetainedFinalCard !== true
+  );
+
+  const allGamesWithoutOdds = [
+    ...gamesWithoutUsableOdds,
+    ...scheduledGamesWithoutOdds
+  ];
+
+  const sortedGames = [
+    ...(
+      sport === 'basketball_ncaab' ||
+      sport === 'basketball_wncaab'
+        ? gamesWithUsableOdds
+        : visibleGames
+    )
+  ].sort((a, b) => {
   const aIsFinalTransition =
     a.isFinalTransitionCard === true ||
     a.isRetainedFinalCard === true;
@@ -10982,7 +11096,7 @@ if (aIsFinal && bIsFinal) {
         if (teamSelect) {
                           const teams = new Set();
 
-                          sortedGames.forEach(game => {
+                           [...sortedGames, ...allGamesWithoutOdds].forEach(game => {
                                const awayTeam = game.away || game.away_team || '';
                                const homeTeam = game.home || game.home_team || '';
 
@@ -11264,6 +11378,177 @@ ${gameSignal ? `
         `;
         }).join('');
 
+        const scheduledGamesSection = document.createElement('div');
+        scheduledGamesSection.id = 'scheduled-games-without-odds';
+
+        const scheduledGamesDetails = document.createElement('details');
+
+        scheduledGamesDetails.open =
+          window.scoScheduledGamesExpanded === true;
+
+        scheduledGamesDetails.addEventListener('toggle', () => {
+          window.scoScheduledGamesExpanded =
+            scheduledGamesDetails.open;
+        });
+
+        scheduledGamesDetails.innerHTML = `
+          <summary style="
+            cursor:pointer;
+            padding:14px 16px;
+            margin-top:18px;
+            border-radius:12px;
+            background:rgba(17,24,39,0.85);
+            border:1px solid rgba(255,255,255,0.08);
+            color:#fff;
+            font-weight:600;
+          ">
+        Scheduled Games Without Odds
+          </summary>
+        `;
+
+        scheduledGamesSection.appendChild(scheduledGamesDetails);
+
+        const scheduledGamesCards = document.createElement('div');
+        scheduledGamesCards.id = 'scheduled-games-cards';
+        scheduledGamesCards.style.marginTop = '12px';
+
+        scheduledGamesDetails.appendChild(scheduledGamesCards);
+
+        const pricedGameKeys = new Set(
+          gamesWithUsableOdds.map(game => getGameKey(game))
+        );
+
+        const pricedEspnIds = new Set(
+          gamesWithUsableOdds
+            .map(game =>
+              String(
+                game.freshEspnStatus?.id ||
+                game.espnStatus?.id ||
+                ''
+              )
+            )
+            .filter(Boolean)
+        );
+
+        const seenUnpricedGameKeys = new Set();
+        const seenUnpricedEspnIds = new Set();
+
+        scheduledGamesCards.innerHTML =
+          (
+            sport === 'basketball_ncaab' ||
+            sport === 'basketball_wncaab'
+              ? allGamesWithoutOdds
+              : []
+          )
+            .filter(game => {
+              const gameDate = new Date(game.commence_time);
+
+              if (!Number.isFinite(gameDate.getTime())) {
+                return false;
+              }
+
+              const todayStart = new Date();
+              todayStart.setHours(0, 0, 0, 0);
+
+              const dayAfterTomorrow = new Date(todayStart);
+              dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+
+              if (
+                gameDate < todayStart ||
+                gameDate >= dayAfterTomorrow
+              ) {
+                return false;
+              }
+
+              const gameKey = getGameKey(game);
+
+              if (
+                pricedGameKeys.has(gameKey) ||
+                seenUnpricedGameKeys.has(gameKey)
+              ) {
+                return false;
+              }
+
+              const espn =
+                game.freshEspnStatus ||
+                game.espnStatus ||
+                {};
+
+              const espnId = String(espn.id || '');
+
+              if (
+                espnId &&
+                (
+                  pricedEspnIds.has(espnId) ||
+                  seenUnpricedEspnIds.has(espnId)
+                )
+              ) {
+                return false;
+              }
+
+              const statusState =
+                String(espn.statusState || '').toLowerCase();
+
+              const isEligible =
+                (statusState === 'pre' || statusState === 'in') &&
+                !authoritativeCompletedGameKeys.has(gameKey);
+
+              if (!isEligible) {
+                return false;
+              }
+
+              seenUnpricedGameKeys.add(gameKey);
+
+              if (espnId) {
+                seenUnpricedEspnIds.add(espnId);
+              }
+
+              return true;
+            })
+            .map(game => {
+            const title = getGameTitle(game);
+            const gameCardId = `game-${getGameKey(game)}`;
+            const awayTeam = game.away || '';
+            const homeTeam = game.home || '';
+
+            return `
+              <div
+                id="${gameCardId}"
+                class="odds-item game-card"
+                data-away-team="${awayTeam}"
+                data-home-team="${homeTeam}"
+                style="
+                  padding:16px;
+                  margin-bottom:12px;
+                  border-radius:14px;
+                  background:rgba(17,24,39,0.85);
+                  border:1px solid rgba(255,255,255,0.08);
+                "
+              >
+                <div class="game-summary-header">
+                  <div class="game-summary-left">
+                    <div class="game-summary-title">${title}</div>
+                    <div class="muted" style="margin-top:6px;">
+                      No sportsbook odds currently available
+                    </div>
+                  </div>
+
+                  <div class="game-summary-right">
+                    ${buildMiniScoreboard(game)}
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+        const scheduledGamesSummary =
+          scheduledGamesDetails.querySelector('summary');
+
+        if (scheduledGamesSummary) {
+          scheduledGamesSummary.textContent =
+            `Scheduled Games Without Odds (${scheduledGamesCards.children.length})`;
+        }
+
         window.scoFinalCardTimers =
           window.scoFinalCardTimers || {};
 
@@ -11337,6 +11622,10 @@ ${gameSignal ? `
         });
 
         renderBiggestMoversCard();
+
+        if (scheduledGamesCards.children.length > 0) {
+          list.appendChild(scheduledGamesSection);
+        }
 
         if (visibleGameAnchor) {
           const restoredGameCard =
