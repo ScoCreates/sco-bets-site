@@ -6605,10 +6605,20 @@ function toggleWhy(contentId, el) {
                const yOffset = -80;
      const y = card.getBoundingClientRect().top + window.pageYOffset + yOffset;
 
-     window.scrollTo({
+      window.scrollTo({
                    top: y,
                    behavior: 'smooth'
                });
+
+     // Temporarily highlight the game selected through Team Search.
+     card.style.transition = 'box-shadow 0.3s ease, background-color 0.3s ease';
+     card.style.boxShadow = '0 0 0 2px #00ff88, 0 0 18px rgba(0,255,136,0.25)';
+     card.style.backgroundColor = 'rgba(0,255,136,0.08)';
+
+     setTimeout(() => {
+       card.style.boxShadow = '';
+       card.style.backgroundColor = '';
+     }, 3500);
 
      // Reset the Team Selector without changing the scroll position.
      teamSelect.value = '';
@@ -11402,7 +11412,8 @@ ${gameSignal ? `
             margin-top:18px;
             border-radius:12px;
             background:rgba(17,24,39,0.85);
-            border:1px solid rgba(255,255,255,0.08);
+            border:1px solid rgba(34,197,94,0.55);
+            font-size:17px;
             color:#fff;
             font-weight:600;
           ">
