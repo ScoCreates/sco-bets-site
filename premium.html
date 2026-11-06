@@ -10923,7 +10923,10 @@ const visibleGames = mergedGames.filter(game => {
   const allGamesWithoutOdds = [
     ...gamesWithoutUsableOdds,
     ...scheduledGamesWithoutOdds
-  ];
+  ].sort((a, b) => {
+    return new Date(a.commence_time).getTime() -
+           new Date(b.commence_time).getTime();
+  });
 
   const sortedGames = [
     ...(
