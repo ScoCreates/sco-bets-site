@@ -94,6 +94,7 @@ body {
   color: #04110a;
   border-radius: 10px;
   padding: 10px 16px;
+  min-width: 121px;
   font-weight: 700;
   border: none;
   cursor: pointer;
@@ -1996,8 +1997,8 @@ window.addEventListener("DOMContentLoaded", checkAccess);
 </div>
 
 <div class="container" id="sco-dashboard-view">
-  <div class="dashboard-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:0px;">
-    <div>
+  <div class="dashboard-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:0px; flex-wrap:wrap; margin-bottom:0px;">
+    <div style="width:570px; flex:0 1 570px;">
       <h1>Sports Betting <span class="dashboard-title-break">Intelligence Dashboard</span></h1>
       
       <p class="premium-trust-line" style="margin: 6px 0 14px 0;">
@@ -2025,7 +2026,7 @@ window.addEventListener("DOMContentLoaded", checkAccess);
 
     <div>
       <label for="team-select" class="sport-label">Team:</label>
-      <select id="team-select" onchange="localStorage.setItem('selectedTeam', this.value); jumpToSelectedTeam();" style="margin-left:8px; padding:8px 12px; min-height:42px; border-radius:10px; background:#0f172a; color:white; border:1px solid #00ff88;">
+      <select id="team-select" onchange="localStorage.setItem('selectedTeam', this.value); jumpToSelectedTeam();" style="margin-left:8px; padding:8px 12px; min-height:42px; width:331px; max-width:100%; border-radius:10px; background:#0f172a; color:white; border:1px solid #00ff88;">
         <option value="">All Teams</option>
       </select>
     </div>
