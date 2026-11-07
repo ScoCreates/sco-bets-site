@@ -8775,6 +8775,10 @@ const normalizeScoreboardTeamName = value => {
   .replace(/\b(university|college)\b/g, '')
   .replace(/\bumass\b/g, 'massachusetts')
   .replace(/\bcal baptist\b/g, 'california baptist')
+  .replace(/\btenn[- ]martin\b/g, 'ut martin')
+  .replace(/\biupui\b/g, 'iu indianapolis')
+  .replace(/\bseattle u redhawks\b/g, 'seattle redhawks')
+  .replace(/\bprairie view aandm\b/g, 'prairie view')
   .replace(/\bn colorado\b/g, 'northern colorado')
   .replace(/\bcsu northridge\b/g, 'cal state northridge')
   .replace(/^lsu new orleans privateers$/g, 'new orleans privateers')
@@ -11259,7 +11263,9 @@ if (aIsFinal && bIsFinal) {
         if (teamSelect) {
                           const teams = new Set();
 
-                           [...sortedGames, ...allGamesWithoutOdds].forEach(game => {
+                           (sport === 'basketball_ncaab' || sport === 'basketball_wncaab'
+                             ? sortedGames
+                             : [...sortedGames, ...allGamesWithoutOdds]).forEach(game => {
                                const awayTeam = game.away || game.away_team || '';
                                const homeTeam = game.home || game.home_team || '';
 
