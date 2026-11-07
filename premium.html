@@ -2048,7 +2048,10 @@ window.addEventListener("DOMContentLoaded", checkAccess);
 
         <div style="text-align:left; flex:1;">
           <div class="stat-label">Available Games</div>
-          <div id="stat-games" class="stat-value">--</div>
+          <div style="display:flex; align-items:baseline; gap:6px; flex-wrap:nowrap; white-space:nowrap;">
+            <div id="stat-games" class="stat-value" style="flex-shrink:0;">--</div>
+            <span style="font-size:11px; color:#8b98aa; white-space:nowrap; flex-shrink:0;">(with odds)</span>
+          </div>
         </div>
 
       </div>
@@ -8772,6 +8775,7 @@ const normalizeScoreboardTeamName = value => {
   .replace(/\b(university|college)\b/g, '')
   .replace(/\bumass\b/g, 'massachusetts')
   .replace(/\bcal baptist\b/g, 'california baptist')
+  .replace(/\bn colorado\b/g, 'northern colorado')
   .replace(/\bcsu northridge\b/g, 'cal state northridge')
   .replace(/^lsu new orleans privateers$/g, 'new orleans privateers')
   .replace(/\bst\b/g, 'state')
@@ -9323,7 +9327,25 @@ try {
       espnStatusName === 'STATUS_FINAL' ||
       espnStatusState === 'post';
 
-    return !isClosed;
+        const hasUsableOdds = (game.bookmakers || []).some(book => {
+      const odds = Array.isArray(book.odds) ? book.odds : [];
+
+      const hasAwayPrice = odds.some(outcome =>
+        outcome.name === game.away &&
+        Number.isFinite(Number(outcome.price)) &&
+        Number(outcome.price) !== 0
+      );
+
+      const hasHomePrice = odds.some(outcome =>
+        outcome.name === game.home &&
+        Number.isFinite(Number(outcome.price)) &&
+        Number(outcome.price) !== 0
+      );
+
+      return hasAwayPrice && hasHomePrice;
+    });
+
+    return !isClosed && hasUsableOdds;
   });
 
   statGames.textContent = String(availableGames.length);
@@ -9438,6 +9460,10 @@ if (statTodayGames) {
     });
 
     if (
+      !(
+        sport === 'basketball_wncaab' &&
+        scheduledGamesWithoutOdds.length > 0
+      ) &&
       !games.some(game => {
         const status = String(game.status || '').toLowerCase();
 
@@ -10938,11 +10964,117 @@ const visibleGames = mergedGames.filter(game => {
            new Date(b.commence_time).getTime();
   });
 
+
+// Build a unified NCAA basketball list without changing the display yet.
+const unifiedNcaaGames = [...visibleGames];
+
+if (
+  sport === 'basketball_ncaab' ||
+  sport === 'basketball_wncaab'
+) {
+  const seenGameKeys = new Set(
+    unifiedNcaaGames.map(game => getGameKey(game))
+  );
+
+  const seenEspnIds = new Set(
+    unifiedNcaaGames
+      .map(game => String(
+        game.freshEspnStatus?.id ||
+        game.espnStatus?.id ||
+        game.espnStatus?.gameId ||
+        ''
+      ))
+      .filter(Boolean)
+  );
+
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const dayAfterTomorrow = new Date(todayStart);
+  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+
+  scheduledGamesWithoutOdds.forEach(game => {
+    const gameDate = new Date(game.commence_time);
+
+    if (
+      !Number.isFinite(gameDate.getTime()) ||
+      gameDate < todayStart ||
+      gameDate >= dayAfterTomorrow
+    ) {
+      return;
+    }
+
+    const gameKey = getGameKey(game);
+
+    // Avoid adding a second NCAA card when an odds-feed
+    // game already represents this ESPN-scheduled matchup.
+    const duplicateOddsGame = unifiedNcaaGames.some(existingGame => {
+      const sameAway =
+        normalizeScoreboardTeamName(existingGame.away) ===
+        normalizeScoreboardTeamName(game.away);
+
+      const sameHome =
+        normalizeScoreboardTeamName(existingGame.home) ===
+        normalizeScoreboardTeamName(game.home);
+
+      const existingStart = new Date(
+        existingGame.commence_time
+      ).getTime();
+
+      const scheduledStart = gameDate.getTime();
+
+      return (
+        sameAway &&
+        sameHome &&
+        Number.isFinite(existingStart) &&
+        existingStart === scheduledStart
+      );
+    });
+
+    if (duplicateOddsGame) {
+      return;
+    }
+
+    const espn =
+      game.freshEspnStatus ||
+      game.espnStatus ||
+      {};
+
+    const espnId = String(espn.id || '');
+
+    if (
+      seenGameKeys.has(gameKey) ||
+      (espnId && seenEspnIds.has(espnId)) ||
+      authoritativeCompletedGameKeys.has(gameKey)
+    ) {
+      return;
+    }
+
+    const statusState =
+      String(espn.statusState || '').toLowerCase();
+
+    if (
+      statusState !== 'pre' &&
+      statusState !== 'in'
+    ) {
+      return;
+    }
+
+    unifiedNcaaGames.push(game);
+    seenGameKeys.add(gameKey);
+
+    if (espnId) {
+      seenEspnIds.add(espnId);
+    }
+  });
+}
+
+
   const sortedGames = [
     ...(
       sport === 'basketball_ncaab' ||
       sport === 'basketball_wncaab'
-        ? gamesWithUsableOdds
+        ? unifiedNcaaGames
         : visibleGames
     )
   ].sort((a, b) => {
@@ -10981,7 +11113,24 @@ const visibleGames = mergedGames.filter(game => {
       return aIsFinalTransition ? -1 : 1;
     }
   }
-      
+
+// NCAA basketball: sort by scheduled start time first.
+// Existing status and betting-edge sorting breaks ties.
+if (
+  sport === 'basketball_ncaab' ||
+  sport === 'basketball_wncaab'
+) {
+  const timeA = new Date(getGameCommenceTime(a)).getTime();
+  const timeB = new Date(getGameCommenceTime(b)).getTime();
+
+  if (
+    Number.isFinite(timeA) &&
+    Number.isFinite(timeB) &&
+    timeA !== timeB
+  ) {
+    return timeA - timeB;
+  }
+}
 	    const statusA = formatGameStatus(getGameCommenceTime(a), a);
         const statusB = formatGameStatus(getGameCommenceTime(b), b);
 
@@ -11165,7 +11314,29 @@ if (aIsFinal && bIsFinal) {
                        getGameKey(game) === currentBestArb.gameKey;
 
         const bookmakerCount = (game.bookmakers || []).length;
-        const hasLimitedMarketCoverage = bookmakerCount < 2;
+const hasLimitedMarketCoverage = bookmakerCount < 2;
+
+const isNcaaBasketball =
+  sport === 'basketball_ncaab' ||
+  sport === 'basketball_wncaab';
+
+const usableBookmakerCount = (game.bookmakers || []).filter(book => {
+  const odds = Array.isArray(book.odds) ? book.odds : [];
+
+  const hasAwayPrice = odds.some(outcome =>
+    outcome.name === game.away &&
+    Number.isFinite(Number(outcome.price)) &&
+    Number(outcome.price) !== 0
+  );
+
+  const hasHomePrice = odds.some(outcome =>
+    outcome.name === game.home &&
+    Number.isFinite(Number(outcome.price)) &&
+    Number(outcome.price) !== 0
+  );
+
+  return hasAwayPrice && hasHomePrice;
+}).length;
 
         const gameSignal = isFinalGame
           ? ''
@@ -11360,7 +11531,7 @@ if (isFinalStatus) {
                                       `;
                                     })()}
 
-                                    ${!hasArbitrage ? `
+                                    ${!hasArbitrage && (!isNcaaBasketball || usableBookmakerCount > 0) ? `
                                       <div class="game-market-signal">
                                             ${bestGameEdge > 0
                                                  ? `⭐ Best value: ${bestGameEdgeObj.team} +${bestGameEdge.toFixed(1)}%`
@@ -11374,9 +11545,17 @@ if (isFinalStatus) {
                               </div>
                         </div>
 
-${hasLimitedMarketCoverage && !isFinalStatus ? `
+${!isFinalStatus && (
+  isNcaaBasketball
+    ? usableBookmakerCount < 2
+    : hasLimitedMarketCoverage
+) ? `
   <div class="limited-market-warning">
-    Limited market coverage — verify pricing before betting
+    ${isNcaaBasketball
+      ? usableBookmakerCount === 0
+        ? 'No Odds Available'
+        : 'Limited Odds'
+      : 'Limited market coverage — verify pricing before betting'}
   </div>
 ` : ''}
 
@@ -11638,7 +11817,9 @@ ${gameSignal ? `
 
         renderBiggestMoversCard();
 
-        if (scheduledGamesCards.children.length > 0) {
+        // The unified NCAA game list now includes games without odds.
+        // Keep the old section code temporarily for safe rollback.
+        if (false && scheduledGamesCards.children.length > 0) {
           list.appendChild(scheduledGamesSection);
         }
 
