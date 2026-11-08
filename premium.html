@@ -11486,6 +11486,38 @@ if (isFinalStatus) {
                                 <div class="game-summary-left">
                                      <div class="game-summary-title">${title}</div>
 
+${(() => {
+  const updateTimes = (game.bookmakers || [])
+    .map(book => new Date(book.lastUpdate).getTime())
+    .filter(time =>
+      Number.isFinite(time) &&
+      time > 0 &&
+      time <= Date.now()
+    );
+
+  if (!updateTimes.length) return '';
+
+  const latestUpdate = Math.max(...updateTimes);
+  const secondsAgo = Math.floor(
+    (Date.now() - latestUpdate) / 1000
+  );
+
+  const formattedTime = new Date(latestUpdate).toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit'
+  });
+
+  const ageText = secondsAgo < 60
+    ? `${secondsAgo}s ago`
+    : `${Math.floor(secondsAgo / 60)}m ago`;
+
+  return `
+    <div style="font-size:11px; color:#9ca3af; margin-top:-20px; margin-bottom:12px;">
+      Latest odds update: ${formattedTime} &middot; ${ageText}
+    </div>
+  `;
+})()}
+
                                                                         ${formatMlbSeriesContext(game) ? `
                                       <div class="game-series-context">
                                         ${formatMlbSeriesContext(game)}
