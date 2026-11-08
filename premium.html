@@ -254,7 +254,6 @@ body {
 }
 
 .card:hover {
-  transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.16);
   border: 1px solid rgba(0,255,136,0.25);
 }
@@ -1577,11 +1576,56 @@ button:active {
   margin-bottom: 6px;
 }
 
+/* Animated clock for expired halftime countdowns */
+.halftime-waiting-clock {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  margin-right: 5px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  position: relative;
+  vertical-align: -1px;
+}
+
+.football-halftime-countdown {
+  font-variant-numeric: tabular-nums;
+}
+
+.halftime-waiting-clock::after {
+  content: '';
+  position: absolute;
+  width: 1.5px;
+  height: 4px;
+  background: currentColor;
+  left: 4px;
+  top: 1px;
+  transform-origin: center 4px;
+  animation: halftime-clock-spin 3s linear infinite;
+}
+
+@keyframes halftime-clock-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .halftime-waiting-clock::after {
+    animation: none;
+  }
+}
+
 .game-summary-right {
   display: flex;
   justify-content: flex-start;
   width: 650px;
   padding-right: 0;
+}
+
+@media (min-width: 769px) {
+  .game-summary-right.ncaa-scoreboard-adjust {
+    transform: translateX(12px);
+  }
 }
 
 .game-summary-left {
@@ -2002,7 +2046,7 @@ window.addEventListener("DOMContentLoaded", checkAccess);
       <h1>Sports Betting <span class="dashboard-title-break">Intelligence Dashboard</span></h1>
       
       <p class="premium-trust-line" style="margin: 6px 0 14px 0;">
-        Compare odds, track market movement, and identify value before placing a bet.
+        Compare odds. Track market movement. Find value before betting.
       </p>
     </div>
 
@@ -2247,7 +2291,7 @@ window.addEventListener("DOMContentLoaded", checkAccess);
   ></span>
   <span id="odds-status-text">Loading live odds...</span>
 </div>
-  <div id="last-updated" class="muted" style="margin-top:4px;"></div>
+  <div id="last-updated" class="muted" style="margin-top:-6px;"></div>
 
   <div class="helper-toggle" onclick="toggleWhy('odds-help-content', this)">
     <span class="helper-arrow">▶</span>
@@ -4772,6 +4816,14 @@ if (liveStatusText.includes('halftime')) {
 
   const halftimeGameKey = getGameKey(game);
 
+  if (selectedSport === 'basketball_ncaab') {
+    window.scoNcaaHalftimeLastSeen =
+      window.scoNcaaHalftimeLastSeen || {};
+
+    window.scoNcaaHalftimeLastSeen[halftimeGameKey] =
+      Date.now();
+  }
+
   const halftimeStartedAt =
   window.scoHalftimeStartedAt?.[halftimeGameKey];
 
@@ -5455,7 +5507,18 @@ window.scoMlsClockState[mlsClockGameKey] = {
     liveStatusText.includes('end of quarter')
   )
 ) {
-  context = `• End ${basketballPeriodLabel}`;
+  const halftimeLastSeen =
+    window.scoNcaaHalftimeLastSeen?.[getGameKey(game)] || 0;
+
+  const isNcaaSecondHalfTransition =
+    selectedSport === 'basketball_ncaab' &&
+    basketballPeriod === 2 &&
+    halftimeLastSeen > 0 &&
+    Date.now() - halftimeLastSeen < 60 * 1000;
+
+  context = isNcaaSecondHalfTransition
+    ? `• ${basketballPeriodLabel}`
+    : `• End ${basketballPeriodLabel}`;
 } else if (
   selectedSport.includes('basketball') &&
   espn.clock &&
@@ -5618,7 +5681,20 @@ ${(() => {
   }
 
   if (remainingSeconds <= 0) {
-    return 'Expected to resume shortly';
+    const elapsedSeconds = Math.max(
+      0,
+      Math.floor(
+        (Date.now() - Number(game.scoEstimatedHalftimeReturnAt)) / 1000
+      )
+    );
+
+    const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+    const elapsedRemainder = elapsedSeconds % 60;
+
+    return '<span class="halftime-waiting-clock" aria-hidden="true" style="animation:none;"></span>' +
+      'Will resume soon · +' +
+      String(elapsedMinutes).padStart(2, '0') + ':' +
+      String(elapsedRemainder).padStart(2, '0');
   }
 
   const minutes = Math.floor(remainingSeconds / 60);
@@ -8781,6 +8857,7 @@ const normalizeScoreboardTeamName = value => {
   .replace(/\bprairie view aandm\b/g, 'prairie view')
   .replace(/\bn colorado\b/g, 'northern colorado')
   .replace(/\bcsu northridge\b/g, 'cal state northridge')
+  .replace(/\bcsu bakersfield\b/g, 'cal state bakersfield')
   .replace(/^lsu new orleans privateers$/g, 'new orleans privateers')
   .replace(/\bst\b/g, 'state')
   .replace(/[^a-z0-9]/g, '');
@@ -9532,6 +9609,12 @@ if (statTodayGames) {
           message: 'Odds will automatically appear here when the next NFL markets are available.',
           useNextScheduledDate: true,
           nextGameLabel: 'NFL'
+        },
+        soccer_usa_mls: {
+          title: '⚽ No MLS games scheduled for today',
+          message: 'MLS odds will automatically appear here when sportsbook markets are available.',
+          useNextScheduledDate: true,
+          nextGameLabel: 'MLS'
         }
 
                 };
@@ -11578,9 +11661,9 @@ ${(() => {
              ` : ''}
                                 </div>
 
-                               <div class="game-summary-right">
-                                     ${buildMiniScoreboard(game)}
-                              </div>
+                               <div class="game-summary-right${isNcaaBasketball ? ' ncaa-scoreboard-adjust' : ''}">
+                                    ${buildMiniScoreboard(game)}
+                               </div>
                         </div>
 
 ${!isFinalStatus && (
@@ -12436,10 +12519,23 @@ function updateFootballHalftimeCountdown() {
         (returnAt - Date.now()) / 1000
       );
 
-      if (remainingSeconds <= 0) {
-        element.textContent = 'Expected to resume shortly';
-        return;
-      }
+    if (remainingSeconds <= 0) {
+      const elapsedSeconds = Math.max(
+        0,
+        Math.floor((Date.now() - returnAt) / 1000)
+      );
+
+      const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+      const elapsedRemainder = elapsedSeconds % 60;
+
+      element.innerHTML =
+        '<span class="halftime-waiting-clock" aria-hidden="true" style="animation:none;"></span>' +
+        'Will resume soon · +' +
+        String(elapsedMinutes).padStart(2, '0') + ':' +
+        String(elapsedRemainder).padStart(2, '0');
+
+      return;
+    }
 
       const minutes = Math.floor(remainingSeconds / 60);
       const seconds = remainingSeconds % 60;
@@ -12479,7 +12575,7 @@ if (backToTopButton) {
   backToTopButton.addEventListener('click', () => {
     window.scrollTo({
       top: 0,
-      behavior: 'smooth'
+      behavior: 'instant'
     });
   });
 
