@@ -7037,6 +7037,13 @@ const freshGames =
 const normalizeTeam = value => {
   const normalized = String(value || '')
     .toLowerCase()
+    .replace(/\bst\b/g, 'state')
+    .replace(
+      /\bnorthwestern state demons\b/g,
+      sport === 'basketball_wncaab'
+        ? 'northwestern state lady demons'
+        : 'northwestern state demons'
+    )
     .replace(/[^a-z0-9]/g, '');
 
     if (
@@ -8853,6 +8860,8 @@ const normalizeScoreboardTeamName = value => {
   .replace(/\bcal baptist\b/g, 'california baptist')
   .replace(/\btenn[- ]martin\b/g, 'ut martin')
   .replace(/\biupui\b/g, 'iu indianapolis')
+  .replace(/\bnorthwestern state demons\b/g, 'northwestern state lady demons')
+  .replace(/\bnorthwestern st demons\b/g, 'northwestern state lady demons')
   .replace(/\bseattle u redhawks\b/g, 'seattle redhawks')
   .replace(/\bprairie view aandm\b/g, 'prairie view')
   .replace(/\bn colorado\b/g, 'northern colorado')
