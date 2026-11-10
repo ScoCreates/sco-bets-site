@@ -6721,6 +6721,7 @@ const ODDS_POLL_IDLE_MS = 8 * 60 * 60 * 1000;     // 8 hours
 
 let oddsPollTimer = null;
 let latestPollingGames = [];
+let latestEspnOnlyNcaaGames = [];
 const nextScheduledGameCache = {};
 
 async function getNextScheduledGameDate(sport) {
@@ -6959,6 +6960,10 @@ async function refreshIndependentScoreboards() {
   if (
     sport === 'basketball_ncaab' &&
     latestPollingGames.length > 0 &&
+    latestEspnOnlyNcaaGames.every(game =>
+      game.freshEspnStatus?.statusState !== 'in' &&
+      game.espnStatus?.statusState !== 'in'
+    ) &&
     latestPollingGames.every(game => {
       const startTime = new Date(
         game.commence_time ||
@@ -7070,7 +7075,15 @@ const normalizeTeam = value => {
   ])
 );
 
-latestPollingGames.forEach(game => {
+[
+  ...latestPollingGames,
+  ...(
+    sport === 'basketball_ncaab' ||
+    sport === 'basketball_wncaab'
+      ? latestEspnOnlyNcaaGames
+      : []
+  )
+].forEach(game => {
   const existingEspnId =
     String(
       game?.freshEspnStatus?.id ||
@@ -11062,6 +11075,7 @@ const visibleGames = mergedGames.filter(game => {
 
 
 // Build a unified NCAA basketball list without changing the display yet.
+latestEspnOnlyNcaaGames = [];
 const unifiedNcaaGames = [...visibleGames];
 
 if (
@@ -11156,7 +11170,26 @@ if (
       return;
     }
 
+    const halftimeText = String(
+      `${espn.statusName || ''} ${espn.statusDescription || ''} ${espn.statusDetail || ''}`
+    ).toLowerCase();
+
+    if (halftimeText.includes('halftime')) {
+      window.scoHalftimeStartedAt =
+        window.scoHalftimeStartedAt || {};
+
+      if (!window.scoHalftimeStartedAt[gameKey]) {
+        window.scoHalftimeStartedAt[gameKey] = Date.now();
+
+        localStorage.setItem(
+          'scoHalftimeStartedAt',
+          JSON.stringify(window.scoHalftimeStartedAt)
+        );
+      }
+    }
+
     unifiedNcaaGames.push(game);
+    latestEspnOnlyNcaaGames.push(game);
     seenGameKeys.add(gameKey);
 
     if (espnId) {
