@@ -4692,22 +4692,40 @@ const isLive =
   statusLabel = 'RESCHEDULED';
   context = '';
 } else if (isFinal) {
-  const authoritativeFinalTime = new Date(
-    game.completedObservedAt ||
+  const cachedFinal =
     window.scoFinalTransitionCache?.[selectedSport]?.[
       scoreboardGameKey
-    ]?.completedObservedAt ||
+    ];
+
+  const sharedCompletedTime =
+    game.completedObservedAt ||
+    game.serverCompletedAt ||
+    cachedFinal?.completedObservedAt ||
+    cachedFinal?.serverCompletedAt;
+
+  const provisionalFinalTime =
+    game.finalObservedAt ||
+    cachedFinal?.finalObservedAt;
+
+  const finalTimestamp = new Date(
+    sharedCompletedTime ||
+    provisionalFinalTime ||
     0
   ).getTime();
 
+  const isProvisionalFinalTime =
+    !sharedCompletedTime &&
+    Number.isFinite(finalTimestamp) &&
+    finalTimestamp > 0;
+
   const finalTimeText =
-    Number.isFinite(authoritativeFinalTime) &&
-    authoritativeFinalTime > 0
-      ? new Date(authoritativeFinalTime).toLocaleTimeString([], {
+    Number.isFinite(finalTimestamp) &&
+    finalTimestamp > 0
+      ? `${isProvisionalFinalTime ? '~' : ''}${new Date(finalTimestamp).toLocaleTimeString([], {
           hour: 'numeric',
           minute: '2-digit',
           timeZoneName: 'short'
-        })
+        })}`
       : '';
 
   statusLabel = `
@@ -8880,6 +8898,8 @@ const normalizeScoreboardTeamName = value => {
   .replace(/\bn colorado\b/g, 'northern colorado')
   .replace(/\bcsu northridge\b/g, 'cal state northridge')
   .replace(/\bcsu bakersfield\b/g, 'cal state bakersfield')
+  .replace(/^nicholls st colonels$/g, 'nicholls colonels')
+  .replace(/^nicholls state colonels$/g, 'nicholls colonels')
   .replace(/^lsu new orleans privateers$/g, 'new orleans privateers')
   .replace(/\bst\b/g, 'state')
   .replace(/[^a-z0-9]/g, '');
@@ -10327,12 +10347,29 @@ const isNonActionableForArb =
 if (implied < 1 && !isNonActionableForArb) {
         const edge = (1 - implied) * 100;
 
+     const getArbTeamShortName = teamName => {
+       const espn = currentEspnStatus;
+
+       const matchingTeam = [
+         { full: espn.awayTeam, short: espn.awayShort },
+         { full: espn.homeTeam, short: espn.homeShort }
+       ].find(team =>
+         team.full &&
+         normalizeScoreboardTeamName(team.full) ===
+           normalizeScoreboardTeamName(teamName)
+       );
+
+       return matchingTeam?.short || teamName;
+     };
+
      activeArbs.push({
                   game: getGameTitle(game),
                   gameKey: getGameKey(game),
        gameCardId: `game-${getGameKey(game)}`,
                  team1,
                  team2,
+                 team1Short: getArbTeamShortName(team1),
+                 team2Short: getArbTeamShortName(team2),
                  book1: teamPrices[team1].book,
                  book2: teamPrices[team2].book,
                  price1,
@@ -10706,7 +10743,7 @@ if (implied < 1 && !isNonActionableForArb) {
       color:#00ff88;
       font-size:20px;
       font-weight:700;
-      line-height:1.35;
+      line-height:1.25;
       cursor:pointer;
     "
     >
@@ -10726,23 +10763,23 @@ if (implied < 1 && !isNonActionableForArb) {
  <div
   onclick="scrollToGame('${arb.gameCardId}', null, ['${arb.book1}', '${arb.book2}'])"
   style="
-    margin-top:10px;
+    margin-top:6px;
     cursor:pointer;
     color:#cbd5e1;
-    font-weight:600;
+    font-weight:300;
     line-height:1.45;
   "
 >
   <div>
-    ${arb.team1} at ${arb.book1} (${arb.price1})
+    ${arb.team1Short || arb.team1} at ${arb.book1} (${arb.price1})
   </div>
 
   <div style="margin-top:4px;">
-    ${arb.team2} at ${arb.book2} (${arb.price2})
+    ${arb.team2Short || arb.team2} at ${arb.book2} (${arb.price2})
   </div>
 
   <div style="
-    margin-top:12px;
+    margin-top:8px;
     display:flex;
     gap:18px;
     justify-content:flex-start;
