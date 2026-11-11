@@ -8648,7 +8648,8 @@ let freshEspnGames = [];
 try {
   if (
     sport === 'americanfootball_ncaaf' ||
-    sport === 'basketball_ncaab'
+    sport === 'basketball_ncaab' ||
+    sport === 'basketball_wncaab'
   ) {
     const espnDates = new Set();
 
@@ -8888,6 +8889,9 @@ const normalizeScoreboardTeamName = value => {
   .replace(/\([^)]*\)/g, '')
   .replace(/\b(university|college)\b/g, '')
   .replace(/\bumass\b/g, 'massachusetts')
+  .replace(/\bmiss valley\b/g, 'mississippi valley')
+  .replace(/\bualbany\b/g, 'albany')
+  .replace(/\bgrambling state tigers\b/g, 'grambling tigers')
   .replace(/\bcal baptist\b/g, 'california baptist')
   .replace(/\btenn[- ]martin\b/g, 'ut martin')
   .replace(/\biupui\b/g, 'iu indianapolis')
