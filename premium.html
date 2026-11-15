@@ -1705,11 +1705,124 @@ button:active {
 }
 
 /* ==========================================================
+   SPREADS AND TOTALS — INFORMATION ONLY
+   ========================================================== */
+
+.sco-additional-markets {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 8px;
+  background: rgba(148, 163, 184, 0.04);
+}
+
+.sco-market-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sco-market-cell {
+  min-width: 0;
+  padding: 7px 9px;
+  border-radius: 6px;
+  background: rgba(148, 163, 184, 0.07);
+  overflow-wrap: anywhere;
+}
+
+/* Sportsbook market column headings */
+.sco-market-column-headings {
+  display: none;
+}
+
+/* Fine-tune desktop market heading alignment */
+@media (min-width: 601px) {
+  .sco-market-column-headings span:nth-child(3) {
+    transform: translateX(6px);
+  }
+
+  .sco-market-column-headings span:nth-child(4),
+  .sco-market-column-headings span:nth-child(5) {
+    transform: translateX(20px);
+  }
+
+  .sco-market-column-headings span:nth-child(6) {
+    transform: translateX(24px);
+  }
+}
+
+@media (min-width: 601px) {
+  .sco-market-column-headings {
+    display: grid;
+    grid-template-columns:
+      24px 250px 120px 135px 75px 110px 90px;
+    column-gap: 8px;
+    margin-top: 20px;
+    margin-bottom: 12px;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+}
+
+/* ==========================================================
+   DESKTOP SPREADS / TOTALS HORIZONTAL COLUMNS
+   ========================================================== */
+
+@media (min-width: 601px) {
+  .sco-additional-markets {
+    display: none !important;
+  }
+}
+
+.sco-desktop-markets-fallback {
+  display: none;
+}
+
+@media (min-width: 601px) {
+  .sco-desktop-markets-fallback {
+    display: block;
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 8px;
+  }
+}
+
+@media (min-width: 601px) {
+    .sco-horizontal-odds-row {
+    grid-template-columns:
+      24px
+      250px
+      120px
+      135px
+      75px
+      110px
+      90px !important;
+    column-gap: 8px !important;
+  }
+
+  .sco-horizontal-spread,
+  .sco-horizontal-total {
+    font-size: 12px;
+    white-space: nowrap;
+    align-self: start;
+    padding-top: 3px;
+  }
+}
+
+/* ==========================================================
    NARROW MOBILE OVERRIDES
    ========================================================== */
 
 @media (max-width: 600px) {
   .mobile-hide {
+    display: none !important;
+  }
+
+  .sco-horizontal-spread,
+  .sco-horizontal-total {
     display: none !important;
   }
 
@@ -2075,7 +2188,7 @@ window.addEventListener("DOMContentLoaded", checkAccess);
       </select>
     </div>
 
-      <button id="refresh-odds-btn" onclick="loadOdds()">Refresh Odds</button>
+      <button id="refresh-odds-btn" onclick="loadOdds().finally(() => scheduleNextOddsPoll())">Refresh Odds</button>
     </div>
   </div>
 
@@ -2699,13 +2812,47 @@ pricesByTeam[outcome.name].push(outcome.price);
     }
   });
 
-  return (game.bookmakers || []).map((book, index) => {
+  return [...(game.bookmakers || [])]
+    .sort((a, b) => {
+      const preferredOrder = [
+        'FanDuel',
+        'DraftKings',
+        'BetMGM',
+        'Fanatics',
+        'Caesars'
+      ];
+
+      const aRank = preferredOrder.indexOf(a.title);
+      const bRank = preferredOrder.indexOf(b.title);
+
+      return (aRank === -1 ? 999 : aRank) -
+             (bRank === -1 ? 999 : bRank);
+    })
+    .map((book, index) => {
     const isArbBook =
       currentBestArb &&
       getGameKey(game) === currentBestArb.gameKey &&
       (book.title === currentBestArb.book1 || book.title === currentBestArb.book2);
 
-      const oddsHtml = (book.odds || []).map(o => {
+    const spreadOutcomes = Array.isArray(book.spreads) ? book.spreads : [];
+    const totalOutcomes = Array.isArray(book.totals) ? book.totals : [];
+
+    const oddsHtml = (book.odds || []).map((o, rowIndex) => {
+      const spreadOutcome = spreadOutcomes.find(
+        outcome => outcome.name === o.name
+      );
+
+      const totalOutcome = totalOutcomes.find(
+        outcome => outcome.name.toLowerCase() === (rowIndex === 0 ? 'over' : 'under')
+      );
+
+      const spreadDisplay = spreadOutcome
+        ? `${Number(spreadOutcome.point) > 0 ? '+' : ''}${spreadOutcome.point} (${Number(spreadOutcome.price) > 0 ? '+' : ''}${spreadOutcome.price})`
+        : '—';
+
+      const totalDisplay = totalOutcome
+        ? `${rowIndex === 0 ? 'O' : 'U'} ${totalOutcome.point} (${Number(totalOutcome.price) > 0 ? '+' : ''}${totalOutcome.price})`
+        : '—';
         
       const isBest =
         bestByTeam[o.name] &&
@@ -3058,7 +3205,7 @@ pricesByTeam[outcome.name].push(outcome.price);
         rowStyle += ' padding:6px 8px; border-radius:10px; background:rgba(0,255,136,0.07); border:1px solid rgba(0,255,136,0.18);';
       }
  return `
-  <div class="odds-grid-row" style="${rowStyle}; display:grid; grid-template-columns:24px 250px 64px 110px 90px; align-items:start; gap:8px; cursor:default;">
+  <div class="odds-grid-row sco-horizontal-odds-row" style="${rowStyle}; display:grid; grid-template-columns:24px 250px 64px 110px 90px; align-items:start; gap:8px; cursor:default;">
     <input
       type="checkbox"
       class="bet-checkbox"
@@ -3099,6 +3246,14 @@ pricesByTeam[outcome.name].push(outcome.price);
                          ${freshnessLabel ? `<br>${freshnessLabel}` : ''}
                    </span>
       ` : ''}
+    </span>
+
+    <span class="sco-horizontal-spread">
+      ${spreadDisplay}
+    </span>
+
+    <span class="sco-horizontal-total">
+      ${totalDisplay}
     </span>
 
     <span class="mobile-odds-price" style="text-align:right; font-weight:700;">${sign}${o.price}</span>
@@ -3144,6 +3299,90 @@ pricesByTeam[outcome.name].push(outcome.price);
    `;
     }).join('');
 
+    const hasSpreads =
+      Array.isArray(book.spreads) && book.spreads.length >= 2;
+
+    const hasTotals =
+      Array.isArray(book.totals) && book.totals.length >= 2;
+
+    const additionalMarketsButton =
+      (book.odds || []).length < 2 && (hasSpreads || hasTotals)
+        ? game.status === 'final'
+          ? `<span style="
+               display:inline-block;
+               font-size:10px;
+               padding:3px 9px;
+               border-radius:999px;
+               background:rgba(148,163,184,0.12);
+               color:#94a3b8;
+               font-weight:600;
+             ">Closed</span>`
+          : `<a
+               href="${getSportsbookUrl(book.title)}"
+               target="_blank"
+               rel="noopener"
+               onclick="showOpenFeedback('${book.title}')"
+               style="
+                 display:inline-block;
+                 font-size:10px;
+                 padding:3px 9px;
+                 border-radius:999px;
+                 background:rgba(255,255,255,0.08);
+                 color:#cbd5e1;
+                 text-decoration:none;
+                 font-weight:600;
+                 border:1px solid rgba(255,255,255,0.08);
+               "
+               title="Open ${book.title} to verify current spreads and totals."
+             >Open</a>`
+        : '';
+
+    const spreadsHtml = hasSpreads
+      ? `
+        <div style="margin-bottom:10px;">
+          <div style="font-size:12px; font-weight:700; margin-bottom:6px;">
+            Point Spreads
+          </div>
+          <div class="sco-market-grid">
+            ${book.spreads.map(outcome => `
+              <div class="sco-market-cell">
+                <div style="font-size:11px; color:#9ca3af;">
+                  ${outcome.name}
+                </div>
+                <div style="font-size:13px; font-weight:700; margin-top:3px;">
+                  ${Number(outcome.point) > 0 ? '+' : ''}${outcome.point}
+                  (${Number(outcome.price) > 0 ? '+' : ''}${outcome.price})
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `
+      : '';
+
+    const totalsHtml = hasTotals
+      ? `
+        <div>
+          <div style="font-size:12px; font-weight:700; margin-bottom:6px;">
+            Over / Under
+          </div>
+          <div class="sco-market-grid">
+            ${book.totals.map(outcome => `
+              <div class="sco-market-cell">
+                <div style="font-size:11px; color:#9ca3af;">
+                  ${outcome.name}
+                </div>
+                <div style="font-size:13px; font-weight:700; margin-top:3px;">
+                  ${outcome.point}
+                  (${Number(outcome.price) > 0 ? '+' : ''}${outcome.price})
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `
+      : '';
+
     const hasPositiveValue = (book.odds || []).some(o => o.edgePercent > 0);
     const hasStrongValue = (book.odds || []).some(o => o.edgePercent >= 3);
 
@@ -3170,7 +3409,7 @@ pricesByTeam[outcome.name].push(outcome.price);
         <div style="margin-bottom:2px;">${getSportsbookLogo(book.title)}</div>
 
         <div style="font-size:11px; color:#9ca3af; margin-bottom:4px;">
-          ${book.holdLevel ? `
+          ${(book.odds || []).length >= 2 && book.holdLevel ? `
             <span class="hold-tooltip">
               ${book.holdLevel} (${book.marketHoldPercent}%) ⓘ
               <span class="hold-tooltip-text">
@@ -3239,6 +3478,31 @@ return `
         </div>
         ${badge}
         ${oddsHtml}
+        ${additionalMarketsButton ? `
+          <div style="margin-top:8px; margin-bottom:8px;">
+            ${additionalMarketsButton}
+          </div>
+        ` : ''}
+
+        ${(book.odds || []).length < 2 && (hasSpreads || hasTotals) ? `
+          <div class="sco-desktop-markets-fallback">
+            ${spreadsHtml}
+            ${totalsHtml}
+            <div style="font-size:10px; color:#9ca3af; margin-top:8px;">
+              Spreads and totals shown for information only
+            </div>
+          </div>
+        ` : ''}
+
+        ${spreadsHtml || totalsHtml ? `
+          <div class="sco-additional-markets">
+            ${spreadsHtml}
+            ${totalsHtml}
+            <div style="font-size:10px; color:#9ca3af; margin-top:8px;">
+              Spreads and totals shown for information only
+            </div>
+          </div>
+        ` : ''}
       </div>
     `;
     }).join('');
@@ -6736,8 +7000,10 @@ const ODDS_POLL_UPCOMING_MS = 5 * 60 * 1000;      // 5 minutes
 const ODDS_POLL_MIDRANGE_MS = 60 * 60 * 1000;     // 60 minutes
 const ODDS_POLL_FAR_FUTURE_MS = 4 * 60 * 60 * 1000; // 4 hours
 const ODDS_POLL_IDLE_MS = 8 * 60 * 60 * 1000;     // 8 hours
+const ODDS_POLL_RETRY_MS = 30 * 1000;             // 30 seconds after a failed refresh
 
 let oddsPollTimer = null;
+let oddsRefreshFailed = false;
 let latestPollingGames = [];
 let latestEspnOnlyNcaaGames = [];
 const nextScheduledGameCache = {};
@@ -6933,9 +7199,11 @@ function scheduleNextOddsPoll() {
     );
   });
 
-  const delay = hasRecentFinal
-    ? ODDS_POLL_LIVE_MS
-    : getOddsPollingInterval(latestPollingGames);
+  const delay = oddsRefreshFailed
+    ? ODDS_POLL_RETRY_MS
+    : hasRecentFinal
+      ? ODDS_POLL_LIVE_MS
+      : getOddsPollingInterval(latestPollingGames);
 
   oddsPollTimer = setTimeout(async () => {
     if (!document.hidden) {
@@ -9549,6 +9817,10 @@ if (statTodayGames) {
     const oddsHeading = document.getElementById('odds-heading');
     if (oddsHeading) oddsHeading.textContent = sportLabel;
 
+    if (loadOddsSequence === window.scoLoadOddsSequence) {
+      oddsRefreshFailed = false;
+    }
+
     const now = new Date();
     window.scoLastOddsUpdate = now;
 
@@ -11486,7 +11758,7 @@ if (aIsFinal && bIsFinal) {
                        getGameKey(game) === currentBestArb.gameKey;
 
         const bookmakerCount = (game.bookmakers || []).length;
-const hasLimitedMarketCoverage = bookmakerCount < 2;
+const hasLimitedMarketCoverage = (game.bookmakers || []).filter(book => (book.odds || []).length >= 2).length < 2;
 
 const isNcaaBasketball =
   sport === 'basketball_ncaab' ||
@@ -11769,6 +12041,18 @@ ${gameSignal ? `
   </div>
 ` : ''}
 
+                         ${(sport === 'basketball_nba' || sport === 'americanfootball_nfl') ? `
+                         <div class="sco-market-column-headings">
+                           <span></span>
+                           <span>TEAM</span>
+                           <span>SPREAD</span>
+                           <span>TOTAL</span>
+                           <span>MONEYLINE</span>
+                           <span>MOVEMENT</span>
+                           <span></span>
+                         </div>
+                         ` : ''}
+
                          ${renderBookmakersWithHighlights(game)}
 
           </div>
@@ -12043,8 +12327,25 @@ ${gameSignal ? `
         }
     }
 
-} catch (err) {
-  console.error(err);
+  } catch (err) {
+    console.error(err);
+
+  if (loadOddsSequence !== window.scoLoadOddsSequence) {
+    return;
+  }
+
+  oddsRefreshFailed = true;
+
+  if (loadOddsSequence === window.scoLoadOddsSequence) {
+    if (dashboardLoadingIndicator) {
+      dashboardLoadingIndicator.style.display = 'none';
+    }
+
+    if (dashboardLoadingText) {
+      dashboardLoadingText.textContent =
+        'Market data temporarily unavailable. Retrying shortly...';
+    }
+  }
 
   if (statusText) {
   statusText.textContent =

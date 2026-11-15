@@ -10,3 +10,8 @@ test.txt
 sco-bets-site/
 .env*
 .vercel
+# Local spreads and totals testing
+nba-markets-test.json
+nba-markets-test.mjs
+spreads-totals-test.html
+api/nba-markets-local-test.js
