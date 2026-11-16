@@ -2830,12 +2830,25 @@ pricesByTeam[outcome.name].push(outcome.price);
     })
     .map((book, index) => {
     const isArbBook =
+      !game.retainedMarket &&
       currentBestArb &&
       getGameKey(game) === currentBestArb.gameKey &&
       (book.title === currentBestArb.book1 || book.title === currentBestArb.book2);
 
-    const spreadOutcomes = Array.isArray(book.spreads) ? book.spreads : [];
-    const totalOutcomes = Array.isArray(book.totals) ? book.totals : [];
+    const enabledRowMarkets =
+      window.scoEnabledMarketsBySport?.[selectedSport] || ['h2h'];
+
+    const spreadOutcomes =
+      enabledRowMarkets.includes('spreads') &&
+      Array.isArray(book.spreads)
+        ? book.spreads
+        : [];
+
+    const totalOutcomes =
+      enabledRowMarkets.includes('totals') &&
+      Array.isArray(book.totals)
+        ? book.totals
+        : [];
 
     const oddsHtml = (book.odds || []).map((o, rowIndex) => {
       const spreadOutcome = spreadOutcomes.find(
@@ -2855,13 +2868,15 @@ pricesByTeam[outcome.name].push(outcome.price);
         : '—';
         
       const isBest =
+        !game.retainedMarket &&
         bestByTeam[o.name] &&
         bestByTeam[o.name].price === o.price &&
         bestByTeam[o.name].book === book.title;
 
       const isArbSelection =
-                    currentBestArb &&
-                   getGameKey(game) === currentBestArb.gameKey &&
+        !game.retainedMarket &&
+        currentBestArb &&
+        getGameKey(game) === currentBestArb.gameKey &&
         (
           (o.name === currentBestArb.team1 && book.title === currentBestArb.book1 && o.price === currentBestArb.price1) ||
           (o.name === currentBestArb.team2 && book.title === currentBestArb.book2 && o.price === currentBestArb.price2)
@@ -2884,7 +2899,7 @@ pricesByTeam[outcome.name].push(outcome.price);
            : 'down'
          : null;
 
-       if (lineMovement) {
+       if (!game.retainedMarket && lineMovement) {
          lineMovementTimestamps[lineKey] = Date.now();
        }
 
@@ -2918,6 +2933,7 @@ pricesByTeam[outcome.name].push(outcome.price);
                   movementAmount >= 500;
 
               if (
+                  !game.retainedMarket &&
                   !duplicateMoverExists &&
                   !isUnrealisticMove &&
                  movementAmount > 0 &&
@@ -2949,7 +2965,7 @@ pricesByTeam[outcome.name].push(outcome.price);
 
       let freshnessLabel = '';
 
-      if (secondsSinceMovement !== null) {
+      if (!game.retainedMarket && secondsSinceMovement !== null) {
 
         const minutesAgo = Math.floor(secondsSinceMovement / 60);
 
@@ -2965,6 +2981,7 @@ pricesByTeam[outcome.name].push(outcome.price);
       }
 
       const isBestOpportunity =
+        !game.retainedMarket &&
         bestEdgeKey === `${book.title}|${o.name}|${o.price}`;
 
       const consensusPrice = consensusByTeam[o.name];
@@ -2983,11 +3000,13 @@ pricesByTeam[outcome.name].push(outcome.price);
             : 25;
 
       const isLaggingMarket =
+        !game.retainedMarket &&
         (marketCount >= 3) &&
         (marketRange >= dynamicGapThreshold * 1.5) &&
         (bestByTeam[o.name]?.price === o.price);
 
       const isMarketOutlier =
+        !game.retainedMarket &&
         (marketCount >= 3) &&
         (o.price > consensusPrice) &&
         (marketGap >= dynamicGapThreshold) &&
@@ -2996,7 +3015,7 @@ pricesByTeam[outcome.name].push(outcome.price);
 
       let textStyle = 'color:#9ca3af;'; // default muted
 
-      if (o.edgePercent > 0) {
+      if (!game.retainedMarket && o.edgePercent > 0) {
         // ONLY true value pops
         textStyle = 'color:#00ff88; font-weight:700; text-shadow:0 0 6px rgba(0,255,136,0.4);';
       } else if (isArbSelection) {
@@ -3005,7 +3024,7 @@ pricesByTeam[outcome.name].push(outcome.price);
         textStyle = 'color:#888;';
       }
 
-      const outlierBadge = isOutlier && !isMarketOutlier
+      const outlierBadge = !game.retainedMarket && isOutlier && !isMarketOutlier
         ? `<span style="
             display:inline-flex;
             align-items:center;
@@ -3111,17 +3130,17 @@ pricesByTeam[outcome.name].push(outcome.price);
                border-radius:999px;
                background:${isArbSelection
                  ? 'rgba(251,191,36,0.92)'
-                 : o.edgePercent > 0
-                   ? 'rgba(0,255,136,0.88)'
-                   : 'rgba(255,255,255,0.08)'};
+                 : !game.retainedMarket && o.edgePercent > 0
+                 ? 'rgba(0,255,136,0.88)'
+                 : 'rgba(255,255,255,0.08)'};
                color:${isArbSelection
                  ? '#111827'
-                 : o.edgePercent > 0
+                 : !game.retainedMarket && o.edgePercent > 0
                    ? '#04110a'
                    : '#cbd5e1'};
                text-decoration:none;
-               font-weight:${o.edgePercent > 0 || isArbSelection ? '700' : '600'};
-               border:${o.edgePercent > 0 || isArbSelection
+               font-weight:${(!game.retainedMarket && o.edgePercent > 0) || isArbSelection ? '700' : '600'};
+               border:${(!game.retainedMarket && o.edgePercent > 0) || isArbSelection
                  ? 'none'
                  : '1px solid rgba(255,255,255,0.08)'};
                display:inline-block;
@@ -3161,7 +3180,7 @@ pricesByTeam[outcome.name].push(outcome.price);
           ? '11px'
           : '10px';
 
-      const desktopMovementMarker = lineMovement && previousLine
+      const desktopMovementMarker = !game.retainedMarket && lineMovement && previousLine
         ? `<span class="desktop-movement-marker" style="
             display:inline-flex;
             align-items:center;
@@ -3180,7 +3199,7 @@ pricesByTeam[outcome.name].push(outcome.price);
           </span>`
         : '<span class="desktop-movement-marker" style="display:inline-block; min-width:88px;"></span>';
 
-     const mobileMovementMarker = lineMovement && previousLine
+     const mobileMovementMarker = !game.retainedMarket && lineMovement && previousLine
                    ? `<span class="mobile-movement-marker" style="
                             display:none;
                             font-size:12px;
@@ -3197,10 +3216,10 @@ pricesByTeam[outcome.name].push(outcome.price);
       const sign = o.price > 0 ? '+' : '';
       let rowStyle = 'display:flex; align-items:center; gap:12px; margin-top:4px; cursor:pointer;';
 
-      if (o.edgePercent > 2) {
+      if (!game.retainedMarket && o.edgePercent > 2) {
         // strong value
         rowStyle += ' padding:6px 8px; border-radius:10px; background:rgba(0,255,136,0.12); border:1px solid rgba(0,255,136,0.25); box-shadow:0 0 12px rgba(0,255,136,0.2);';
-      } else if (o.edgePercent > 0) {
+      } else if (!game.retainedMarket && o.edgePercent > 0) {
         // normal value
         rowStyle += ' padding:6px 8px; border-radius:10px; background:rgba(0,255,136,0.07); border:1px solid rgba(0,255,136,0.18);';
       }
@@ -3230,17 +3249,17 @@ pricesByTeam[outcome.name].push(outcome.price);
       >${o.name}:</span>
 
       <span style="display:block; font-size:11px; color:#9ca3af; margin-top:2px;">
-        ${o.edgePercent !== null
+        ${!game.retainedMarket && o.edgePercent !== null
           ? o.edgePercent >= 3
             ? `🔥 <strong>+${o.edgePercent}% Strong Value</strong>`
             : o.edgePercent > 0
               ? `<strong>+${o.edgePercent}% Value</strong>`
               : `No edge (${o.edgePercent}%)`
           : ''}
-        ${o.fairOdds !== null ? ` · Fair Odds: ${o.fairOdds > 0 ? '+' : ''}${o.fairOdds}` : ''}
+${!game.retainedMarket && o.fairOdds !== null ? ` · Fair Odds: ${o.fairOdds > 0 ? '+' : ''}${o.fairOdds}` : ''}
       </span>
 
-      ${openingMovementAmount > 0 ? `
+      ${!game.retainedMarket && openingMovementAmount > 0 ? `
                    <span style="display:block; font-size:10px; color:#64748b; margin-top:1px; line-height:1.25;">
                          First seen: ${openingLine.price > 0 ? '+' : ''}${openingLine.price}
                          ${freshnessLabel ? `<br>${freshnessLabel}` : ''}
@@ -3299,11 +3318,18 @@ pricesByTeam[outcome.name].push(outcome.price);
    `;
     }).join('');
 
+    const enabledMarkets =
+      window.scoEnabledMarketsBySport?.[selectedSport] || ['h2h'];
+
     const hasSpreads =
-      Array.isArray(book.spreads) && book.spreads.length >= 2;
+      enabledMarkets.includes('spreads') &&
+      Array.isArray(book.spreads) &&
+      book.spreads.length >= 2;
 
     const hasTotals =
-      Array.isArray(book.totals) && book.totals.length >= 2;
+      enabledMarkets.includes('totals') &&
+      Array.isArray(book.totals) &&
+      book.totals.length >= 2;
 
     const additionalMarketsButton =
       (book.odds || []).length < 2 && (hasSpreads || hasTotals)
@@ -3383,8 +3409,13 @@ pricesByTeam[outcome.name].push(outcome.price);
       `
       : '';
 
-    const hasPositiveValue = (book.odds || []).some(o => o.edgePercent > 0);
-    const hasStrongValue = (book.odds || []).some(o => o.edgePercent >= 3);
+    const hasPositiveValue =
+      !game.retainedMarket &&
+      (book.odds || []).some(o => o.edgePercent > 0);
+
+    const hasStrongValue =
+      !game.retainedMarket &&
+      (book.odds || []).some(o => o.edgePercent >= 3);
 
     let bookStyle = 'margin-top:10px;';
 
@@ -3424,7 +3455,9 @@ pricesByTeam[outcome.name].push(outcome.price);
             </span>
           ` : ''}
 
-          ${book.lastUpdate ? (() => {
+          ${game.retainedMarket
+            ? '<span style="color:#f87171; font-weight:600;"> • Previous odds — verify current price</span>'
+            : book.lastUpdate ? (() => {
             const secondsOld = (Date.now() - new Date(book.lastUpdate).getTime()) / 1000;
 
             const ageText = secondsOld < 60
@@ -8889,6 +8922,19 @@ window.getExpectedMarketVerificationInterval =
 
     const payload = await res.json();
 
+    window.scoEnabledMarketsBySport =
+      window.scoEnabledMarketsBySport || {};
+
+    window.scoEnabledMarketsBySport[sport] =
+      Array.isArray(payload.enabledMarkets)
+        ? payload.enabledMarkets
+        : (
+            sport === 'basketball_nba' ||
+            sport === 'americanfootball_nfl'
+              ? ['h2h', 'spreads', 'totals']
+              : ['h2h']
+          );
+
     if (marketVerifiedAt) {
       window.marketVerifiedAtBySport[sport] =
         marketVerifiedAt;
@@ -10078,11 +10124,13 @@ if (statTodayGames) {
     const finalizedGames = window.finalizedGames;
 
     games.forEach(game => {
-  const gameStatusInfo =
-    formatGameStatus(
-      getGameCommenceTime(game),
-      game
-    );
+      if (game.retainedMarket) return;
+
+      const gameStatusInfo =
+        formatGameStatus(
+          getGameCommenceTime(game),
+          game
+        );
 
   const currentEspnStatus =
     game?.freshEspnStatus ||
@@ -10534,6 +10582,8 @@ if (statTodayGames) {
     let activeArbs = [];
 
     games.forEach(game => {
+      if (game.retainedMarket) return;
+
       const gameStatusInfo =
         formatGameStatus(
           getGameCommenceTime(game),
@@ -12041,7 +12091,7 @@ ${gameSignal ? `
   </div>
 ` : ''}
 
-                         ${(sport === 'basketball_nba' || sport === 'americanfootball_nfl') ? `
+                         ${(window.scoEnabledMarketsBySport?.[sport] || []).some(market => market === 'spreads' || market === 'totals') ? `
                          <div class="sco-market-column-headings">
                            <span></span>
                            <span>TEAM</span>
