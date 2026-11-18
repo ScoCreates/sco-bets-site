@@ -8971,16 +8971,9 @@ window.getExpectedMarketVerificationInterval =
       sport === 'basketball_wncaab' ||
       sport === 'basketball_nba';
 
-    const isLocalDashboard =
-      window.location.hostname === 'localhost' ||
-      window.location.hostname === '127.0.0.1';
-
-    const oddsEndpoint =
-      isLocalDashboard && sport === 'basketball_ncaab'
-        ? '/api/ncaab-markets-local-test'
-        : useSharedSnapshot
-          ? `/api/odds-snapshot?sport=${sport}`
-          : `/api/odds?sport=${sport}`;
+    const oddsEndpoint = useSharedSnapshot
+      ? `/api/odds-snapshot?sport=${sport}`
+      : `/api/odds?sport=${sport}`;
 
     const res = await fetch(oddsEndpoint);
     if (!res.ok) throw new Error('Failed to load odds');
