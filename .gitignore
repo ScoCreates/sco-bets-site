@@ -15,4 +15,8 @@ nba-markets-test.json
 nba-markets-test.mjs
 spreads-totals-test.html
 api/nba-markets-local-test.js
+# Local NCAA men's basketball markets testing
+test-ncaab-markets.mjs
+ncaab-markets-test.json
+api/ncaab-markets-local-test.js
 SCO-Bets-AI-Development-Roadmap.md

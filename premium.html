@@ -2898,7 +2898,24 @@ pricesByTeam[outcome.name].push(outcome.price);
         ? book.totals
         : [];
 
-    const oddsHtml = (book.odds || []).map((o, rowIndex) => {
+    const displayOdds =
+      (book.odds || []).length >= 2
+        ? [...book.odds].sort((a, b) => {
+            if (a.name === game.away) return -1;
+            if (b.name === game.away) return 1;
+            return 0;
+          })
+        : (spreadOutcomes.length >= 2 || totalOutcomes.length >= 2)
+          ? [game.away, game.home].map(name => ({
+              name,
+              price: null,
+              edgePercent: null,
+              fairOdds: null
+            }))
+          : [];
+
+    const oddsHtml = displayOdds.map((o, rowIndex) => {
+      const hasMoneyline = Number.isFinite(o.price);
       const spreadOutcome = spreadOutcomes.find(
         outcome => outcome.name === o.name
       );
@@ -2916,12 +2933,14 @@ pricesByTeam[outcome.name].push(outcome.price);
         : '—';
         
       const isBest =
+        hasMoneyline &&
         !game.retainedMarket &&
         bestByTeam[o.name] &&
         bestByTeam[o.name].price === o.price &&
         bestByTeam[o.name].book === book.title;
 
       const isArbSelection =
+        hasMoneyline &&
         !game.retainedMarket &&
         currentBestArb &&
         getGameKey(game) === currentBestArb.gameKey &&
@@ -2930,10 +2949,15 @@ pricesByTeam[outcome.name].push(outcome.price);
           (o.name === currentBestArb.team2 && book.title === currentBestArb.book2 && o.price === currentBestArb.price2)
         );
 
-      const isOutlier = isOutlierOdds(o.price);
+      const isOutlier =
+        hasMoneyline && isOutlierOdds(o.price);
 
-      const previousLine = findPreviousOddsLine(game, book.title, o.name);
-      const openingLine = findOpeningOddsLine(game, book.title, o.name);
+      const previousLine = hasMoneyline
+        ? findPreviousOddsLine(game, book.title, o.name)
+        : null;
+      const openingLine = hasMoneyline
+        ? findOpeningOddsLine(game, book.title, o.name)
+        : null;
       const lineKey = `${game.home}|${game.away}|${book.title}|${o.name}`;
       const openingMovementAmount =
         openingLine
@@ -2941,7 +2965,7 @@ pricesByTeam[outcome.name].push(outcome.price);
           : 0;
 
       const lineMovement =
-       previousLine && Number(previousLine.price) !== Number(o.price)
+       hasMoneyline && previousLine && Number(previousLine.price) !== Number(o.price)
            ? Number(o.price) > Number(previousLine.price)
            ? 'up'
            : 'down'
@@ -2962,7 +2986,7 @@ pricesByTeam[outcome.name].push(outcome.price);
         m.movement === lineMovement
       ).length;
 
-    if (previousLine) {
+    if (hasMoneyline && previousLine) {
 
                const duplicateMoverExists = window.biggestMovers.some(m =>
                    m.gameKey === getGameKey(game) &&
@@ -3029,6 +3053,7 @@ pricesByTeam[outcome.name].push(outcome.price);
       }
 
       const isBestOpportunity =
+        hasMoneyline &&
         !game.retainedMarket &&
         bestEdgeKey === `${book.title}|${o.name}|${o.price}`;
 
@@ -3048,12 +3073,14 @@ pricesByTeam[outcome.name].push(outcome.price);
             : 25;
 
       const isLaggingMarket =
+        hasMoneyline &&
         !game.retainedMarket &&
         (marketCount >= 3) &&
         (marketRange >= dynamicGapThreshold * 1.5) &&
         (bestByTeam[o.name]?.price === o.price);
 
       const isMarketOutlier =
+        hasMoneyline &&
         !game.retainedMarket &&
         (marketCount >= 3) &&
         (o.price > consensusPrice) &&
@@ -3063,7 +3090,7 @@ pricesByTeam[outcome.name].push(outcome.price);
 
       let textStyle = 'color:#9ca3af;'; // default muted
 
-      if (!game.retainedMarket && o.edgePercent > 0) {
+      if (hasMoneyline && !game.retainedMarket && o.edgePercent > 0) {
         // ONLY true value pops
         textStyle = 'color:#00ff88; font-weight:700; text-shadow:0 0 6px rgba(0,255,136,0.4);';
       } else if (isArbSelection) {
@@ -3089,9 +3116,9 @@ pricesByTeam[outcome.name].push(outcome.price);
             font-weight:600;
             cursor:help;
           "
-          title="This price differs significantly from the broader market. Verify availability before betting — unusual prices can change quickly."
+          title="Extreme moneyline price (beyond -1000 or +1000). This does not necessarily indicate an error or a better betting opportunity. Verify the current price before betting."
         >
-          Outlier ⓘ
+          Extreme Odds ⓘ
         </span>`
         : '';
 
@@ -3169,7 +3196,7 @@ pricesByTeam[outcome.name].push(outcome.price);
              href="${getSportsbookUrl(book.title)}"
              target="_blank"
              rel="noopener"
-             onclick="showOpenFeedback('${book.title}'); trackOddsRowClick('${book.title}', '${game.away} vs ${game.home}', '${o.name}', '${o.price}')"
+             onclick="showOpenFeedback('${book.title}'); ${hasMoneyline ? `trackOddsRowClick('${book.title}', '${game.away} vs ${game.home}', '${o.name}', '${o.price}')` : ''}"
              style="
                margin-left:0px;
                margin-top:0px;
@@ -3178,17 +3205,17 @@ pricesByTeam[outcome.name].push(outcome.price);
                border-radius:999px;
                background:${isArbSelection
                  ? 'rgba(251,191,36,0.92)'
-                 : !game.retainedMarket && o.edgePercent > 0
+                 : hasMoneyline && !game.retainedMarket && o.edgePercent > 0
                  ? 'rgba(0,255,136,0.88)'
                  : 'rgba(255,255,255,0.08)'};
                color:${isArbSelection
                  ? '#111827'
-                 : !game.retainedMarket && o.edgePercent > 0
+                 : hasMoneyline && !game.retainedMarket && o.edgePercent > 0
                    ? '#04110a'
                    : '#cbd5e1'};
                text-decoration:none;
-               font-weight:${(!game.retainedMarket && o.edgePercent > 0) || isArbSelection ? '700' : '600'};
-               border:${(!game.retainedMarket && o.edgePercent > 0) || isArbSelection
+               font-weight:${(hasMoneyline && !game.retainedMarket && o.edgePercent > 0) || isArbSelection ? '700' : '600'};
+               border:${(hasMoneyline && !game.retainedMarket && o.edgePercent > 0) || isArbSelection
                  ? 'none'
                  : '1px solid rgba(255,255,255,0.08)'};
                display:inline-block;
@@ -3264,10 +3291,10 @@ pricesByTeam[outcome.name].push(outcome.price);
       const sign = o.price > 0 ? '+' : '';
       let rowStyle = 'display:flex; align-items:center; gap:12px; margin-top:4px; cursor:pointer;';
 
-      if (!game.retainedMarket && o.edgePercent > 2) {
+      if (hasMoneyline && !game.retainedMarket && o.edgePercent > 2) {
         // strong value
         rowStyle += ' padding:6px 8px; border-radius:10px; background:rgba(0,255,136,0.12); border:1px solid rgba(0,255,136,0.25); box-shadow:0 0 12px rgba(0,255,136,0.2);';
-      } else if (!game.retainedMarket && o.edgePercent > 0) {
+      } else if (hasMoneyline && !game.retainedMarket && o.edgePercent > 0) {
         // normal value
         rowStyle += ' padding:6px 8px; border-radius:10px; background:rgba(0,255,136,0.07); border:1px solid rgba(0,255,136,0.18);';
       }
@@ -3276,6 +3303,7 @@ pricesByTeam[outcome.name].push(outcome.price);
     <input
       type="checkbox"
       class="bet-checkbox"
+      ${hasMoneyline ? '' : 'disabled'}
       onchange="updateSelectedBetCount()"
       data-game="${game.away} vs ${game.home}"
       data-book="${book.title}"
@@ -3289,7 +3317,7 @@ pricesByTeam[outcome.name].push(outcome.price);
         style="cursor:pointer;"
         onclick="
           const checkbox = this.closest('.odds-grid-row')?.querySelector('.bet-checkbox');
-          if (checkbox) {
+          if (checkbox && !checkbox.disabled) {
             checkbox.checked = !checkbox.checked;
             updateSelectedBetCount();
           }
@@ -3323,7 +3351,9 @@ ${!game.retainedMarket && o.fairOdds !== null ? ` · Fair Odds: ${o.fairOdds > 0
       ${totalDisplay}
     </span>
 
-    <span class="mobile-odds-price" style="text-align:right; font-weight:700;">${sign}${o.price}</span>
+    <span class="mobile-odds-price" style="text-align:right; font-weight:700;">
+      ${hasMoneyline ? `${sign}${o.price}` : '—'}
+    </span>
 
     <span class="movement-marker-wrap" style="text-align:center;">
 	  ${desktopMovementMarker}
@@ -3559,21 +3589,6 @@ return `
         </div>
         ${badge}
         ${oddsHtml}
-        ${additionalMarketsButton ? `
-          <div style="margin-top:8px; margin-bottom:8px;">
-            ${additionalMarketsButton}
-          </div>
-        ` : ''}
-
-        ${(book.odds || []).length < 2 && (hasSpreads || hasTotals) ? `
-          <div class="sco-desktop-markets-fallback">
-            ${spreadsHtml}
-            ${totalsHtml}
-            <div style="font-size:10px; color:#9ca3af; margin-top:8px;">
-              Spreads and totals shown for information only
-            </div>
-          </div>
-        ` : ''}
 
         ${spreadsHtml || totalsHtml ? `
           <div class="sco-additional-markets">
@@ -8956,10 +8971,16 @@ window.getExpectedMarketVerificationInterval =
       sport === 'basketball_wncaab' ||
       sport === 'basketball_nba';
 
+    const isLocalDashboard =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1';
+
     const oddsEndpoint =
-      useSharedSnapshot
-        ? `/api/odds-snapshot?sport=${sport}`
-        : `/api/odds?sport=${sport}`;
+      isLocalDashboard && sport === 'basketball_ncaab'
+        ? '/api/ncaab-markets-local-test'
+        : useSharedSnapshot
+          ? `/api/odds-snapshot?sport=${sport}`
+          : `/api/odds?sport=${sport}`;
 
     const res = await fetch(oddsEndpoint);
     if (!res.ok) throw new Error('Failed to load odds');
