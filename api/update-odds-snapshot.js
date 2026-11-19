@@ -1,3 +1,5 @@
+import supabase from '../lib/supabase.js';
+import { normalizeTeamName } from '../lib/team-aliases.js';
 import { buildOddsPayload } from '../lib/build-odds-payload.js';
 import redis, {
   getOddsSnapshotKey,
@@ -913,6 +915,80 @@ Removed Games: ${removedGames.length ? removedGames.join(' || ') : 'None'}
 `);
 }
 
+function matchesCompletedGame(game, completedGame) {
+  const gameStart = Date.parse(game?.commence_time);
+  const completedStart = Date.parse(
+    completedGame?.espn_status?.date
+  );
+
+  if (
+    !Number.isFinite(gameStart) ||
+    !Number.isFinite(completedStart)
+  ) {
+    return false;
+  }
+
+  const threeHours = 3 * 60 * 60 * 1000;
+
+  if (
+    Math.abs(gameStart - completedStart) > threeHours
+  ) {
+    return false;
+  }
+
+  const gameAway = normalizeTeamName(game.away);
+  const gameHome = normalizeTeamName(game.home);
+
+  const completedAway = normalizeTeamName(
+    completedGame.away_team
+  );
+  const completedHome = normalizeTeamName(
+    completedGame.home_team
+  );
+
+  return (
+    (gameAway === completedAway &&
+     gameHome === completedHome) ||
+    (gameAway === completedHome &&
+     gameHome === completedAway)
+  );
+}
+
+async function loadCompletedGamesForSnapshot(sport) {
+  const cutoff = new Date(
+    Date.now() - 7 * 24 * 60 * 60 * 1000
+  ).toISOString();
+
+  const completedGames = [];
+  const pageSize = 500;
+
+  for (let start = 0; ; start += pageSize) {
+    const { data, error } = await supabase
+      .from('completed_games')
+      .select(
+        'game_key, away_team, home_team, espn_status, completed_at, completed_observed_at'
+      )
+      .eq('sport', sport)
+      .gte('completed_at', cutoff)
+      .order('completed_at', { ascending: false })
+      .range(start, start + pageSize - 1);
+
+    if (error) {
+      throw new Error(
+        `Completed-game lookup failed for ${sport}: ${error.message}`
+      );
+    }
+
+    completedGames.push(...(data || []));
+
+    if (!data || data.length < pageSize) {
+      break;
+    }
+  }
+
+  return completedGames;
+}
+
 async function updateSportSnapshot(
   sport,
   forceRefresh = false
@@ -941,6 +1017,34 @@ async function updateSportSnapshot(
       sport,
       previousGames
     );
+
+  const persistedCompletedGames =
+    await loadCompletedGamesForSnapshot(sport);
+
+  payload.games = (payload.games || []).filter(game => {
+      const completedGame = persistedCompletedGames.find(
+        completed =>
+          matchesCompletedGame(game, completed)
+      );
+
+      if (!completedGame) {
+        return true;
+      }
+
+      if (game.status !== 'final') {
+        return false;
+      }
+
+      const completedTime = Date.parse(
+        completedGame.completed_observed_at ||
+        completedGame.completed_at
+      );
+
+      return (
+        Number.isFinite(completedTime) &&
+        Date.now() - completedTime <= 10 * 60 * 1000
+      );
+    });
 
   const snapshotTime =
     new Date().toISOString();
