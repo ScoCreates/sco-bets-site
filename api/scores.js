@@ -1421,7 +1421,9 @@ const games = (data.events || []).map(event => {
       try {
         const observations = await Promise.all(
           finalGames.map(game =>
-            redis.get(`game_observation:${game.gameKey}`)
+            redis
+              .get(`game_observation:${game.gameKey}`)
+              .catch(() => null)
           )
         );
 
@@ -1430,7 +1432,28 @@ const games = (data.events || []).map(event => {
             observations[index]?.completed_observed_at || null;
         });
 
-        // Fall back to Supabase when Redis has no completion timestamp.
+        // Check the dedicated Redis completion-timestamp cache
+        // before falling back to Supabase.
+        const gamesMissingObservation = finalGames.filter(
+          game => !game.completedObservedAt
+        );
+
+        if (gamesMissingObservation.length > 0) {
+          const cachedTimestamps = await Promise.all(
+            gamesMissingObservation.map(game =>
+              redis
+                .get(`completed_game_timestamp:${game.gameKey}`)
+                .catch(() => null)
+            )
+          );
+
+          gamesMissingObservation.forEach((game, index) => {
+            game.completedObservedAt =
+              cachedTimestamps[index] || null;
+          });
+        }
+
+        // Query Supabase only for timestamps missing from Redis.
         const missingTimestamps = finalGames.filter(
           game => !game.completedObservedAt
         );
@@ -1458,6 +1481,20 @@ const games = (data.events || []).map(event => {
               game.completedObservedAt =
                 completionTimes.get(game.gameKey) || null;
             });
+
+            // Cache valid completion timestamps for future
+            // scoreboard refreshes without changing ESPN freshness.
+            await Promise.allSettled(
+              missingTimestamps
+                .filter(game => game.completedObservedAt)
+                .map(game =>
+                  redis.set(
+                    `completed_game_timestamp:${game.gameKey}`,
+                    game.completedObservedAt,
+                    { ex: 4 * 24 * 60 * 60 }
+                  )
+                )
+            );
           }
         }
 
