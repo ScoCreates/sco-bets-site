@@ -420,7 +420,7 @@ if (alreadyCurrentGames.length > 0) {
             : null
         },
         {
-          ex: 48 * 60 * 60
+          ex: 4 * 24 * 60 * 60
         }
       )
     )
@@ -465,7 +465,7 @@ await Promise.all(
           : null
       },
       {
-        ex: 48 * 60 * 60
+        ex: 4 * 24 * 60 * 60
       }
     )
   )
