@@ -3309,7 +3309,7 @@ pricesByTeam[outcome.name].push(outcome.price);
       data-book="${book.title}"
       data-team="${o.name}"
       data-odds="${o.price}"
-      style="margin:5px 0 0 0; transform:scale(0.9); opacity:0.8; cursor:pointer;"
+      style="margin:5px 0 0 0; transform:scale(0.9); opacity:0.8; cursor:pointer; ${hasMoneyline ? '' : 'visibility:hidden;'}"
     >
 
     <span class="odds-team-info" style="${textStyle}; min-width:0;">
