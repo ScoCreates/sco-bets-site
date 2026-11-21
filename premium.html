@@ -11898,7 +11898,18 @@ const usableBookmakerCount = (game.bookmakers || []).filter(book => {
     Number(outcome.price) !== 0
   );
 
-  return hasAwayPrice && hasHomePrice;
+  const hasMoneylines = hasAwayPrice && hasHomePrice;
+
+  const hasSpreads =
+    Array.isArray(book.spreads) &&
+    book.spreads.length >= 2;
+
+  const hasTotals =
+    Array.isArray(book.totals) &&
+    book.totals.length >= 2;
+
+  return hasMoneylines ||
+    (sport === 'basketball_ncaab' && (hasSpreads || hasTotals));
 }).length;
 
         const gameSignal = isFinalGame
