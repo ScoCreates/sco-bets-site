@@ -1655,6 +1655,10 @@ button:active {
   font-weight: 700;
 }
 
+.game-market-signal.neutral {
+  color: #5fd6b3;
+}
+
 .limited-market-warning {
   margin-bottom: 10px;
   font-size: 11px;
@@ -2353,6 +2357,12 @@ window.addEventListener("DOMContentLoaded", checkAccess);
     Open Sportsbook
   </a>
 </div>
+
+<div
+  id="best-price-available"
+  style="display:none;"
+></div>
+
 </div>
 
   <div class="card arb-watch-card">
@@ -3042,13 +3052,13 @@ pricesByTeam[outcome.name].push(outcome.price);
         const minutesAgo = Math.floor(secondsSinceMovement / 60);
 
         if (secondsSinceMovement < 60) {
-          freshnessLabel = `Updated ${secondsSinceMovement}s ago`;
+          freshnessLabel = `Price changed ${secondsSinceMovement}s ago`;
 
         } else if (minutesAgo < 30) {
-          freshnessLabel = `Updated ${minutesAgo}m ago`;
+          freshnessLabel = `Price changed ${minutesAgo}m ago`;
 
         } else {
-          freshnessLabel = `⚠ Stale ${minutesAgo}m`;
+          freshnessLabel = `Price changed ${minutesAgo}m ago`;
         }
       }
 
@@ -3162,9 +3172,9 @@ pricesByTeam[outcome.name].push(outcome.price);
             font-weight:600;
             cursor:help;
           "
-          title="This sportsbook's price hasn't yet matched recent market movement. It may update soon, or it may intentionally keep a different price. Comparing sportsbooks before placing a bet is often worthwhile."
+          title="This sportsbook offers the best listed price for this team, with a substantial difference between sportsbook prices. This does not necessarily mean the price is outdated or about to change. Verify current odds before betting."
         >
-          Price Updating ⓘ
+          Market Price Gap ⓘ
         </span>`
         : '';
 
@@ -10300,6 +10310,15 @@ if (statTodayGames) {
     const topConfidence = document.getElementById('top-confidence');
     const topReason = document.getElementById('top-reason');
     const topConfidenceReason = document.getElementById('top-confidence-reason');
+
+    // Reset Best Price Available on every guidance refresh.
+    // Prevent an earlier comparison from remaining visible.
+    const bestPriceAvailable = document.getElementById('best-price-available');
+
+    if (bestPriceAvailable) {
+      bestPriceAvailable.style.display = 'none';
+      bestPriceAvailable.textContent = '';
+    }
 	
 	if (statEdge) {
       statEdge.textContent =
@@ -10325,6 +10344,38 @@ if (statTodayGames) {
 
     if (bestValuePick) {
       const sign = bestValuePick.price > 0 ? '+' : '';
+
+      // Compare valid moneyline prices for the selected outcome.
+      // Keep this separate from Bet Guidance's value calculation.
+      const bestPriceComparison = (bestValuePick.marketPrices || [])
+        .filter(p =>
+          Number.isFinite(p.price) &&
+          p.price !== 0 &&
+          Math.abs(p.price) >= 100 &&
+          isReasonableOdds(p.price) &&
+          typeof p.book === 'string' &&
+          p.book.trim()
+        )
+        .sort((a, b) => b.price - a.price);
+
+      const bestAvailableLine = bestPriceComparison[0] || null;
+      const secondBestLine = bestPriceComparison.find(p =>
+        bestAvailableLine &&
+        typeof p.book === 'string' &&
+        p.book.trim() &&
+        p.book !== bestAvailableLine.book
+      ) || null;
+
+      const profitOn100 = price =>
+        price > 0 ? price : (10000 / Math.abs(price));
+
+      const extraProfitOn100 =
+        bestAvailableLine && secondBestLine
+          ? Number((
+              profitOn100(bestAvailableLine.price) -
+              profitOn100(secondBestLine.price)
+            ).toFixed(2))
+          : null;
 
       const valueCard = document.getElementById('value-opportunities-card');
       const valueList = document.getElementById('value-opportunities-list');
@@ -10528,11 +10579,74 @@ if (statTodayGames) {
     };
 
     activeLink.style.display = 'block';
-    activeLink.style.margin = '12px auto 0 auto';
+    activeLink.style.margin = '12px auto 25px auto';
     activeLink.style.textAlign = 'center';
 
     activeLink.style.boxShadow = '0 0 18px rgba(34,197,94,0.28)';
     activeLink.style.transition = 'all 0.2s ease';
+  }
+
+  // Show the dollar difference between the best and second-best
+  // available moneyline prices for the selected outcome.
+  if (
+    bestPriceAvailable &&
+    bestAvailableLine &&
+    secondBestLine &&
+    extraProfitOn100 !== null
+  ) {
+    const formatLine = price =>
+      price > 0 ? `+${price}` : `${price}`;
+
+    bestPriceAvailable.innerHTML = `
+      <div style="margin-top:14px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.12); text-align:center;">
+        <div style="font-weight:600; margin-bottom:7px;">
+          Best Price Available
+        </div>
+        <div style="font-size:0.9em;">
+          ${bestAvailableLine.book}: ${formatLine(bestAvailableLine.price)}
+        </div>
+        <div style="font-size:0.85em; opacity:0.8; margin-top:4px;">
+          Next best:
+          <a id="next-best-sportsbook-link"
+             href="#"
+             target="_blank"
+             rel="noopener noreferrer"
+             style="color:#93c5fd; text-decoration:underline; text-underline-offset:3px;">
+            ${secondBestLine.book}
+          </a>
+          ${formatLine(secondBestLine.price)}
+        </div>
+        <div style="margin-top:8px; color:#22c55e; font-weight:600;">
+          +$${extraProfitOn100.toFixed(2)} additional profit vs. ${secondBestLine.book}
+        </div>
+        <div style="font-size:0.75em; opacity:0.75; margin-top:4px;">
+          Based on a winning $100 wager.
+        </div>
+        <div style="font-size:0.75em; opacity:0.65; margin-top:6px;">
+          Compare current odds before betting. Best price does not guarantee positive value.
+        </div>
+      </div>
+    `;
+
+    bestPriceAvailable.style.display = 'block';
+
+    const nextBestLink = document.getElementById('next-best-sportsbook-link');
+
+    if (nextBestLink) {
+      nextBestLink.href = getSportsbookUrl(secondBestLine.book);
+
+      nextBestLink.onclick = () => {
+        if (typeof gtag === 'function') {
+          gtag('event', 'sportsbook_click', {
+            sportsbook: secondBestLine.book,
+            game: bestValuePick.game,
+            source_card: 'bet_guidance_next_best',
+            event_category: 'engagement',
+            event_label: `${secondBestLine.book} | ${bestValuePick.game}`
+          });
+        }
+      };
+    }
   }
 
 } else {
@@ -10636,13 +10750,149 @@ if (statTodayGames) {
                'Sometimes the best move is to wait.';
      } 
 
+  // Compare available moneylines when no qualifying value pick exists.
+  // Use distinct sportsbooks and keep the calculation separate
+  // from the existing Bet Guidance recommendation.
+  const fallbackPrices = (closestValuePick?.marketPrices || [])
+    .filter(p =>
+      Number.isFinite(p.price) &&
+      p.price !== 0 &&
+      Math.abs(p.price) >= 100 &&
+      isReasonableOdds(p.price) &&
+      typeof p.book === 'string' &&
+      p.book.trim()
+    )
+    .sort((a, b) => b.price - a.price);
+
+  const fallbackBestLine = fallbackPrices[0] || null;
+
+  const fallbackSecondLine = fallbackPrices.find(p =>
+    fallbackBestLine && p.book !== fallbackBestLine.book
+  ) || null;
+
+  const fallbackProfitOn100 = price =>
+    price > 0 ? price : 10000 / Math.abs(price);
+
+  const fallbackExtraProfit =
+    fallbackBestLine && fallbackSecondLine
+      ? Number((
+          fallbackProfitOn100(fallbackBestLine.price) -
+          fallbackProfitOn100(fallbackSecondLine.price)
+        ).toFixed(2))
+      : null;
+
   const activeLink = document.getElementById('merged-guidance-link');
 
   if (activeLink) {
-         activeLink.style.display = 'none';
-         activeLink.href = '#';
-         activeLink.style.boxShadow = 'none';
-       }
+    if (closestValuePick) {
+      const url = getSportsbookUrl(closestValuePick.book);
+
+      activeLink.textContent =
+        `Open ${closestValuePick.book} — View the Opportunity`;
+
+      activeLink.href = url;
+
+      activeLink.onclick = (e) => {
+        e.preventDefault();
+
+        if (typeof gtag === 'function') {
+          gtag('event', 'sportsbook_click', {
+            sportsbook: closestValuePick.book,
+            game: closestValuePick.game,
+            source_card: 'bet_guidance',
+            event_category: 'engagement',
+            event_label: `${closestValuePick.book} | ${closestValuePick.game}`
+          });
+        }
+
+        setTimeout(() => {
+          window.open(url, '_blank');
+        }, 150);
+      };
+
+      activeLink.style.display = 'block';
+      activeLink.style.margin = '25px auto 25px auto';
+      activeLink.style.textAlign = 'center';
+      activeLink.style.boxShadow = '0 0 18px rgba(34,197,94,0.28)';
+      activeLink.style.transition = 'all 0.2s ease';
+    } else {
+      activeLink.style.display = 'none';
+      activeLink.href = '#';
+      activeLink.onclick = null;
+      activeLink.style.boxShadow = 'none';
+    }
+  }
+
+  // Show the best-price comparison even when Bet Guidance
+  // identifies an opportunity below its value threshold.
+  if (
+    bestPriceAvailable &&
+    closestValuePick &&
+    fallbackBestLine &&
+    fallbackSecondLine &&
+    fallbackExtraProfit !== null
+  ) {
+    const formatLine = price =>
+      price > 0 ? `+${price}` : `${price}`;
+
+    bestPriceAvailable.innerHTML = `
+      <div style="margin-top:14px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.12); text-align:center;">
+        <div style="font-weight:600; margin-bottom:7px;">
+          Best Price Available
+        </div>
+        <div style="font-size:0.9em;">
+          ${fallbackBestLine.book}: ${formatLine(fallbackBestLine.price)}
+        </div>
+        <div style="font-size:0.85em; opacity:0.8; margin-top:4px;">
+          Next best:
+          <a id="fallback-next-best-sportsbook-link"
+             href="#"
+             target="_blank"
+             rel="noopener noreferrer"
+             style="color:#93c5fd; text-decoration:underline; text-underline-offset:3px;">
+            ${fallbackSecondLine.book}
+          </a>
+          ${formatLine(fallbackSecondLine.price)}
+        </div>
+        <div style="margin-top:8px; color:#22c55e; font-weight:600;">
+          +$${fallbackExtraProfit.toFixed(2)} additional profit vs. ${fallbackSecondLine.book}
+        </div>
+        <div style="font-size:0.75em; opacity:0.75; margin-top:4px;">
+          Based on a winning $100 wager.
+        </div>
+        <div style="font-size:0.75em; opacity:0.65; margin-top:6px;">
+          Compare current odds before betting. Best price does not guarantee positive value.
+        </div>
+      </div>
+    `;
+
+    bestPriceAvailable.style.display = 'block';
+
+    const fallbackNextBestLink =
+      document.getElementById('fallback-next-best-sportsbook-link');
+
+    if (fallbackNextBestLink) {
+      fallbackNextBestLink.href =
+        getSportsbookUrl(fallbackSecondLine.book);
+
+      fallbackNextBestLink.onclick = () => {
+        if (typeof gtag === 'function') {
+          gtag('event', 'sportsbook_click', {
+            sportsbook: fallbackSecondLine.book,
+            game: closestValuePick.game,
+            source_card: 'bet_guidance_next_best',
+            event_category: 'engagement',
+            event_label: `${fallbackSecondLine.book} | ${closestValuePick.game}`
+          });
+        }
+      };
+    }
+
+    if (activeLink && activeLink.style.display !== 'none') {
+      activeLink.textContent =
+        `Open ${closestValuePick.book} — Best Price Available Right Now`;
+    }
+  }
 }
     let bestArb = null;
     let bestArbEdge = 0;
@@ -12138,10 +12388,12 @@ ${(() => {
                                     })()}
 
                                     ${!hasArbitrage && (!isNcaaBasketball || usableBookmakerCount > 0) ? `
-                                      <div class="game-market-signal">
+                                      <div class="game-market-signal ${bestGameEdge > 0 ? '' : 'neutral'}">
                                             ${bestGameEdge > 0
                                                  ? `⭐ Best value: ${bestGameEdgeObj.team} +${bestGameEdge.toFixed(1)}%`
-                                                 : 'No pricing advantage detected'}
+                                                 : allEdges.length === 0 && sport === 'basketball_ncaab'
+                                                   ? 'Moneyline analysis unavailable'
+                                                   : 'No pricing advantage detected'}
                                       </div>
              ` : ''}
                                 </div>
