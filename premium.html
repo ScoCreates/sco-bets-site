@@ -10955,7 +10955,13 @@ const isGameClosedForArb =
 
              const teamPrices = {};
 
-      (game.bookmakers || []).forEach(book => {
+            (game.bookmakers || []).forEach(book => {
+        // Exclude stale live moneylines from arbitrage comparisons.
+        if (!isFreshLiveMoneyline({
+          moneylineLastUpdate: book.moneylineLastUpdate || null,
+          isLive: currentEspnStatus.statusState === 'in'
+        })) return;
+
         (book.odds || []).forEach(outcome => {
           if (!isReasonableOdds(outcome.price)) return;
 
