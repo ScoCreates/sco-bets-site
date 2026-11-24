@@ -10236,12 +10236,14 @@ if (statTodayGames) {
             teamMarkets[outcome.name] = [];
           }
 
-      teamMarkets[outcome.name].push({
-                      price: outcome.price,
-                      book: book.title,
-                      edgePercent: outcome.edgePercent,
-                      impliedProb: outcome.impliedProbability
-                });
+          teamMarkets[outcome.name].push({
+            price: outcome.price,
+            book: book.title,
+            edgePercent: outcome.edgePercent,
+            impliedProb: outcome.impliedProbability,
+            moneylineLastUpdate: book.moneylineLastUpdate || null,
+            isLive: currentEspnStatus.statusState === 'in'
+          });
     });
   });
 
@@ -10342,6 +10344,22 @@ if (statTodayGames) {
           : '';
     }
 
+    // Require recent timestamps for live-game price comparisons.
+    // Shared by qualifying and fallback Bet Guidance comparisons.
+    // Do not alter the underlying Bet Guidance recommendation.
+    const isFreshLiveMoneyline = p => {
+      if (!p?.isLive) return true;
+
+      if (!p.moneylineLastUpdate) return false;
+
+      const age =
+        Date.now() - Date.parse(p.moneylineLastUpdate);
+
+      return Number.isFinite(age) &&
+        age >= 0 &&
+        age <= 60 * 1000;
+    };
+
     if (bestValuePick) {
       const sign = bestValuePick.price > 0 ? '+' : '';
 
@@ -10365,6 +10383,12 @@ if (statTodayGames) {
         p.book.trim() &&
         p.book !== bestAvailableLine.book
       ) || null;
+
+      const canCompareBestPrices =
+        bestAvailableLine &&
+        secondBestLine &&
+        isFreshLiveMoneyline(bestAvailableLine) &&
+        isFreshLiveMoneyline(secondBestLine);
 
       const profitOn100 = price =>
         price > 0 ? price : (10000 / Math.abs(price));
@@ -10555,7 +10579,7 @@ if (statTodayGames) {
 
   if (activeLink) {
 
-           activeLink.textContent = `🔥 Open ${bestValuePick.book} — Best Price Available Right Now`;
+           activeLink.textContent = `🔥 Open ${bestValuePick.book} — Check Current Odds`;
            const url = getSportsbookUrl(bestValuePick.book);
 
            activeLink.href = url;
@@ -10590,8 +10614,7 @@ if (statTodayGames) {
   // available moneyline prices for the selected outcome.
   if (
     bestPriceAvailable &&
-    bestAvailableLine &&
-    secondBestLine &&
+    canCompareBestPrices &&
     extraProfitOn100 !== null
   ) {
     const formatLine = price =>
@@ -10770,6 +10793,13 @@ if (statTodayGames) {
     fallbackBestLine && p.book !== fallbackBestLine.book
   ) || null;
 
+  // Apply the same live-moneyline freshness check to fallback comparisons.
+  const canCompareFallbackPrices =
+    fallbackBestLine &&
+    fallbackSecondLine &&
+    isFreshLiveMoneyline(fallbackBestLine) &&
+    isFreshLiveMoneyline(fallbackSecondLine);
+
   const fallbackProfitOn100 = price =>
     price > 0 ? price : 10000 / Math.abs(price);
 
@@ -10828,8 +10858,7 @@ if (statTodayGames) {
   if (
     bestPriceAvailable &&
     closestValuePick &&
-    fallbackBestLine &&
-    fallbackSecondLine &&
+    canCompareFallbackPrices &&
     fallbackExtraProfit !== null
   ) {
     const formatLine = price =>
@@ -10890,7 +10919,7 @@ if (statTodayGames) {
 
     if (activeLink && activeLink.style.display !== 'none') {
       activeLink.textContent =
-        `Open ${closestValuePick.book} — Best Price Available Right Now`;
+        `Open ${closestValuePick.book} — Check Current Odds`;
     }
   }
 }
