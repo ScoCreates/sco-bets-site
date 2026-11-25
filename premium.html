@@ -2722,6 +2722,21 @@ function isOutlierOdds(odds) {
   return odds < -1000 || odds > 1000;
 }
 
+// Require recent timestamps for live-game moneyline prices.
+// Pregame moneyline eligibility remains unchanged.
+const isFreshLiveMoneyline = p => {
+  if (!p?.isLive) return true;
+
+  if (!p.moneylineLastUpdate) return false;
+
+  const age =
+    Date.now() - Date.parse(p.moneylineLastUpdate);
+
+  return Number.isFinite(age) &&
+    age >= 0 &&
+    age <= 60 * 1000;
+};
+
 /* ==========================================================
    SPORTSBOOK BRANDING AND FEEDBACK HELPERS
    ========================================================== */
@@ -2829,7 +2844,19 @@ function renderBookmakersWithHighlights(game) {
     let bestEdgeInGame = -999;
     let bestEdgeKey = null;
 
+  const gameStatusInfo =
+    formatGameStatus(game.commence_time, game);
+
+  const currentEspnStatus =
+    game.freshEspnStatus || game.espnStatus || {};
+
   (game.bookmakers || []).forEach(book => {
+    if (!isFreshLiveMoneyline({
+      moneylineLastUpdate: book.moneylineLastUpdate || null,
+      isLive: gameStatusInfo.isLive ||
+        currentEspnStatus.statusState === 'in'
+    })) return;
+
     (book.odds || []).forEach(outcome => {
       if (!pricesByTeam[outcome.name]) {
         pricesByTeam[outcome.name] = [];
@@ -2887,7 +2914,14 @@ pricesByTeam[outcome.name].push(outcome.price);
              (bRank === -1 ? 999 : bRank);
     })
     .map((book, index) => {
+    const isBookMoneylineFresh = isFreshLiveMoneyline({
+      moneylineLastUpdate: book.moneylineLastUpdate || null,
+      isLive: gameStatusInfo.isLive ||
+        currentEspnStatus.statusState === 'in'
+    });
+
     const isArbBook =
+      isBookMoneylineFresh &&
       !game.retainedMarket &&
       currentBestArb &&
       getGameKey(game) === currentBestArb.gameKey &&
@@ -2951,6 +2985,7 @@ pricesByTeam[outcome.name].push(outcome.price);
 
       const isArbSelection =
         hasMoneyline &&
+        isBookMoneylineFresh &&
         !game.retainedMarket &&
         currentBestArb &&
         getGameKey(game) === currentBestArb.gameKey &&
@@ -3084,6 +3119,7 @@ pricesByTeam[outcome.name].push(outcome.price);
 
       const isLaggingMarket =
         hasMoneyline &&
+        isBookMoneylineFresh &&
         !game.retainedMarket &&
         (marketCount >= 3) &&
         (marketRange >= dynamicGapThreshold * 1.5) &&
@@ -3091,6 +3127,7 @@ pricesByTeam[outcome.name].push(outcome.price);
 
       const isMarketOutlier =
         hasMoneyline &&
+        isBookMoneylineFresh &&
         !game.retainedMarket &&
         (marketCount >= 3) &&
         (o.price > consensusPrice) &&
@@ -3100,7 +3137,7 @@ pricesByTeam[outcome.name].push(outcome.price);
 
       let textStyle = 'color:#9ca3af;'; // default muted
 
-      if (hasMoneyline && !game.retainedMarket && o.edgePercent > 0) {
+      if (hasMoneyline && isBookMoneylineFresh && !game.retainedMarket && o.edgePercent > 0) {
         // ONLY true value pops
         textStyle = 'color:#00ff88; font-weight:700; text-shadow:0 0 6px rgba(0,255,136,0.4);';
       } else if (isArbSelection) {
@@ -3179,11 +3216,11 @@ pricesByTeam[outcome.name].push(outcome.price);
         : '';
 
       const bestBadge =
-        isBest && o.edgePercent > 0
+        isBookMoneylineFresh && isBest && o.edgePercent > 0
           ? '<span style="margin-left:8px; font-size:11px; padding:2px 6px; border-radius:999px; background:rgba(34,197,94,0.18); color:#22c55e; font-weight:600;">Best  Line</span>'
           : '';
 
-      const bestOpportunityBadge = isBestOpportunity && !isBest && o.edgePercent > 0
+      const bestOpportunityBadge = isBookMoneylineFresh && isBestOpportunity && !isBest && o.edgePercent > 0
         ? '<span style="font-size:11px; padding:2px 6px; border-radius:999px; background:rgba(34,197,94,0.18); color:#22c55e; font-weight:600;">Best Opportunity</span>'
         : '';
 
@@ -3215,17 +3252,17 @@ pricesByTeam[outcome.name].push(outcome.price);
                border-radius:999px;
                background:${isArbSelection
                  ? 'rgba(251,191,36,0.92)'
-                 : hasMoneyline && !game.retainedMarket && o.edgePercent > 0
+                 : hasMoneyline && isBookMoneylineFresh && !game.retainedMarket && o.edgePercent > 0
                  ? 'rgba(0,255,136,0.88)'
                  : 'rgba(255,255,255,0.08)'};
                color:${isArbSelection
                  ? '#111827'
-                 : hasMoneyline && !game.retainedMarket && o.edgePercent > 0
+                 : hasMoneyline && isBookMoneylineFresh && !game.retainedMarket && o.edgePercent > 0
                    ? '#04110a'
                    : '#cbd5e1'};
                text-decoration:none;
-               font-weight:${(hasMoneyline && !game.retainedMarket && o.edgePercent > 0) || isArbSelection ? '700' : '600'};
-               border:${(hasMoneyline && !game.retainedMarket && o.edgePercent > 0) || isArbSelection
+               font-weight:${(hasMoneyline && isBookMoneylineFresh && !game.retainedMarket && o.edgePercent > 0) || isArbSelection ? '700' : '600'};
+               border:${(hasMoneyline && isBookMoneylineFresh && !game.retainedMarket && o.edgePercent > 0) || isArbSelection
                  ? 'none'
                  : '1px solid rgba(255,255,255,0.08)'};
                display:inline-block;
@@ -3301,10 +3338,10 @@ pricesByTeam[outcome.name].push(outcome.price);
       const sign = o.price > 0 ? '+' : '';
       let rowStyle = 'display:flex; align-items:center; gap:12px; margin-top:4px; cursor:pointer;';
 
-      if (hasMoneyline && !game.retainedMarket && o.edgePercent > 2) {
+      if (hasMoneyline && isBookMoneylineFresh && !game.retainedMarket && o.edgePercent > 2) {
         // strong value
         rowStyle += ' padding:6px 8px; border-radius:10px; background:rgba(0,255,136,0.12); border:1px solid rgba(0,255,136,0.25); box-shadow:0 0 12px rgba(0,255,136,0.2);';
-      } else if (hasMoneyline && !game.retainedMarket && o.edgePercent > 0) {
+      } else if (hasMoneyline && isBookMoneylineFresh && !game.retainedMarket && o.edgePercent > 0) {
         // normal value
         rowStyle += ' padding:6px 8px; border-radius:10px; background:rgba(0,255,136,0.07); border:1px solid rgba(0,255,136,0.18);';
       }
@@ -3335,14 +3372,14 @@ pricesByTeam[outcome.name].push(outcome.price);
       >${o.name}:</span>
 
       <span style="display:block; font-size:11px; color:#9ca3af; margin-top:2px;">
-        ${!game.retainedMarket && o.edgePercent !== null
+        ${isBookMoneylineFresh && !game.retainedMarket && o.edgePercent !== null
           ? o.edgePercent >= 3
             ? `🔥 <strong>+${o.edgePercent}% Strong Value</strong>`
             : o.edgePercent > 0
               ? `<strong>+${o.edgePercent}% Value</strong>`
               : `No edge (${o.edgePercent}%)`
           : ''}
-${!game.retainedMarket && o.fairOdds !== null ? ` · Fair Odds: ${o.fairOdds > 0 ? '+' : ''}${o.fairOdds}` : ''}
+${isBookMoneylineFresh && !game.retainedMarket && o.fairOdds !== null ? ` · Fair Odds: ${o.fairOdds > 0 ? '+' : ''}${o.fairOdds}` : ''}
       </span>
 
       ${!game.retainedMarket && openingMovementAmount > 0 ? `
@@ -3498,10 +3535,12 @@ ${!game.retainedMarket && o.fairOdds !== null ? ` · Fair Odds: ${o.fairOdds > 0
       : '';
 
     const hasPositiveValue =
+      isBookMoneylineFresh &&
       !game.retainedMarket &&
       (book.odds || []).some(o => o.edgePercent > 0);
 
     const hasStrongValue =
+      isBookMoneylineFresh &&
       !game.retainedMarket &&
       (book.odds || []).some(o => o.edgePercent >= 3);
 
@@ -3596,6 +3635,11 @@ return `
   </span>
 `;
           })() : ''}
+          ${!game.retainedMarket &&
+            !isBookMoneylineFresh &&
+            displayOdds.some(o => Number.isFinite(o.price))
+              ? '<div style="color:#fbbf24; font-size:11px; margin-top:3px;">Moneyline analysis paused — awaiting fresh odds</div>'
+              : ''}
         </div>
         ${badge}
         ${oddsHtml}
@@ -9278,6 +9322,8 @@ const normalizeScoreboardTeamName = value => {
   .replace(/\bmiss valley\b/g, 'mississippi valley')
   .replace(/\bualbany\b/g, 'albany')
   .replace(/\bgrambling state tigers\b/g, 'grambling tigers')
+  .replace(/^umkc kangaroos$/g, 'kansas city roos')
+  .replace(/^gardner-webb bulldogs$/g, "gardner-webb runnin' bulldogs")
   .replace(/\bcal baptist\b/g, 'california baptist')
   .replace(/\btenn[- ]martin\b/g, 'ut martin')
   .replace(/\biupui\b/g, 'iu indianapolis')
@@ -9862,7 +9908,22 @@ try {
         Number(outcome.price) !== 0
       );
 
-      return hasAwayPrice && hasHomePrice;
+      const enabledMarkets =
+        window.scoEnabledMarketsBySport?.[sport] || ['h2h'];
+
+      const hasMoneylines = hasAwayPrice && hasHomePrice;
+
+      const hasSpreads =
+        enabledMarkets.includes('spreads') &&
+        Array.isArray(book.spreads) &&
+        book.spreads.length >= 2;
+
+      const hasTotals =
+        enabledMarkets.includes('totals') &&
+        Array.isArray(book.totals) &&
+        book.totals.length >= 2;
+
+      return hasMoneylines || hasSpreads || hasTotals;
     });
 
     return !isClosed && hasUsableOdds;
@@ -10166,7 +10227,6 @@ if (statTodayGames) {
 
      return;
             }
-
     let bestValuePick = null;
     let biggestEdge = 0;
     let closestValuePick = null;
@@ -10229,6 +10289,12 @@ if (statTodayGames) {
   const teamMarkets = {};
       
       (game.bookmakers || []).forEach(book => {
+        if (!isFreshLiveMoneyline({
+          moneylineLastUpdate: book.moneylineLastUpdate || null,
+          isLive: gameStatusInfo.isLive ||
+            currentEspnStatus.statusState === 'in'
+        })) return;
+
         (book.odds || []).forEach(outcome => {
           if (!isReasonableOdds(outcome.price)) return;
 
@@ -10242,7 +10308,8 @@ if (statTodayGames) {
             edgePercent: outcome.edgePercent,
             impliedProb: outcome.impliedProbability,
             moneylineLastUpdate: book.moneylineLastUpdate || null,
-            isLive: currentEspnStatus.statusState === 'in'
+            isLive: gameStatusInfo.isLive ||
+              currentEspnStatus.statusState === 'in'
           });
     });
   });
@@ -10343,22 +10410,6 @@ if (statTodayGames) {
           ? 'Click to view current value opportunities.'
           : '';
     }
-
-    // Require recent timestamps for live-game price comparisons.
-    // Shared by qualifying and fallback Bet Guidance comparisons.
-    // Do not alter the underlying Bet Guidance recommendation.
-    const isFreshLiveMoneyline = p => {
-      if (!p?.isLive) return true;
-
-      if (!p.moneylineLastUpdate) return false;
-
-      const age =
-        Date.now() - Date.parse(p.moneylineLastUpdate);
-
-      return Number.isFinite(age) &&
-        age >= 0 &&
-        age <= 60 * 1000;
-    };
 
     if (bestValuePick) {
       const sign = bestValuePick.price > 0 ? '+' : '';
@@ -12193,8 +12244,12 @@ const usableBookmakerCount = (game.bookmakers || []).filter(book => {
     Array.isArray(book.totals) &&
     book.totals.length >= 2;
 
+  const enabledMarkets =
+    window.scoEnabledMarketsBySport?.[sport] || ['h2h'];
+
   return hasMoneylines ||
-    (sport === 'basketball_ncaab' && (hasSpreads || hasTotals));
+    (enabledMarkets.includes('spreads') && hasSpreads) ||
+    (enabledMarkets.includes('totals') && hasTotals);
 }).length;
 
         const gameSignal = isFinalGame
