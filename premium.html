@@ -117,6 +117,21 @@ body {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+@media (min-width: 701px) {
+  .stat-remaining-today {
+    flex-basis: 40px !important;
+  }
+
+    .stat-card > div:has(> .stat-remaining-today) {
+    gap: 6px !important;
+  }
+
+  .stat-remaining-today + div + div {
+    position: relative;
+    left: 5px;
+  }
+}
+
 .stat-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 28px rgba(0,0,0,0.25);
@@ -534,6 +549,10 @@ button:active {
     align-items: flex-start;
   }
 
+  .dashboard-header > div:first-child {
+    flex-basis: auto !important;
+  }
+
   .container {
     width: 100%;
     max-width: 100%;
@@ -647,6 +666,22 @@ button:active {
 
   .header-actions {
     width: 100%;
+  }
+
+  .header-actions > div {
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+
+  .header-actions .sport-label {
+    flex: 0 0 42px;
+  }
+
+  .header-actions select {
+    flex: 1;
+    width: 0 !important;
+    min-width: 0;
   }
 
   .header-actions button {
@@ -2248,8 +2283,8 @@ window.addEventListener("DOMContentLoaded", checkAccess);
     <div class="stat-card">
       <div style="display:flex; justify-content:space-between; gap:12px;">
     
-        <div style="text-align:left; flex:1;">
-          <div class="stat-label">Today's Games</div>
+        <div class="stat-remaining-today" style="text-align:left; flex:1;">
+          <div class="stat-label">Games Remaining Today</div>
           <div id="stat-today-games" class="stat-value">--</div>
         </div>
 
