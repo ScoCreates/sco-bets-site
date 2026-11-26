@@ -2737,6 +2737,67 @@ const isFreshLiveMoneyline = p => {
     age <= 60 * 1000;
 };
 
+// Validate both sides of an arbitrage opportunity together.
+function isArbPairEligible(game, arb) {
+  if (!game || !arb || game.retainedMarket || game.cachedFinal) {
+    return false;
+  }
+
+  if (
+    getGameKey(game) !== arb.gameKey ||
+    !arb.book1 ||
+    !arb.book2 ||
+    arb.book1 === arb.book2 ||
+    arb.team1 === arb.team2
+  ) {
+    return false;
+  }
+
+  const gameStatusInfo =
+    formatGameStatus(game.commence_time, game);
+
+  const currentEspnStatus =
+    game.freshEspnStatus || game.espnStatus || {};
+
+  if (
+    game.status === 'final' ||
+    currentEspnStatus.completed === true ||
+    currentEspnStatus.statusState === 'post' ||
+    gameStatusInfo.status === 'final' ||
+    gameStatusInfo.status === 'closed' ||
+    gameStatusInfo.isClosed
+  ) {
+    return false;
+  }
+
+  const isLive =
+    gameStatusInfo.isLive ||
+    currentEspnStatus.statusState === 'in';
+
+  const hasEligiblePrice = (bookName, teamName, price) =>
+    Number.isFinite(price) &&
+    Math.abs(price) >= 100 &&
+    isReasonableOdds(price) &&
+    (game.bookmakers || []).some(book =>
+      book.title === bookName &&
+      isFreshLiveMoneyline({
+        moneylineLastUpdate: book.moneylineLastUpdate || null,
+        isLive
+      }) &&
+      (book.odds || []).some(outcome =>
+        outcome.name === teamName &&
+        outcome.price === price
+      )
+    );
+
+  return (
+    hasEligiblePrice(arb.book1, arb.team1, arb.price1) &&
+    hasEligiblePrice(arb.book2, arb.team2, arb.price2) &&
+    (1 / americanToDecimal(arb.price1)) +
+      (1 / americanToDecimal(arb.price2)) < 1
+  );
+}
+
 /* ==========================================================
    SPORTSBOOK BRANDING AND FEEDBACK HELPERS
    ========================================================== */
@@ -2897,6 +2958,9 @@ pricesByTeam[outcome.name].push(outcome.price);
     }
   });
 
+    const isCurrentArbPairEligible =
+    isArbPairEligible(game, currentBestArb);
+
   return [...(game.bookmakers || [])]
     .sort((a, b) => {
       const preferredOrder = [
@@ -2921,10 +2985,7 @@ pricesByTeam[outcome.name].push(outcome.price);
     });
 
     const isArbBook =
-      isBookMoneylineFresh &&
-      !game.retainedMarket &&
-      currentBestArb &&
-      getGameKey(game) === currentBestArb.gameKey &&
+      isCurrentArbPairEligible &&
       (book.title === currentBestArb.book1 || book.title === currentBestArb.book2);
 
     const enabledRowMarkets =
@@ -2985,10 +3046,7 @@ pricesByTeam[outcome.name].push(outcome.price);
 
       const isArbSelection =
         hasMoneyline &&
-        isBookMoneylineFresh &&
-        !game.retainedMarket &&
-        currentBestArb &&
-        getGameKey(game) === currentBestArb.gameKey &&
+        isCurrentArbPairEligible &&
         (
           (o.name === currentBestArb.team1 && book.title === currentBestArb.book1 && o.price === currentBestArb.price1) ||
           (o.name === currentBestArb.team2 && book.title === currentBestArb.book2 && o.price === currentBestArb.price2)
@@ -3823,8 +3881,13 @@ function fillFromBestArb() {
   document.getElementById('odds2').value = '';
   document.getElementById('arb-result').innerHTML = '';
 
-  if (!currentBestArb) {
-    result.innerHTML = '<span style="color:#ff8080;">No live arbitrage opportunity is available to auto-fill right now.</span>';
+  if (
+    !currentBestArb ||
+    !latestPollingGames.some(game =>
+      isArbPairEligible(game, currentBestArb)
+    )
+  ) {
+    result.innerHTML = '<span style="color:#ff8080;">This arbitrage opportunity is no longer available. Please wait for updated odds.</span>';
     return;
   }
 
@@ -3892,8 +3955,26 @@ function fillFromBestArb() {
         document.getElementById('odds2').value = '';
         document.getElementById('arb-result').innerHTML = '';
 
-        if (!selectedArb) {
-          result.innerHTML = '<span style="color:#ff8080;">This arbitrage opportunity is no longer available.</span>';
+        if (
+          !selectedArb ||
+          !latestPollingGames.some(game =>
+            isArbPairEligible(game, selectedArb)
+          )
+        ) {
+          result.innerHTML = '<span style="color:#ff8080;">This arbitrage opportunity is no longer available. Please wait for updated odds.</span>';
+
+          const calculatorCard = document.querySelector('.arb-card');
+
+          if (calculatorCard) {
+            const yOffset = -90;
+            const y = calculatorCard.getBoundingClientRect().top + window.pageYOffset + yOffset;
+
+            window.scrollTo({
+              top: y,
+              behavior: 'smooth'
+            });
+          }
+
           return;
         }
 
@@ -9321,7 +9402,7 @@ const normalizeScoreboardTeamName = value => {
   .replace(/\bumass\b/g, 'massachusetts')
   .replace(/\bmiss valley\b/g, 'mississippi valley')
   .replace(/\bualbany\b/g, 'albany')
-  .replace(/\bgrambling state tigers\b/g, 'grambling tigers')
+  .replace(/\bgrambling (?:st|state) tigers\b/g, 'grambling tigers')
   .replace(/^umkc kangaroos$/g, 'kansas city roos')
   .replace(/^gardner-webb bulldogs$/g, "gardner-webb runnin' bulldogs")
   .replace(/\bcal baptist\b/g, 'california baptist')
@@ -11011,7 +11092,7 @@ const isGameClosedForArb =
         // Exclude stale live moneylines from arbitrage comparisons.
         if (!isFreshLiveMoneyline({
           moneylineLastUpdate: book.moneylineLastUpdate || null,
-          isLive: currentEspnStatus.statusState === 'in'
+          isLive: gameStatusInfo.isLive || currentEspnStatus.statusState === 'in'
         })) return;
 
         (book.odds || []).forEach(outcome => {
@@ -11076,7 +11157,11 @@ const isNonActionableForArb =
   arbStatusText.includes('cancelled') ||
   arbStatusText.includes('suspended');
 
-if (implied < 1 && !isNonActionableForArb) {
+if (
+  implied < 1 &&
+  !isNonActionableForArb &&
+  teamPrices[team1].book !== teamPrices[team2].book
+) {
         const edge = (1 - implied) * 100;
 
      const getArbTeamShortName = teamName => {
@@ -11125,8 +11210,6 @@ if (implied < 1 && !isNonActionableForArb) {
         }
       }
     });
-
-     window.activeArbs = activeArbs;
 
      window.scrollToGame = function(gameCardId, sportsbookName = null, arbBooks = []) {
 
@@ -11430,6 +11513,18 @@ if (implied < 1 && !isNonActionableForArb) {
       }
     const arbPick = document.getElementById('arb-pick');
     const arbDetails = document.getElementById('arb-details');
+
+    // Revalidate every arbitrage pair before displaying opportunities.
+    activeArbs = activeArbs.filter(arb =>
+      games.some(game => isArbPairEligible(game, arb))
+    );
+
+    activeArbs.sort((a, b) => b.edge - a.edge);
+
+    bestArb = activeArbs[0] || null;
+    bestArbEdge = bestArb ? bestArb.edge : 0;
+
+    window.activeArbs = activeArbs;
 
     const viewAllArbitrageButton =
       document.getElementById('sco-view-all-arbitrage');
@@ -12209,9 +12304,7 @@ if (aIsFinal && bIsFinal) {
         const isFinalGame = game.status === 'final';
 
         const hasArbitrage =
-                         !isFinalGame &&
-                        currentBestArb &&
-                       getGameKey(game) === currentBestArb.gameKey;
+          isArbPairEligible(game, currentBestArb);
 
         const bookmakerCount = (game.bookmakers || []).length;
 const hasLimitedMarketCoverage = (game.bookmakers || []).filter(book => (book.odds || []).length >= 2).length < 2;
